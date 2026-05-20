@@ -15,7 +15,7 @@ import EditAlbumModal from '../components/EditAlbumModal';
 // ============================================================
 
 type ViewMode = 'grid' | 'list';
-
+type DashboardTab = 'albums' | 'galleries' | 'comments';
 
 // ============================================================
 // UTILITAIRES
@@ -191,6 +191,8 @@ const ShareModal = ({ album, onClose }: { album: any; onClose: () => void }) => 
 
 const Dashboard = () => {
   const [albums, setAlbums]           = useState<any[]>([]);
+  const [dashTab, setDashTab]     = useState<DashboardTab>('albums');
+  const [comments, setComments]   = useState<any[]>([]);
   const [editingAlbum, setEditingAlbum] = useState<any | null>(null);
   const [sharingAlbum, setSharingAlbum] = useState<any | null>(null);
   const [viewMode, setViewMode]       = useState<ViewMode>('grid');
@@ -199,6 +201,33 @@ const Dashboard = () => {
   const navigate          = useNavigate();
   const location          = useLocation();
   const isGalleries       = location.pathname === '/galleries';
+
+  // ── COMMENTAIRES ──
+
+
+    useEffect(() => {
+      if (dashTab === 'comments') fetchComments();
+    }, [dashTab]);
+
+    const fetchComments = async () => {
+      try {
+        const res = await api.get('/comments/my');
+        setComments(res.data);
+      } catch (err) { console.error(err); }
+    };
+
+    const markRead = async (id: string) => {
+      await api.patch(`/comments/${id}/read`);
+      setComments(prev => prev.map(c => c._id === id ? { ...c, isRead: true } : c));
+    };
+
+    const deleteComment = async (id: string) => {
+      if (!window.confirm('Supprimer ce commentaire ?')) return;
+      await api.delete(`/comments/${id}`);
+      setComments(prev => prev.filter(c => c._id !== id));
+    };
+
+    const unreadCount = comments.filter(c => !c.isRead).length;
 
 
   // ── Effets ────────────────────────────────────────────────
@@ -337,6 +366,68 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* ── VUE COMMENTAIRES ── */}
+{dashTab === 'comments' && (
+  <div className="space-y-4">
+    <h2 className="text-xl font-bold">💬 Commentaires reçus</h2>
+    {comments.length === 0 && (
+      <p className="text-gray-400 text-sm bg-gray-800/50 rounded-xl p-6 text-center">
+        Aucun commentaire pour le moment.
+      </p>
+    )}
+    {comments.map(c => (
+      <div key={c._id}
+        className={`p-4 rounded-xl border transition ${
+          c.isRead
+            ? 'border-white/10 bg-gray-800/40'
+            : 'border-blue-500/50 bg-blue-900/20'
+        }`}
+      >
+        <div className="flex justify-between items-start gap-4">
+          <div>
+            <p className="font-semibold text-sm">
+              {c.authorName}
+              {c.authorEmail && (
+                <a href={`mailto:${c.authorEmail}`}
+                   className="text-gray-400 ml-2 text-xs hover:text-blue-400">
+                  {c.authorEmail}
+                </a>
+              )}
+              {!c.isRead && (
+                <span className="ml-2 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  Nouveau
+                </span>
+              )}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              📷 <span className="text-gray-300">{c.photoId?.title || 'Photo supprimée'}</span>
+              {' · '}
+              {new Date(c.createdAt).toLocaleDateString('fr-FR', {
+                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+              })}
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            {!c.isRead && (
+              <button onClick={() => markRead(c._id)}
+                className="text-xs text-blue-400 hover:text-blue-300 transition">
+                ✓ Lu
+              </button>
+            )}
+            <button onClick={() => deleteComment(c._id)}
+              className="text-xs text-red-400 hover:text-red-300 transition">
+              🗑
+            </button>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-gray-200 bg-black/20 p-3 rounded-lg leading-relaxed">
+          {c.message}
+        </p>
+      </div>
+    ))}
+  </div>
+)}
 
       {/* Modale partage */}
       {sharingAlbum && (

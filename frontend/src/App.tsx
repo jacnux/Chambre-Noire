@@ -27,6 +27,8 @@ import PortfolioPage    from './pages/PortfolioPage';
 import UserPageView     from './pages/UserPageView';
 import UserPageEditor   from './pages/UserPageEditor';
 import UserPagesManager from './pages/UserPagesManager';
+import CommentsPage from './pages/CommentsPage';
+
 
 // ── Dashboard ────────────────────────────────────────────────
 import Dashboard      from './pages/Dashboard';
@@ -116,6 +118,7 @@ const MainApp: React.FC = () => {
         <Route path="/dashboard"        element={<Dashboard />} />
         <Route path="/dashboard/about"  element={<DashboardAbout />} />
         <Route path="/dashboard/help"   element={<DashboardHelp />} />
+        <Route path="/dashboard/comments" element={<CommentsPage />} />  {/* ← ICI */}
         <Route path="/edit-profile"     element={<EditProfile />} />
         <Route path="/tools"            element={<Tools />} />
         <Route path="/manage-blog"      element={<BlogManager />} />

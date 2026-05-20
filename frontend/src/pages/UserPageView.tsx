@@ -2,18 +2,142 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import Lightbox from '../components/Lightbox';
-import MarkdownRenderer from '../components/MarkdownRenderer'; // <--- 1. IMPORT AJOUTÉ
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
+// ============================================================
+// SOUS-COMPOSANT — Formulaire Commentaire Photo
+// ============================================================
+const CommentForm = ({
+  photoId,
+  photoTitle,
+  onClose,
+}: {
+  photoId: string;
+  photoTitle: string;
+  onClose: () => void;
+}) => {
+  const [name,      setName]      = useState('');
+  const [email,     setEmail]     = useState('');
+  const [message,   setMessage]   = useState('');
+  const [status,    setStatus]    = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
+  const [ownerName, setOwnerName] = useState('le photographe');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('sending');
+    try {
+      const res = await api.post(`/comments/${photoId}`, {
+        authorName: name,
+        authorEmail: email,
+        message,
+      });
+      // L'API retourne maintenant le nom du propriétaire
+      if (res.data.ownerName) setOwnerName(res.data.ownerName);
+      setStatus('ok');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-md w-full shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="text-lg font-bold text-white">💬 Laisser un commentaire</h3>
+            <p className="text-sm text-gray-400 italic mt-0.5">{photoTitle}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white text-2xl leading-none transition ml-4"
+          >
+            ✕
+          </button>
+        </div>
+
+        {status === 'ok' ? (
+          <div className="p-4 bg-green-900/30 border border-green-500/30 rounded-lg text-green-400 text-sm text-center">
+            ✅ Merci ! Votre commentaire a bien été envoyé à <strong>{ownerName}</strong>.
+            <br />
+            <button onClick={onClose} className="mt-3 text-xs underline text-green-300">
+              Fermer
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Votre nom *"
+                value={name}
+                required
+                onChange={e => setName(e.target.value)}
+                className="flex-1 bg-black/40 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm"
+              />
+              <input
+                type="email"
+                placeholder="Email (optionnel)"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="flex-1 bg-black/40 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm"
+              />
+            </div>
+            <textarea
+              placeholder="Votre commentaire *"
+              value={message}
+              required
+              rows={4}
+              onChange={e => setMessage(e.target.value)}
+              className="w-full bg-black/40 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm resize-none"
+            />
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={status === 'sending'}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm px-5 py-2 rounded-lg transition font-medium"
+              >
+                {status === 'sending' ? 'Envoi...' : '💬 Envoyer'}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-sm text-gray-400 hover:text-white transition"
+              >
+                Annuler
+              </button>
+              {status === 'error' && (
+                <p className="text-red-400 text-xs">❌ Erreur, réessayez.</p>
+              )}
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
+// COMPOSANT PRINCIPAL
+// ============================================================
 const UserPageView = () => {
   const { username, slug } = useParams<{ username: string; slug: string }>();
-  const [page, setPage] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  // Pour signalement
+  const [page,          setPage]          = useState<any>(null);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState('');
+  const [lightboxData,  setLightboxData]  = useState<{ photos: any[]; index: number } | null>(null);
+
+  // Signalement
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState('');
-  //   fin
-  const [lightboxData, setLightboxData] = useState<{ photos: any[], index: number } | null>(null);
+  const [reportReason,    setReportReason]    = useState('');
+
+  // Commentaire
+  const [commentTarget, setCommentTarget] = useState<{ photoId: string; photoTitle: string } | null>(null);
 
   useEffect(() => {
     if (!slug || !username) {
@@ -21,161 +145,140 @@ const UserPageView = () => {
       setError("Paramètres d'URL manquants.");
       return;
     }
-
     const fetchPage = async () => {
       try {
         setLoading(true);
-        const cleanSlug = slug.trim();
-        const res = await api.get(`/user-pages/${username}/${cleanSlug}`);
+        const res = await api.get(`/user-pages/${username}/${slug.trim()}`);
         setPage(res.data);
       } catch (err: any) {
-        console.error("[Frontend] Erreur API:", err);
         setError(err.response?.data?.error || 'Impossible de charger la page');
       } finally {
         setLoading(false);
       }
     };
-
     fetchPage();
   }, [username, slug]);
 
-  // Fonctions Lightbox
-  const openLightbox = (photos: any[], index: number) => setLightboxData({ photos, index });
+  const openLightbox  = (photos: any[], index: number) => setLightboxData({ photos, index });
   const closeLightbox = () => setLightboxData(null);
 
-  if (loading) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center text-xl animate-pulse">Chargement...</div>;
-  if (error) return <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center text-red-400 p-8"><p className="mb-4">{error}</p><Link to={`/portfolio/${username}`} className="text-yellow-400 underline">Retour</Link></div>;
+  const handleSendReport = async () => {
+    if (!reportReason.trim()) { alert("Merci d'indiquer la raison."); return; }
+    try {
+      await api.post('/reports', { type: 'Signalement', targetId: page._id, reason: reportReason });
+      alert('Signalement envoyé.');
+      setShowReportModal(false);
+      setReportReason('');
+    } catch {
+      alert('Erreur');
+    }
+  };
+
+  if (loading) return (
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+      Chargement...
+    </div>
+  );
+  if (error) return (
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center gap-4">
+      <p>{error}</p>
+      <Link to={`/portfolio/${username}`} className="text-blue-400 underline">Retour</Link>
+    </div>
+  );
   if (!page) return null;
 
   const sections = page.sections || [];
 
-  // pour lesignalement
-
-  const handleSendReport = async () => {
-        if (!reportReason.trim()) {
-            alert("Merci d'indiquer la raison.");
-            return;
+  // Helper — rendu d'une photo avec bouton 💬 Commenter au hover
+  const renderPhoto = (photo: any, photos: any[], i: number) => (
+    <div key={photo._id || i} className="relative group">
+      <img
+        src={`/uploads/${photo.filename}`}
+        alt={photo.title || ''}
+        className="w-full rounded-lg cursor-pointer object-cover hover:opacity-90 transition"
+        onClick={() => openLightbox(photos, i)}
+      />
+      <button
+        onClick={() =>
+          setCommentTarget({ photoId: photo._id, photoTitle: photo.title || 'Photo' })
         }
-        try {
-            await api.post('/reports', {
-                type: 'Signalement', // Pour le nouveau système
-                targetId: page._id,
-                reason: reportReason
-            });
-            alert("Signalement envoyé.");
-            setShowReportModal(false);
-            setReportReason('');
-        } catch (err) {
-            alert("Erreur");
-        }
-    };
+        className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition bg-blue-600/80 hover:bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded-full shadow-lg backdrop-blur"
+        title="Laisser un commentaire"
+      >
+        💬 Commenter
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <div className="py-12 border-b border-gray-800 text-center">
-        <h1 className="text-4xl font-bold text-yellow-400">{page.title || 'Page'}</h1>
-        <Link to={`/portfolio/${username}`} className="text-sm text-gray-500 hover:text-white mt-2 inline-block">
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-white mb-2">{page.title || 'Page'}</h1>
+        <Link
+          to={`/portfolio/${username}`}
+          className="text-sm text-gray-400 hover:text-white mb-6 inline-block transition"
+        >
           ← Retour au portfolio de {username}
         </Link>
-      </div>
 
-      <div className="max-w-6xl mx-auto py-10 px-4">
         {sections.length === 0 ? (
-          <p className="text-center text-gray-500 italic">Cette page est vide.</p>
+          <p className="text-gray-500 text-center py-16">Cette page est vide.</p>
         ) : (
           sections.map((section: any, index: number) => {
             if (!section) return null;
 
-            // --- 1. BLOC TEXTE SIMPLE (MARKDOWN ACTIVÉ) ---
-          {/*   if (section.type === 'text') {
+            if (section.type === 'text') {
               return (
-                <div key={index} className="mb-12 max-w-none">
-                  <div className="prose prose-invert prose-lg text-white-500 bg-gray-800/30 p-6 rounded-xl border border-gray-700">
-                
-                    <MarkdownRenderer className="prose">{section.content || ''}</MarkdownRenderer>
-                  </div>
+                <div key={index} className="mb-8">
+                  <MarkdownRenderer>{section.content || ''}</MarkdownRenderer>
                 </div>
               );
-            }  */}
-
-            if (section.type === 'text') {
-                  return (
-                    <div key={index} className="mb-12 max-w-none">
-                      <div className="bg-gray-800/30 p-6 rounded-xl border border-gray-700">
-                        <MarkdownRenderer className="prose prose-invert prose-lg max-w-none
-                          prose-headings:text-white
-                          prose-p:text-white
-                          prose-li:text-white
-                          prose-strong:text-white
-                          prose-a:text-yellow-400 hover:prose-a:text-yellow-300">
-                          {section.content || ''}
-                        </MarkdownRenderer>
-                      </div>
-                    </div>
-                  );
-                }
-            // --- 2. BLOC GALERIE SIMPLE ---
-            if (section.type === 'gallery') {
-               if (!section.albumIds || section.albumIds.length === 0) return null;
-               return (
-                <div key={index} className="mb-12">
-                   {section.albumIds.map((album: any) => {
-                     if (!album) return null;
-                     return (
-                        <div key={album._id || Math.random()} className="my-6">
-                           {album.title && <h3 className="text-xl font-bold mb-4 text-gray-300">{album.title}</h3>}
-                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                             {album.photos && album.photos.map((photo: any, i: number) => (
-                               <img
-                                 key={photo._id || i}
-                                 src={`/uploads/${photo.filename}`}
-                                 className="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80"
-                                 alt=""
-                                 onClick={() => openLightbox(album.photos, i)}
-                               />
-                             ))}
-                           </div>
-                        </div>
-                     );
-                   })}
-                </div>
-               );
             }
 
-            // --- 3. BLOC MIXTE (MARKDOWN ACTIVÉ) ---
+            if (section.type === 'gallery') {
+              if (!section.albumIds || section.albumIds.length === 0) return null;
+              return (
+                <div key={index} className="mb-8">
+                  {section.albumIds.map((album: any) => {
+                    if (!album) return null;
+                    return (
+                      <div key={album._id} className="mb-6">
+                        {album.title && (
+                          <h2 className="text-lg font-semibold text-gray-300 mb-3">{album.title}</h2>
+                        )}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {album.photos && album.photos.map((photo: any, i: number) =>
+                            renderPhoto(photo, album.photos, i)
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
             if (section.type === 'split_text_gallery') {
               return (
-                <div key={index} className="mb-12 flex flex-col md:flex-row gap-8 items-start border-b border-gray-800 pb-12">
-
-                  {/* Colonne Texte (Markdown activé) */}
-                  <div className="w-full md:w-[30%] bg-gray-800/50 p-6 rounded self-stretch overflow-hidden">
-                     <div className="prose prose-invert prose-sm max-w-none">
-                        <MarkdownRenderer className="prose">{section.content || ''}</MarkdownRenderer>
-                     </div>
+                <div key={index} className="grid md:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <MarkdownRenderer>{section.content || ''}</MarkdownRenderer>
                   </div>
-
-                  {/* Colonne Galerie */}
-                  <div className="w-full md:w-[70%]">
-                     {section.albumIds && section.albumIds.length > 0 ? (
-                        section.albumIds.map((album: any) => {
-                           if(!album) return null;
-                           return (
-                              <div key={album._id || Math.random()} className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                 {album.photos && album.photos.map((photo: any, i: number) => (
-                                    <img
-                                      key={photo._id || i}
-                                      src={`/uploads/${photo.filename}`}
-                                      className="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80"
-                                      alt=""
-                                      onClick={() => openLightbox(album.photos, i)}
-                                    />
-                                 ))}
-                              </div>
-                           );
-                        })
-                     ) : (
-                       <p className="text-gray-500 text-center border border-dashed p-4 rounded">Aucun album.</p>
-                     )}
+                  <div>
+                    {section.albumIds && section.albumIds.length > 0 ? (
+                      section.albumIds.map((album: any) => {
+                        if (!album) return null;
+                        return (
+                          <div key={album._id} className="grid grid-cols-2 gap-2">
+                            {album.photos && album.photos.map((photo: any, i: number) =>
+                              renderPhoto(photo, album.photos, i)
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-gray-500 text-sm">Aucun album.</p>
+                    )}
                   </div>
                 </div>
               );
@@ -186,6 +289,7 @@ const UserPageView = () => {
         )}
       </div>
 
+      {/* Lightbox */}
       {lightboxData && (
         <Lightbox
           photos={lightboxData.photos}
@@ -193,6 +297,16 @@ const UserPageView = () => {
           onClose={closeLightbox}
         />
       )}
+
+      {/* Modale Commentaire */}
+      {commentTarget && (
+        <CommentForm
+          photoId={commentTarget.photoId}
+          photoTitle={commentTarget.photoTitle}
+          onClose={() => setCommentTarget(null)}
+        />
+      )}
+
       {/* Bouton Signalement Flottant */}
       <button
         onClick={() => setShowReportModal(true)}
@@ -202,23 +316,37 @@ const UserPageView = () => {
         🚩
       </button>
 
-      {/* Modale de Signalement */}
+      {/* Modale Signalement */}
       {showReportModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4">
-          <div className="bg-gray-900 border border-red-500/30 rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-red-400 mb-4">Signaler un contenu</h3>
-            <p className="text-sm text-gray-400 mb-4">
-                Page : <span className="text-white font-bold">{page?.title}</span>
-            </p>
+        <div
+          className="fixed inset-0 z-[70] bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setShowReportModal(false)}
+        >
+          <div
+            className="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-sm w-full"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-white font-bold mb-1">Signaler un contenu</h3>
+            <p className="text-sm text-gray-400 mb-4">Page : {page?.title}</p>
             <textarea
               value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
+              onChange={e => setReportReason(e.target.value)}
               placeholder="Raison du signalement (obligatoire)..."
               className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-24 mb-4"
             />
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowReportModal(false)} className="px-4 py-2 text-sm text-gray-400">Annuler</button>
-              <button onClick={handleSendReport} className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm font-bold">Envoyer</button>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="px-4 py-2 text-sm text-gray-400"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSendReport}
+                className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg transition"
+              >
+                Envoyer
+              </button>
             </div>
           </div>
         </div>

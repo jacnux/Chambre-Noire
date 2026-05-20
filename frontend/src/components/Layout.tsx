@@ -64,6 +64,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                               🖼️ Galeries
                             </Link>
 
+                            {/* --- BOUTON COMMENTAIRES --- */}
+                               <Link
+                                 to="/dashboard/comments"
+                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
+                                   location.pathname === '/dashboard/comments'
+                                     ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'
+                                     : theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-600'
+                                 }`}
+                               >
+                                 💬 Commentaires
+                               </Link>
+                          
                             {/* --- BOUTON MON BLOG (REMIIS EN PLACE) --- */}
                             <Link
                               to="/manage-blog"

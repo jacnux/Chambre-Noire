@@ -38,6 +38,103 @@ const getBlogUrl = (userName: string): string => {
 
 
 // ============================================================
+// SOUS-COMPOSANT — Formulaire Commentaire Photo
+// ============================================================
+
+const CommentForm = ({ photoId }: { photoId: string }) => {
+  const [name,    setName]    = useState('');
+  const [email,   setEmail]   = useState('');
+  const [message, setMessage] = useState('');
+  const [status,  setStatus]  = useState<'idle'|'sending'|'ok'|'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('sending');
+    try {
+      await api.post(`/comments/${photoId}`, {
+        authorName: name, authorEmail: email, message
+      });
+      setStatus('ok');
+      setName(''); setEmail(''); setMessage('');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  if (status === 'ok') return (
+    <div className="mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg text-green-400 text-sm text-center">
+      ✅ Merci pour votre commentaire !
+    </div>
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-6 border-t border-white/10 pt-5 space-y-3">
+      <h4 className="text-sm font-semibold text-gray-300">💬 Laisser un commentaire</h4>
+      <div className="flex gap-3">
+        <input type="text" placeholder="Votre nom *" value={name}
+          onChange={e => setName(e.target.value)} required
+          className="flex-1 bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm" />
+        <input type="email" placeholder="Email (optionnel)" value={email}
+          onChange={e => setEmail(e.target.value)}
+          className="flex-1 bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm" />
+      </div>
+      <textarea placeholder="Votre message *" value={message}
+        onChange={e => setMessage(e.target.value)} required rows={3}
+        className="w-full bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm resize-none" />
+      <div className="flex items-center gap-3">
+        <button type="submit" disabled={status === 'sending'}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm px-5 py-2 rounded-lg transition">
+          {status === 'sending' ? 'Envoi...' : 'Envoyer'}
+        </button>
+        {status === 'error' && <p className="text-red-400 text-xs">❌ Erreur, réessayez.</p>}
+      </div>
+    </form>
+  );
+};
+
+
+// ============================================================
+// SOUS-COMPOSANT — Modale Photo avec Commentaire
+// ============================================================
+
+const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => {
+  if (!photo) return null;
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
+      <div className="bg-gray-900 border border-white/10 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+           onClick={e => e.stopPropagation()}>
+        <div className="relative">
+          <img src={`/uploads/${photo.filename}`} alt={photo.title}
+            className="w-full max-h-[50vh] object-contain rounded-t-xl bg-black" />
+          <button onClick={onClose}
+            className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black transition text-lg">
+            ✕
+          </button>
+        </div>
+        <div className="p-6">
+          <h3 className="text-xl font-bold text-white">{photo.title}</h3>
+          {photo.description && (
+            <p className="text-gray-400 text-sm mt-1">{photo.description}</p>
+          )}
+          {photo.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {photo.tags.map((tag: string) => (
+                <span key={tag} className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* ← Formulaire commentaire intégré ici */}
+          <CommentForm photoId={photo._id} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// ============================================================
 // SOUS-COMPOSANT — Hero Header
 // ============================================================
 
@@ -47,15 +144,12 @@ const PortfolioHero = ({ user, authUser, username }: any) => {
 
   return (
     <div className="relative w-full bg-gray-800 overflow-hidden">
-      {/* Bannière */}
       <div className="h-64 md:h-80 w-full">
         {user.bannerImage
           ? <img src={`/uploads/${user.bannerImage}`} className="w-full h-full object-cover opacity-60" alt="Bannière" />
           : <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black" />
         }
       </div>
-
-      {/* Barre avatar + nom */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-black/60 backdrop-blur-sm flex items-center px-6 md:px-12">
         <div className="absolute -bottom-2 left-8 md:left-12">
           {user.avatar
@@ -88,11 +182,11 @@ const TAB_STYLE_DEFAULT = 'text-gray-500 hover:text-white';
 const TAB_BASE          = 'px-6 py-3 text-sm font-bold rounded-t-lg transition';
 
 interface TabBarProps {
-  activeTab:   ActiveTab;
+  activeTab:    ActiveTab;
   setActiveTab: (t: ActiveTab) => void;
-  userPages:   any[];
-  username:    string;
-  blogUrl:     string;
+  userPages:    any[];
+  username:     string;
+  blogUrl:      string;
 }
 
 const TabBar = ({ activeTab, setActiveTab, userPages, username, blogUrl }: TabBarProps) => (
@@ -111,10 +205,10 @@ const TabBar = ({ activeTab, setActiveTab, userPages, username, blogUrl }: TabBa
 
 
 // ============================================================
-// SOUS-COMPOSANT — Onglet Galeries
+// SOUS-COMPOSANT — Onglet Galeries (avec clic photo → modale)
 // ============================================================
 
-const TabProjects = ({ albums, portfolioIntro }: any) => (
+const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
   <div>
     <p className="text-center text-gray-400 mb-10 text-lg italic">
       {portfolioIntro || 'Découvrez mes projets.'}
@@ -133,7 +227,6 @@ const TabProjects = ({ albums, portfolioIntro }: any) => (
                   ? <img src={`/uploads/${album.coverImage}`} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" alt={album.title} />
                   : <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl">📷</div>
                 }
-                {/* Overlay au hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 flex items-end p-6">
                   <div>
                     <h3 className="text-2xl font-bold text-white">{album.title}</h3>
@@ -141,7 +234,6 @@ const TabProjects = ({ albums, portfolioIntro }: any) => (
                   </div>
                 </div>
               </div>
-              {/* Titre par défaut (masqué au hover) */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 group-hover:opacity-0 transition">
                 <h3 className="text-lg font-bold text-white drop-shadow-lg">{album.title}</h3>
               </div>
@@ -155,15 +247,15 @@ const TabProjects = ({ albums, portfolioIntro }: any) => (
 
 
 // ============================================================
-// SOUS-COMPOSANT — Onglet À propos / Actualités (partagé)
+// SOUS-COMPOSANT — Onglet À propos / Actualités
 // ============================================================
 
 interface ContentTabProps {
-  title:       string;
-  content:     string | undefined;
-  emptyText:   string;
-  ctaLabel:    string;
-  onCtaClick:  () => void;
+  title:      string;
+  content:    string | undefined;
+  emptyText:  string;
+  ctaLabel:   string;
+  onCtaClick: () => void;
 }
 
 const ContentTab = ({ title, content, emptyText, ctaLabel, onCtaClick }: ContentTabProps) => (
@@ -189,19 +281,18 @@ const ContentTab = ({ title, content, emptyText, ctaLabel, onCtaClick }: Content
 // ============================================================
 
 interface ContactModalProps {
-  userName:      string;
-  form:          ContactForm;
-  status:        ContactStatus;
-  onChange:      (field: keyof ContactForm, value: string) => void;
-  onSend:        () => void;
-  onClose:       () => void;
+  userName:  string;
+  form:      ContactForm;
+  status:    ContactStatus;
+  onChange:  (field: keyof ContactForm, value: string) => void;
+  onSend:    () => void;
+  onClose:   () => void;
 }
 
 const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: ContactModalProps) => (
   <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4">
     <div className="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-md w-full">
       <h3 className="text-xl font-bold text-yellow-400 mb-4">Contacter {userName}</h3>
-
       {status === 'sent' ? (
         <div className="text-center py-8">
           <p className="text-green-400 text-lg font-bold">✓ Message envoyé !</p>
@@ -209,8 +300,8 @@ const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: Con
         </div>
       ) : (
         <>
-          <input type="text"  placeholder="Votre nom *"   value={form.name}    onChange={e => onChange('name',    e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
-          <input type="email" placeholder="Votre email *" value={form.email}   onChange={e => onChange('email',   e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
+          <input type="text"  placeholder="Votre nom *"     value={form.name}    onChange={e => onChange('name',    e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
+          <input type="email" placeholder="Votre email *"   value={form.email}   onChange={e => onChange('email',   e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
           <textarea           placeholder="Votre message *" value={form.message} onChange={e => onChange('message', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-28 mb-4" />
           {status === 'error' && <p className="text-red-400 text-sm mb-3">Erreur lors de l'envoi. Réessayez.</p>}
           <div className="flex gap-2 justify-end">
@@ -235,14 +326,18 @@ const PortfolioPage = () => {
   const { username }       = useParams<{ username: string }>();
   const { user: authUser } = useAuth();
 
-  const [user, setUser]         = useState<any>(null);
-  const [albums, setAlbums]     = useState<any[]>([]);
+  const [user, setUser]           = useState<any>(null);
+  const [albums, setAlbums]       = useState<any[]>([]);
   const [userPages, setUserPages] = useState<any[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>('projects');
 
-  const [showContact, setShowContact]   = useState(false);
-  const [contactForm, setContactForm]   = useState<ContactForm>({ name: '', email: '', message: '' });
+  // Modale photo
+  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+
+  // Contact
+  const [showContact, setShowContact]     = useState(false);
+  const [contactForm, setContactForm]     = useState<ContactForm>({ name: '', email: '', message: '' });
   const [contactStatus, setContactStatus] = useState<ContactStatus>('idle');
 
 
@@ -297,8 +392,6 @@ const PortfolioPage = () => {
     setContactForm({ name: '', email: '', message: '' });
   };
 
-  const openContact = () => setShowContact(true);
-
 
   // ── Rendu ─────────────────────────────────────────────────
 
@@ -322,7 +415,11 @@ const PortfolioPage = () => {
       {/* Contenu des onglets */}
       <div className="max-w-7xl mx-auto px-4 pb-24">
         {activeTab === 'projects' && (
-          <TabProjects albums={albums} portfolioIntro={user.portfolioIntro} />
+          <TabProjects
+            albums={albums}
+            portfolioIntro={user.portfolioIntro}
+            onPhotoClick={setSelectedPhoto}
+          />
         )}
         {activeTab === 'about' && (
           <ContentTab
@@ -330,7 +427,7 @@ const PortfolioPage = () => {
             content={user.bio}
             emptyText="Aucune biographie renseignée."
             ctaLabel="Me contacter"
-            onCtaClick={openContact}
+            onCtaClick={() => setShowContact(true)}
           />
         )}
         {activeTab === 'services' && (
@@ -339,7 +436,7 @@ const PortfolioPage = () => {
             content={user.servicesDescription}
             emptyText="Informations non renseignées."
             ctaLabel="Demander un devis"
-            onCtaClick={openContact}
+            onCtaClick={() => setShowContact(true)}
           />
         )}
       </div>
@@ -350,11 +447,16 @@ const PortfolioPage = () => {
       </div>
 
       {/* Bouton flottant contact */}
-      <button onClick={openContact} title="Me contacter"
+      <button onClick={() => setShowContact(true)} title="Me contacter"
         className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-400 text-black p-4 rounded-full shadow-2xl flex items-center gap-2 font-bold text-sm transition transform hover:scale-110 z-50">
         <span>✉️</span>
         <span className="hidden sm:inline">Me Contacter</span>
       </button>
+
+      {/* Modale photo + commentaire */}
+      {selectedPhoto && (
+        <PhotoModal photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
+      )}
 
       {/* Modale contact */}
       {showContact && (
