@@ -1,4 +1,4 @@
-# Manuel Utilisateur (Version 2.0)
+# Manuel Utilisateur (Version 2.3)
 
 Bienvenue sur Hélioscope. Ce guide vous accompagne dans la prise en main de votre espace.
 
@@ -9,6 +9,7 @@ Une fois connecté, vous accédez à votre tableau de bord central.
 *   **Mes Pages** : Créez vos pages personnalisées (Bio, Tarifs, Matériel).
 *   **Mon Blog** : Rédigez et publiez vos articles.
 *   **Mon Profil** : Modifiez votre avatar, bannière et informations publiques.
+*   **Commentaires** : Consultez et gérez les commentaires laissés par vos visiteurs sur vos photos.
 
 ### 2. Gérer ses Albums & Galeries
 
@@ -34,7 +35,7 @@ Cette section vous permet de créer un site vitrine personnel.
 
 *   **Créer une page** : Donnez un titre (ex: "Mes Tarifs") et un slug (l'URL, ex: `tarifs`).
 *   **Ajouter des sections** :
-    *   **Bloc Texte** : Pour rédiger vos présentations en Markdown enrichi (voir section 6).
+    *   **Bloc Texte** : Pour rédiger vos présentations en Markdown enrichi (voir section 7).
     *   **Bloc Galerie** : Sélectionnez un de vos albums ou galeries pour l'afficher.
 *   **Publier** : Une fois publié, la page sera visible à l'adresse `helioscope.fr/portfolio/votre-pseudo/votre-slug`.
 *   **Mettre en avant** : Sur votre profil principal, les pages publiées apparaîtront comme des onglets cliquables.
@@ -45,14 +46,35 @@ Cette section vous permet de créer un site vitrine personnel.
 *   Rédigez vos articles avec un titre, un contenu et une image de couverture.
 *   Les articles publiés sont visibles sur votre blog personnel.
 
-### 5. Partage & Sécurité
+### 5. Les Commentaires
+
+#### Pour les visiteurs — Commenter une photo
+
+Sur votre Portfolio public ou votre Blog, chaque photo dispose d'un bouton **💬 Commenter**.
+
+*   Cliquez sur le bouton **💬** visible sous la photo ou au survol.
+*   Renseignez votre **prénom/pseudo** (obligatoire), votre **email** (facultatif, pour recevoir une réponse) et votre **message**.
+*   Cliquez sur **Envoyer** — un message de confirmation s'affiche immédiatement.
+
+> Le commentaire est transmis au photographe et soumis à validation avant publication éventuelle.
+
+#### Pour vous — Gérer les commentaires reçus
+
+Accédez à l'onglet **Commentaires** dans votre tableau de bord pour consulter tous les commentaires laissés par vos visiteurs.
+
+*   Les commentaires sont **regroupés par photo** avec la vignette correspondante.
+*   Un badge indique le nombre de **nouveaux commentaires** non lus sur chaque photo.
+*   **Répondre par email** : si le visiteur a laissé son adresse email, un bouton ✉️ **Répondre** apparaît. Cliquez dessus, rédigez votre réponse dans la fenêtre qui s'ouvre, puis validez. Le visiteur recevra votre réponse directement dans sa boîte mail.
+*   Les commentaires lus sont automatiquement marqués comme tels après l'envoi d'une réponse.
+
+### 6. Partage & Sécurité
 
 *   **Lien Public** : Pour chaque album, cliquez sur "Partager" pour obtenir un lien direct ou un shortcode WordPress.
 *   **Données** : Vos tags et photos vous appartiennent. La recherche par tags est sécurisée : vous ne voyez que vos propres tags.
 
 ---
 
-### 6. Mise en forme Markdown dans les blocs texte
+### 7. Mise en forme Markdown dans les blocs texte
 
 Les blocs texte de vos pages supportent le **Markdown enrichi** avec HTML inline.
 
