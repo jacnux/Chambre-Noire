@@ -1,20 +1,28 @@
 import express, { Request, Response } from 'express';
+import path from 'path';
+import fs from 'fs';
 import Album from '../models/Album';
 import Photo from '../models/Photo';
 import User from '../models/User';
 import { authenticateToken } from '../middleware/auth';
-import jwt from 'jsonwebtoken'; // Importé pour vérification manuelle
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// --- POST : Créer un nouvel album/galerie ---
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { title, description, isPublic, isVirtual, virtualFilter } = req.body;
+    const { title, description, isPublic, virtualFilter } = req.body;
+    const isVirtual = req.body.isVirtual === true;
     let { filterValue } = req.body;
 
-    if (filterValue) {
-        filterValue = filterValue.toLowerCase();
+    if (filterValue && typeof filterValue === 'string') {
+      filterValue = filterValue
+        .split(',')
+        .map((t: string) => t.trim().toLowerCase())
+        .filter((t: string) => t.length > 0)
+        .join(',');
+    } else {
+      filterValue = null;
     }
 
     const newAlbum = new Album({
@@ -23,8 +31,8 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       description,
       isPublic,
       isVirtual,
-      virtualFilter,
-      filterValue
+      virtualFilter: isVirtual ? (virtualFilter || 'tag') : null,
+      filterValue: isVirtual ? filterValue : null
     });
 
     await newAlbum.save();
@@ -35,39 +43,22 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
-// --- GET : Mes Albums (Avec auto-cover pour Virtuels) ---
 router.get('/my/albums', authenticateToken, async (req: Request, res: Response) => {
   try {
     let albums = await Album.find({ userId: req.user.userId }).sort({ createdAt: -1 }).lean();
 
     const updatedAlbums = await Promise.all(albums.map(async (album) => {
-      // On vérifie aussi filterValue pour gérer les anciens albums
       if ((album.isVirtual || album.filterValue) && !album.coverImage && album.virtualFilter === 'tag' && album.filterValue) {
-
-        // 1. On récupère les tags
         const rawTags = album.filterValue.split(',').map(t => t.trim()).filter(t => t);
-
-        // 2. On sépare positifs et négatifs
         const positiveTags = rawTags.filter(t => !t.startsWith('-'));
         const negativeTags = rawTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
 
         if (positiveTags.length > 0) {
-
-          // 3. Construction de la requête
-          const query: any = { tags: { $all: positiveTags } }; // CORRECTION ICI : $all au lieu de $in
-
-          // CORRECTION SÉCURITÉ : Limiter aux photos de l'utilisateur connecté
+          const query: any = { tags: { $all: positiveTags } };
           query.userId = req.user.userId;
+          if (negativeTags.length > 0) query.tags.$nin = negativeTags;
 
-          // On applique aussi l'exclusion pour la couverture
-          if (negativeTags.length > 0) {
-             query.tags.$nin = negativeTags;
-          }
-
-          const photo = await Photo.findOne(query)
-            .sort({ createdAt: -1 })
-            .select('filename');
-
+          const photo = await Photo.findOne(query).sort({ createdAt: -1 }).select('filename');
           if (photo) {
             album.coverImage = photo.filename;
             await Album.updateOne({ _id: album._id }, { coverImage: photo.filename });
@@ -84,13 +75,11 @@ router.get('/my/albums', authenticateToken, async (req: Request, res: Response) 
   }
 });
 
-// --- GET : Photos d'un album (Support Publique + Admin) ---
 router.get('/photos/:id', async (req: Request, res: Response) => {
   try {
     const album = await Album.findById(req.params.id);
     if (!album) return res.status(404).json({ error: 'Album introuvable' });
 
-    // Logique d'accès (inchangée)
     if (!album.isPublic) {
       const authHeader = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
@@ -106,10 +95,7 @@ router.get('/photos/:id', async (req: Request, res: Response) => {
       }
     }
 
-    // Récupération des photos
     let photos;
-
-    // Définition des champs à récupérer (IMPORTANT pour le titre et la description)
     const fieldsToSelect = 'filename title description createdAt index tags';
 
     if (album.virtualFilter === 'tag' && album.filterValue) {
@@ -117,44 +103,32 @@ router.get('/photos/:id', async (req: Request, res: Response) => {
       const positiveTags = rawTags.filter(t => !t.startsWith('-'));
       const negativeTags = rawTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
 
-      const query: any = {};
+      const query: any = { userId: album.userId };
       const tagsCondition: any = {};
 
       if (positiveTags.length > 0) tagsCondition.$all = positiveTags;
       if (negativeTags.length > 0) tagsCondition.$nin = negativeTags;
+      if (Object.keys(tagsCondition).length > 0) query.tags = tagsCondition;
 
-      if (Object.keys(tagsCondition).length > 0) {
-        query.tags = tagsCondition;
-        // CORRECTION SÉCURITÉ CRITIQUE :
-        // On ajoute l'ID du propriétaire de l'album à la requête
-        query.userId = album.userId;
+      const validAlbums = await Album.find({ userId: album.userId }).select('_id').lean();
+      query.albumId = { $in: validAlbums.map(a => a._id) };
 
-        // AJOUT .select() ICI
-        photos = await Photo.find(query).select(fieldsToSelect).sort({ createdAt: -1 });
-      } else {
-        photos = [];
-      }
-
+      photos = await Photo.find(query).select(fieldsToSelect).sort({ createdAt: -1 });
     } else {
-      // AJOUT .select() ICI AUSSI
       photos = await Photo.find({ albumId: req.params.id }).select(fieldsToSelect).sort({ createdAt: -1 });
     }
 
     res.json(photos);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erreur récupération photos' });
   }
 });
 
-
-// --- GET : Portfolio Public ---
 router.get('/portfolio/:username', async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({
-      name: { $regex: new RegExp(`^${req.params.username}$`, "i") }
-    // AJOUT DE 'email'
+      name: { $regex: new RegExp(`^${req.params.username}$`, 'i') }
     }).select('name email avatar bio bannerImage portfolioIntro servicesDescription');
 
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
@@ -171,30 +145,24 @@ router.get('/portfolio/:username', async (req: Request, res: Response) => {
   }
 });
 
-
-// --- GET : Détail d'un album (Support Publique + Admin) ---
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const album = await Album.findById(req.params.id);
     if (!album) return res.status(404).json({ error: 'Album introuvable' });
 
     if (!album.isPublic) {
-       const authHeader = req.headers['authorization'];
-       const token = authHeader && authHeader.split(' ')[1];
-       if (!token) return res.status(401).json({ error: 'Accès non autorisé' });
-       try {
-         const secret = process.env.JWT_SECRET || 'default_secret';
-         const decoded = jwt.verify(token, secret) as any;
-
-         const isAdmin = decoded.isAdmin === true;
-         const isOwner = decoded.userId === album.userId.toString();
-
-         if (!isOwner && !isAdmin) {
-            return res.status(403).json({ error: 'Accès interdit' });
-         }
-       } catch (err) {
-         return res.status(403).json({ error: 'Token invalide' });
-       }
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) return res.status(401).json({ error: 'Accès non autorisé' });
+      try {
+        const secret = process.env.JWT_SECRET || 'default_secret';
+        const decoded = jwt.verify(token, secret) as any;
+        const isAdmin = decoded.isAdmin === true;
+        const isOwner = decoded.userId === album.userId.toString();
+        if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Accès interdit' });
+      } catch (err) {
+        return res.status(403).json({ error: 'Token invalide' });
+      }
     }
 
     res.json(album);
@@ -203,13 +171,9 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// --- PUT : Modifier un album ---
 router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
-    // AJOUT de isVirtual ici
     const { title, description, isPublic, coverImage, virtualFilter, filterValue, isVirtual } = req.body;
-
-    // AJOUT de isVirtual dans updateData
     const updateData: any = { title, description, isPublic, coverImage, isVirtual };
 
     if (virtualFilter !== undefined) updateData.virtualFilter = virtualFilter;
@@ -228,7 +192,6 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
-// --- PATCH : Toggle Visibilité ---
 router.patch('/:id/toggle-visibility', authenticateToken, async (req: Request, res: Response) => {
   try {
     const album = await Album.findById(req.params.id);
@@ -243,7 +206,6 @@ router.patch('/:id/toggle-visibility', authenticateToken, async (req: Request, r
   }
 });
 
-// PATCH : Mettre en avant sur le Portfolio
 router.patch('/:id/toggle-featured', authenticateToken, async (req: Request, res: Response) => {
   try {
     const album = await Album.findById(req.params.id);
@@ -258,16 +220,48 @@ router.patch('/:id/toggle-featured', authenticateToken, async (req: Request, res
   }
 });
 
-// --- DELETE : Supprimer un album ---
 router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const album = await Album.findById(req.params.id);
     if (!album) return res.status(404).json({ error: 'Album introuvable' });
     if (album.userId.toString() !== req.user.userId) return res.status(403).json({ error: 'Non autorisé' });
 
+    const photos = await Photo.find({ albumId: album._id, userId: req.user.userId });
+    let totalFreed = 0;
+
+    for (const photo of photos) {
+      const filePath = path.join(__dirname, '../../uploads', photo.filename);
+      let fileSize = photo.size || 0;
+
+      if (!fileSize && fs.existsSync(filePath)) {
+        fileSize = fs.statSync(filePath).size;
+      }
+
+      totalFreed += fileSize;
+
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (fileError) {
+          console.error(`Erreur suppression fichier ${photo.filename}:`, fileError);
+        }
+      }
+    }
+
+    await Photo.deleteMany({ albumId: album._id, userId: req.user.userId });
     await album.deleteOne();
-    res.json({ message: 'Album supprimé' });
+
+    if (totalFreed > 0) {
+      await User.findByIdAndUpdate(req.user.userId, { $inc: { quotaUsed: -totalFreed } });
+    }
+
+    res.json({
+      message: 'Album supprimé',
+      deletedPhotos: photos.length,
+      freedBytes: totalFreed
+    });
   } catch (error) {
+    console.error('Erreur suppression album :', error);
     res.status(500).json({ error: 'Erreur suppression' });
   }
 });

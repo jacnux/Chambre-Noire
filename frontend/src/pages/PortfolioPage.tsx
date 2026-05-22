@@ -1,6 +1,7 @@
 // ============================================================
 // LUMINAVIEW — PortfolioPage.tsx
 // Page publique du portfolio d'un utilisateur
+// v2.3.0
 // ============================================================
 
 import React, { useState, useEffect } from 'react';
@@ -144,12 +145,15 @@ const PortfolioHero = ({ user, authUser, username }: any) => {
 
   return (
     <div className="relative w-full bg-gray-800 overflow-hidden">
+      {/* Bannière */}
       <div className="h-64 md:h-80 w-full">
         {user.bannerImage
           ? <img src={`/uploads/${user.bannerImage}`} className="w-full h-full object-cover opacity-60" alt="Bannière" />
           : <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black" />
         }
       </div>
+
+      {/* Barre avatar + nom */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-black/60 backdrop-blur-sm flex items-center px-6 md:px-12">
         <div className="absolute -bottom-2 left-8 md:left-12">
           {user.avatar
@@ -182,11 +186,11 @@ const TAB_STYLE_DEFAULT = 'text-gray-500 hover:text-white';
 const TAB_BASE          = 'px-6 py-3 text-sm font-bold rounded-t-lg transition';
 
 interface TabBarProps {
-  activeTab:    ActiveTab;
+  activeTab:   ActiveTab;
   setActiveTab: (t: ActiveTab) => void;
-  userPages:    any[];
-  username:     string;
-  blogUrl:      string;
+  userPages:   any[];
+  username:    string;
+  blogUrl:     string;
 }
 
 const TabBar = ({ activeTab, setActiveTab, userPages, username, blogUrl }: TabBarProps) => (
@@ -227,6 +231,7 @@ const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
                   ? <img src={`/uploads/${album.coverImage}`} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" alt={album.title} />
                   : <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl">📷</div>
                 }
+                {/* Overlay au hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 flex items-end p-6">
                   <div>
                     <h3 className="text-2xl font-bold text-white">{album.title}</h3>
@@ -234,6 +239,7 @@ const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
                   </div>
                 </div>
               </div>
+              {/* Titre par défaut (masqué au hover) */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 group-hover:opacity-0 transition">
                 <h3 className="text-lg font-bold text-white drop-shadow-lg">{album.title}</h3>
               </div>
@@ -247,15 +253,15 @@ const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
 
 
 // ============================================================
-// SOUS-COMPOSANT — Onglet À propos / Actualités
+// SOUS-COMPOSANT — Onglet À propos / Actualités (partagé)
 // ============================================================
 
 interface ContentTabProps {
-  title:      string;
-  content:    string | undefined;
-  emptyText:  string;
-  ctaLabel:   string;
-  onCtaClick: () => void;
+  title:       string;
+  content:     string | undefined;
+  emptyText:   string;
+  ctaLabel:    string;
+  onCtaClick:  () => void;
 }
 
 const ContentTab = ({ title, content, emptyText, ctaLabel, onCtaClick }: ContentTabProps) => (
@@ -281,18 +287,19 @@ const ContentTab = ({ title, content, emptyText, ctaLabel, onCtaClick }: Content
 // ============================================================
 
 interface ContactModalProps {
-  userName:  string;
-  form:      ContactForm;
-  status:    ContactStatus;
-  onChange:  (field: keyof ContactForm, value: string) => void;
-  onSend:    () => void;
-  onClose:   () => void;
+  userName:      string;
+  form:          ContactForm;
+  status:        ContactStatus;
+  onChange:      (field: keyof ContactForm, value: string) => void;
+  onSend:        () => void;
+  onClose:       () => void;
 }
 
 const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: ContactModalProps) => (
   <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4">
     <div className="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-md w-full">
       <h3 className="text-xl font-bold text-yellow-400 mb-4">Contacter {userName}</h3>
+
       {status === 'sent' ? (
         <div className="text-center py-8">
           <p className="text-green-400 text-lg font-bold">✓ Message envoyé !</p>
@@ -300,8 +307,8 @@ const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: Con
         </div>
       ) : (
         <>
-          <input type="text"  placeholder="Votre nom *"     value={form.name}    onChange={e => onChange('name',    e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
-          <input type="email" placeholder="Votre email *"   value={form.email}   onChange={e => onChange('email',   e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
+          <input type="text"  placeholder="Votre nom *"   value={form.name}    onChange={e => onChange('name',    e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
+          <input type="email" placeholder="Votre email *" value={form.email}   onChange={e => onChange('email',   e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
           <textarea           placeholder="Votre message *" value={form.message} onChange={e => onChange('message', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-28 mb-4" />
           {status === 'error' && <p className="text-red-400 text-sm mb-3">Erreur lors de l'envoi. Réessayez.</p>}
           <div className="flex gap-2 justify-end">
@@ -326,18 +333,17 @@ const PortfolioPage = () => {
   const { username }       = useParams<{ username: string }>();
   const { user: authUser } = useAuth();
 
-  const [user, setUser]           = useState<any>(null);
-  const [albums, setAlbums]       = useState<any[]>([]);
+  const [user, setUser]         = useState<any>(null);
+  const [albums, setAlbums]     = useState<any[]>([]);
   const [userPages, setUserPages] = useState<any[]>([]);
-  const [loading, setLoading]     = useState(true);
+  const [loading, setLoading]   = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>('projects');
-
   // Modale photo
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
 
-  // Contact
-  const [showContact, setShowContact]     = useState(false);
-  const [contactForm, setContactForm]     = useState<ContactForm>({ name: '', email: '', message: '' });
+
+  const [showContact, setShowContact]   = useState(false);
+  const [contactForm, setContactForm]   = useState<ContactForm>({ name: '', email: '', message: '' });
   const [contactStatus, setContactStatus] = useState<ContactStatus>('idle');
 
 
@@ -392,6 +398,8 @@ const PortfolioPage = () => {
     setContactForm({ name: '', email: '', message: '' });
   };
 
+  const openContact = () => setShowContact(true);
+
 
   // ── Rendu ─────────────────────────────────────────────────
 
@@ -415,11 +423,7 @@ const PortfolioPage = () => {
       {/* Contenu des onglets */}
       <div className="max-w-7xl mx-auto px-4 pb-24">
         {activeTab === 'projects' && (
-          <TabProjects
-            albums={albums}
-            portfolioIntro={user.portfolioIntro}
-            onPhotoClick={setSelectedPhoto}
-          />
+          <TabProjects albums={albums} portfolioIntro={user.portfolioIntro} />
         )}
         {activeTab === 'about' && (
           <ContentTab
@@ -427,7 +431,7 @@ const PortfolioPage = () => {
             content={user.bio}
             emptyText="Aucune biographie renseignée."
             ctaLabel="Me contacter"
-            onCtaClick={() => setShowContact(true)}
+            onCtaClick={openContact}
           />
         )}
         {activeTab === 'services' && (
@@ -436,7 +440,7 @@ const PortfolioPage = () => {
             content={user.servicesDescription}
             emptyText="Informations non renseignées."
             ctaLabel="Demander un devis"
-            onCtaClick={() => setShowContact(true)}
+            onCtaClick={openContact}
           />
         )}
       </div>
@@ -447,7 +451,7 @@ const PortfolioPage = () => {
       </div>
 
       {/* Bouton flottant contact */}
-      <button onClick={() => setShowContact(true)} title="Me contacter"
+      <button onClick={openContact} title="Me contacter"
         className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-400 text-black p-4 rounded-full shadow-2xl flex items-center gap-2 font-bold text-sm transition transform hover:scale-110 z-50">
         <span>✉️</span>
         <span className="hidden sm:inline">Me Contacter</span>

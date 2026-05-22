@@ -42,7 +42,6 @@ const Tools = () => {
       await api.put(`/photos/move/${selectedPhoto}`, { targetAlbumId: targetAlbum });
       setMessage({ type: 'success', text: 'Photo déplacée avec succès !' });
       setSelectedPhoto('');
-      // si blocage lors de deplacement de photos commenter le fetchData
       fetchData();
     } catch (error) {
       setMessage({ type: 'error', text: 'Erreur lors du déplacement.' });

@@ -1,148 +1,119 @@
-// ============================================================
+//
 // LUMINAVIEW — App.tsx
 // Point d'entrée du routing frontend
-// ============================================================
+// version v2.3.3
+//
 
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { getSubdomain } from './utils/domain';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { CommentsProvider } from './context/CommentsContext';
 import Layout from './components/Layout';
-import CommentModeration from './components/CommentModeration';
 
-// ── Pages publiques ──────────────────────────────────────────
-import LandingPage    from './pages/LandingPage';
-import LegalPage      from './pages/LegalPage';
-import VerifyEmail    from './pages/VerifyEmail';
-import Login          from './pages/Login';
-import Register       from './pages/Register';
+// ── Pages publiques ─────────────────────────────────────────
+import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
+import AlbumView from './pages/AlbumView';
+import PortfolioPage from './pages/PortfolioPage';
+import UserPageView from './pages/UserPageView';
+import LegalPage from './pages/LegalPage';
 
-// ── Albums & Photos ──────────────────────────────────────────
-import AlbumView      from './pages/AlbumView';
-import CreateAlbum    from './pages/CreateAlbum';
-
-// ── Portfolio & Pages utilisateur ────────────────────────────
-import PortfolioPage    from './pages/PortfolioPage';
-import UserPageView     from './pages/UserPageView';
-import UserPageEditor   from './pages/UserPageEditor';
-import UserPagesManager from './pages/UserPagesManager';
+// ── Pages privées ───────────────────────────────────────────
+import Dashboard from './pages/Dashboard';
 import CommentsPage from './pages/CommentsPage';
-
-
-// ── Dashboard ────────────────────────────────────────────────
-import Dashboard      from './pages/Dashboard';
+import CreateAlbum from './pages/CreateAlbum';
+import EditProfile from './pages/EditProfile';
+import BlogManager from './pages/BlogManager';
+import UserPagesManager from './pages/UserPagesManager';
+import UserPageEditor from './pages/UserPageEditor';
+import Tools from './pages/Tools';
 import DashboardAbout from './pages/DashboardAbout';
-import DashboardHelp  from './pages/DashboardHelp';
-import EditProfile    from './pages/EditProfile';
-import Tools          from './pages/Tools';
-import BlogManager    from './pages/BlogManager';
+import DashboardHelp from './pages/DashboardHelp';
 
-// ── Admin ────────────────────────────────────────────────────
-import AdminUsers   from './pages/AdminUsers';
+// ── Admin ───────────────────────────────────────────────────
+import AdminUsers from './pages/AdminUsers';
 import AdminReports from './pages/AdminReports';
 
-
 // ============================================================
-// MODE SOUS-DOMAINE (ex: username.helioscope.fr)
+// ROUTE PROTÉGÉE
 // ============================================================
 
-const SubdomainApp: React.FC = () => {
-  const slug = getSubdomain();
-  if (!slug) return <Navigate to="https://helioscope.fr" />;
+const RequireAuth: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const token = localStorage.getItem('token');
+  const location = useLocation();
 
-  return (
-    <Routes>
-      <Route path="/"                        element={<Navigate to={`/portfolio/${slug}`} replace />} />
-      <Route path="/portfolio/:username"     element={<PortfolioPage />} />
-      <Route path="/portfolio/:username/:slug" element={<UserPageView />} />
-      <Route path="/legal"                   element={<LegalPage />} />
-      <Route path="/album/:id"               element={<AlbumView />} />
-      <Route path="*"                        element={<Navigate to={`/portfolio/${slug}`} replace />} />
-    </Routes>
-  );
+  if (!token) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return children;
 };
 
-
 // ============================================================
-// MODE PRINCIPAL (helioscope.fr)
+// APP PRINCIPALE
 // ============================================================
 
 const MainApp: React.FC = () => {
-  const location  = useLocation();
-  const params    = new URLSearchParams(location.search);
-  const isViewer  = params.get('mode') === 'viewer';
-  const isAuth    = ['/login', '/register'].includes(location.pathname);
-  const isPortfolio = location.pathname.startsWith('/portfolio');
-  const isAlbumViewer = isViewer && location.pathname.startsWith('/album');
-
-  // Pages d'authentification — sans Layout
-  if (isAuth) return (
-    <Routes>
-      <Route path="/login"    element={<Login />} />
-      <Route path="/register" element={<Register />} />
-    </Routes>
-  );
-
-  // Album en mode viewer — sans Layout
-  if (isAlbumViewer) return (
-    <Routes>
-      <Route path="/album/:id" element={<AlbumView />} />
-    </Routes>
-  );
-
-  // Portfolio public — sans Layout
-  if (isPortfolio) return (
-    <Routes>
-      <Route path="/portfolio/:username"       element={<PortfolioPage />} />
-      <Route path="/portfolio/:username/:slug" element={<UserPageView />} />
-    </Routes>
-  );
-
-  // Application principale — avec Layout
   return (
     <Layout>
       <Routes>
-
-        {/* ── Général ── */}
-        <Route path="/"             element={<LandingPage />} />
-        <Route path="/legal"        element={<LegalPage />} />
+        {/* Public */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/legal" element={<LegalPage />} />
+        <Route path="/album/:id" element={<AlbumView />} />
+        <Route path="/portfolio/:username" element={<PortfolioPage />} />
+        <Route path="/portfolio/:username/:slug" element={<UserPageView />} />
 
-        {/* ── Albums ── */}
-        <Route path="/album/:id"    element={<AlbumView />} />
-        <Route path="/create-album" element={<CreateAlbum />} />
-        <Route path="/galleries"    element={<Dashboard />} />
+        {/* Privé */}
+        <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+        <Route path="/galleries" element={<RequireAuth><Dashboard /></RequireAuth>} />
+        <Route path="/dashboard/comments" element={<RequireAuth><Dashboard /></RequireAuth>} />
+        <Route path="/comments" element={<RequireAuth><CommentsPage /></RequireAuth>} />
+        <Route path="/create-album" element={<RequireAuth><CreateAlbum /></RequireAuth>} />
+        <Route path="/edit-profile" element={<RequireAuth><EditProfile /></RequireAuth>} />
+        <Route path="/manage-blog" element={<RequireAuth><BlogManager /></RequireAuth>} />
+        <Route path="/dashboard/pages" element={<RequireAuth><UserPagesManager /></RequireAuth>} />
+        <Route path="/dashboard/pages/new" element={<RequireAuth><UserPageEditor /></RequireAuth>} />
+        <Route path="/dashboard/pages/edit/:id" element={<RequireAuth><UserPageEditor /></RequireAuth>} />
+        <Route path="/tools" element={<RequireAuth><Tools /></RequireAuth>} />
+        <Route path="/dashboard/about" element={<RequireAuth><DashboardAbout /></RequireAuth>} />
+        <Route path="/dashboard/help" element={<RequireAuth><DashboardHelp /></RequireAuth>} />
 
-        {/* ── Dashboard ── */}
-        <Route path="/dashboard"        element={<Dashboard />} />
-        <Route path="/dashboard/about"  element={<DashboardAbout />} />
-        <Route path="/dashboard/help"   element={<DashboardHelp />} />
-        <Route path="/dashboard/comments" element={<CommentsPage />} />  {/* ← ICI */}
-        <Route path="/edit-profile"     element={<EditProfile />} />
-        <Route path="/tools"            element={<Tools />} />
-        <Route path="/manage-blog"      element={<BlogManager />} />
+        {/* Admin */}
+        <Route path="/admin/users" element={<RequireAuth><AdminUsers /></RequireAuth>} />
+        <Route path="/admin/reports" element={<RequireAuth><AdminReports /></RequireAuth>} />
 
-        {/* ── Pages utilisateur ── */}
-        <Route path="/pages"                           element={<UserPagesManager />} />
-        <Route path="/dashboard/pages"                 element={<UserPagesManager />} />
-        <Route path="/dashboard/user-page-editor"      element={<UserPageEditor />} />
-        <Route path="/dashboard/user-page-editor/:id"  element={<UserPageEditor />} />
-
-        {/* ── Admin ── */}
-        <Route path="/admin/users"    element={<AdminUsers />} />
-        <Route path="/admin/reports"  element={<AdminReports />} />
-        <Route path="/admin/comments" element={<CommentModeration />} />
-
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
   );
 };
 
+// ============================================================
+// SOUS-DOMAINE
+// ============================================================
+
+const SubdomainApp: React.FC = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<PortfolioPage />} />
+      <Route path="/album/:id" element={<AlbumView />} />
+      <Route path="/:slug" element={<UserPageView />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
 
 // ============================================================
-// COMPOSANT RACINE
+// RACINE
 // ============================================================
 
 const App: React.FC = () => {
@@ -152,7 +123,9 @@ const App: React.FC = () => {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          {subdomain ? <SubdomainApp /> : <MainApp />}
+          <CommentsProvider>
+            {subdomain ? <SubdomainApp /> : <MainApp />}
+          </CommentsProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
