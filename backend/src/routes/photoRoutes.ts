@@ -10,9 +10,6 @@ import User from '../models/User';
 import { authenticateToken } from '../middleware/auth';
 import exifr from 'exifr';
 
-
-
-
 const router = express.Router();
 
 // --- CONFIGURATION MULTER ---
@@ -45,7 +42,6 @@ const uploadMulter = multer({
 // --- ROUTES ---
 
 // 1. UPLOAD PHOTOS
-
 router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Request, res: Response) => {
   try {
     const { albumId, metadata } = req.body;
@@ -76,62 +72,30 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
       const inputPath = path.join(__dirname, '../../uploads', file.filename);
       const outputPath = path.join(__dirname, '../../uploads', 'tmp-' + file.filename);
 
+      let exifKeywords: string[] = [];
+      let exifTitle = '';
+      let exifDescription = '';
+      try {
+        const exif = await exifr.parse(inputPath, {
+          iptc: true,
+          xmp: true,
+          tiff: false,
+          icc: false,
+        });
 
-
-
-    // ✅ 1. LIRE LES MÉTADONNÉES EN PREMIER, avant que sharp modifie le fichier
-    /*let exifKeywords: string[] = [];
-    let exifTitle = '';
-    let exifDescription = '';
-    try {
-              const tags = await exiftool.read(inputPath);
-              console.log('EXIFTOOL Keywords:', tags.Keywords);
-              console.log('EXIFTOOL Subject:', tags.Subject);
-
-              const raw = tags.Keywords || tags.Subject || [];
-              const keywordsRaw = Array.isArray(raw) ? raw : [raw];
-              exifKeywords = keywordsRaw
-                .map((k: string) => k.trim().toLowerCase())
-                .filter((k: string) => k);
-
-              exifTitle = (tags.Title as string) || (tags.ObjectName as string) || '';
-              exifDescription = (tags.Caption as string) || (tags.Description as string) || '';
-
+        if (exif) {
+          const raw = (exif as any).Keywords || (exif as any).Subject || [];
+          const keywordsRaw = Array.isArray(raw) ? raw : [raw];
+          exifKeywords = keywordsRaw
+            .map((k: string) => k.trim().toLowerCase())
+            .filter((k: string) => k);
+          exifTitle = (exif as any).ObjectName || (exif as any).Title || '';
+          exifDescription = (exif as any).Caption || (exif as any).Description || '';
+        }
       } catch (e) {
-              console.error('Erreur lecture exiftool:', e); // ← logger l'erreur pour déboguer
+        console.error('Erreur lecture EXIF:', e);
       }
-        */
 
-
-    // Dans le map :
-    let exifKeywords: string[] = [];
-    let exifTitle = '';
-    let exifDescription = '';
-    try {
-      const exif = await exifr.parse(inputPath, {
-        iptc: true,
-        xmp: true,
-        tiff: false,
-        icc: false,
-      });
-    //  console.log('EXIFR complet:', JSON.stringify(exif, null, 2));
-
-      if (exif) {
-        const raw = exif.Keywords || exif.Subject || [];
-        const keywordsRaw = Array.isArray(raw) ? raw : [raw];
-        exifKeywords = keywordsRaw
-          .map((k: string) => k.trim().toLowerCase())
-          .filter((k: string) => k);
-        exifTitle = exif.ObjectName || exif.Title || '';
-        exifDescription = exif.Caption || exif.Description || '';
-      }
-    } catch (e) {
-      console.error('Erreur lecture EXIF:', e);
-    }
-
-
-
-      // --- LOGIQUE SHARP ---
       const image = sharp(inputPath);
       const sharpMeta = await image.metadata();
 
@@ -146,7 +110,7 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
       let sharpChain = image.resize(1920, null, { fit: 'inside', withoutEnlargement: true });
 
       if (data.applyWatermark) {
-        const textToPrint = data.watermarkText || "© Hélioscope";
+        const textToPrint = data.watermarkText || '© Hélioscope';
         const svgWidth = 300;
         const svgHeight = 50;
         const padding = 20;
@@ -162,11 +126,15 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
       }
 
       await sharpChain.jpeg({ quality: 85 }).toFile(outputPath);
-      fs.renameSync(outputPath, inputPath);
+
+      if (fs.existsSync(outputPath)) {
+        fs.renameSync(outputPath, inputPath);
+      } else {
+        throw new Error(`Sharp n'a pas produit le fichier , taille fichier trop petite: ${outputPath}`);
+      }
 
       if (data.isCover) coverFilename = file.filename;
 
-      // ✅ Fusion tags manuels + tags Lightroom
       const manualTags = data.tag
         ? data.tag.split(',').map((t: string) => t.trim().toLowerCase()).filter((t: string) => t)
         : [];
@@ -177,7 +145,6 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
         userId: req.user.userId,
         filename: file.filename,
         index: data.index || 0,
-        // ✅ Priorité : données manuelles > métadonnées Lightroom > nom du fichier
         title: data.title || exifTitle || file.originalname,
         description: data.description || exifDescription || '',
         tags: tagsArray,
@@ -208,11 +175,9 @@ router.get('/my/photos', authenticateToken, async (req: Request, res: Response) 
   }
 });
 
-
 // 3. GET ALL TAGS (SÉCURISÉ)
 router.get('/tags', authenticateToken, async (req: Request, res: Response) => {
   try {
-    // CORRECTION : On filtre par l'ID utilisateur pour ne voir que SES tags
     const tags = await Photo.distinct('tags', { userId: req.user.userId });
     res.json(tags);
   } catch (error) {
@@ -252,39 +217,39 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     if (!photo) return res.status(404).json({ error: 'Photo introuvable' });
     if (photo.userId.toString() !== req.user.userId) return res.status(403).json({ error: 'Interdit' });
 
-    //const { index, title, description, tags } = req.body;
-    //const updatedPhoto = await Photo.findByIdAndUpdate(req.params.id, { index, title, description, tags }, { new: true });
     const { index, title, description, tags } = req.body;
+    const lowercasedTags = tags ? tags.map((t: string) => t.toLowerCase()) : undefined;
 
-      // Correction : On force les tags en minuscules si ils existent
-      const lowercasedTags = tags ? tags.map((t: string) => t.toLowerCase()) : undefined;
-
-      const updatedPhoto = await Photo.findByIdAndUpdate(
-        req.params.id,
-        { index, title, description, tags: lowercasedTags },
-        { new: true }
-      );
+    const updatedPhoto = await Photo.findByIdAndUpdate(
+      req.params.id,
+      { index, title, description, tags: lowercasedTags },
+      { new: true }
+    );
     res.json(updatedPhoto);
-  } catch (error) { res.status(500).json({ error: 'Erreur modification photo' }); }
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur modification photo' });
+  }
 });
 
 // 6. SUPPRIMER PHOTO
 router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
-    try {
-      const photo = await Photo.findById(req.params.id);
-      if (!photo) return res.status(404).json({ error: 'Photo introuvable' });
-      if (photo.userId.toString() !== req.user.userId) return res.status(403).json({ error: 'Interdit' });
+  try {
+    const photo = await Photo.findById(req.params.id);
+    if (!photo) return res.status(404).json({ error: 'Photo introuvable' });
+    if (photo.userId.toString() !== req.user.userId) return res.status(403).json({ error: 'Interdit' });
 
-      const filePath = path.join(__dirname, '../../uploads', photo.filename);
-      let fileSize = photo.size || 0;
-      if (!fileSize && fs.existsSync(filePath)) fileSize = fs.statSync(filePath).size;
+    const filePath = path.join(__dirname, '../../uploads', photo.filename);
+    let fileSize = photo.size || 0;
+    if (!fileSize && fs.existsSync(filePath)) fileSize = fs.statSync(filePath).size;
 
-      try { fs.unlinkSync(filePath); } catch (err) { console.error(`Erreur suppression fichier`, err); }
-      await Photo.findByIdAndDelete(req.params.id);
+    try { fs.unlinkSync(filePath); } catch (err) { console.error('Erreur suppression fichier', err); }
+    await Photo.findByIdAndDelete(req.params.id);
 
-      await User.findByIdAndUpdate(req.user.userId, { $inc: { quotaUsed: -fileSize } });
-      res.json({ message: 'Photo supprimée' });
-    } catch (error) { res.status(500).json({ error: 'Erreur suppression' }); }
+    await User.findByIdAndUpdate(req.user.userId, { $inc: { quotaUsed: -fileSize } });
+    res.json({ message: 'Photo supprimée' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur suppression' });
+  }
 });
 
 export default router;
