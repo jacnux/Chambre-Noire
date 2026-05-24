@@ -1,9 +1,16 @@
+// ======================================================
+//  albumRoutes.ts
+//   v2.4.0   blocage suppression galerie si page existante
+//
+// ====================================================
+
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import Album from '../models/Album';
 import Photo from '../models/Photo';
 import User from '../models/User';
+import UserPage from '../models/UserPage';
 import { authenticateToken } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 
@@ -225,6 +232,19 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
     const album = await Album.findById(req.params.id);
     if (!album) return res.status(404).json({ error: 'Album introuvable' });
     if (album.userId.toString() !== req.user.userId) return res.status(403).json({ error: 'Non autorisé' });
+
+    // ── Blocage si l'album est utilisé dans une ou plusieurs pages ──
+    const usedInPages = await UserPage.find({
+      'sections.albumIds': album._id
+    }).select('title').lean();
+
+    if (usedInPages.length > 0) {
+      const titles = usedInPages.map(p => `"${p.title}"`).join(', ');
+      return res.status(409).json({
+        error: `Impossible de supprimer : cet album est utilisé dans ${usedInPages.length > 1 ? 'les pages' : 'la page'} ${titles}. Retirez-le de ${usedInPages.length > 1 ? 'ces pages' : 'cette page'} avant de le supprimer.`
+      });
+    }
+    // ────────────────────────────────────────────────────────────────
 
     const photos = await Photo.find({ albumId: album._id, userId: req.user.userId });
     let totalFreed = 0;

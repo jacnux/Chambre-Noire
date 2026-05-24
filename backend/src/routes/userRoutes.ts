@@ -1,3 +1,8 @@
+// ============================================================
+// LUMINAVIEW API — userRoutes
+// v2.3.0 — Mai 2026
+// ============================================================
+
 import express, { Request, Response } from 'express';
 import User from '../models/User';
 import Album from '../models/Album';

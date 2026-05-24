@@ -1,7 +1,7 @@
 // ============================================================
 // LUMINAVIEW — PortfolioPage.tsx
 // Page publique du portfolio d'un utilisateur
-// v2.3.0
+// v2.4.0
 // ============================================================
 
 import React, { useState, useEffect } from 'react';
@@ -16,7 +16,7 @@ import { useAuth } from '../context/AuthContext';
 // ============================================================
 
 type ContactStatus = 'idle' | 'sending' | 'sent' | 'error';
-type ActiveTab     = 'projects' | 'about' | 'services';
+type ActiveTab = 'projects' | 'about' | 'services';
 
 interface ContactForm {
   name: string;
@@ -43,10 +43,10 @@ const getBlogUrl = (userName: string): string => {
 // ============================================================
 
 const CommentForm = ({ photoId }: { photoId: string }) => {
-  const [name,    setName]    = useState('');
-  const [email,   setEmail]   = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const [status,  setStatus]  = useState<'idle'|'sending'|'ok'|'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +56,9 @@ const CommentForm = ({ photoId }: { photoId: string }) => {
         authorName: name, authorEmail: email, message
       });
       setStatus('ok');
-      setName(''); setEmail(''); setMessage('');
+      setName('');
+      setEmail('');
+      setMessage('');
     } catch {
       setStatus('error');
     }
@@ -72,19 +74,36 @@ const CommentForm = ({ photoId }: { photoId: string }) => {
     <form onSubmit={handleSubmit} className="mt-6 border-t border-white/10 pt-5 space-y-3">
       <h4 className="text-sm font-semibold text-gray-300">💬 Laisser un commentaire</h4>
       <div className="flex gap-3">
-        <input type="text" placeholder="Votre nom *" value={name}
-          onChange={e => setName(e.target.value)} required
-          className="flex-1 bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm" />
-        <input type="email" placeholder="Email (optionnel)" value={email}
+        <input
+          type="text"
+          placeholder="Votre nom *"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          required
+          className="flex-1 bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm"
+        />
+        <input
+          type="email"
+          placeholder="Email (optionnel)"
+          value={email}
           onChange={e => setEmail(e.target.value)}
-          className="flex-1 bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm" />
+          className="flex-1 bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm"
+        />
       </div>
-      <textarea placeholder="Votre message *" value={message}
-        onChange={e => setMessage(e.target.value)} required rows={3}
-        className="w-full bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm resize-none" />
+      <textarea
+        placeholder="Votre message *"
+        value={message}
+        onChange={e => setMessage(e.target.value)}
+        required
+        rows={3}
+        className="w-full bg-black/30 border border-white/20 text-white placeholder-gray-500 p-2.5 rounded-lg text-sm resize-none"
+      />
       <div className="flex items-center gap-3">
-        <button type="submit" disabled={status === 'sending'}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm px-5 py-2 rounded-lg transition">
+        <button
+          type="submit"
+          disabled={status === 'sending'}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm px-5 py-2 rounded-lg transition"
+        >
           {status === 'sending' ? 'Envoi...' : 'Envoyer'}
         </button>
         {status === 'error' && <p className="text-red-400 text-xs">❌ Erreur, réessayez.</p>}
@@ -102,13 +121,20 @@ const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => 
   if (!photo) return null;
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
-      <div className="bg-gray-900 border border-white/10 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-           onClick={e => e.stopPropagation()}>
+      <div
+        className="bg-gray-900 border border-white/10 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="relative">
-          <img src={`/uploads/${photo.filename}`} alt={photo.title}
-            className="w-full max-h-[50vh] object-contain rounded-t-xl bg-black" />
-          <button onClick={onClose}
-            className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black transition text-lg">
+          <img
+            src={`/uploads/${photo.filename}`}
+            alt={photo.title}
+            className="w-full max-h-[50vh] object-contain rounded-t-xl bg-black"
+          />
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black transition text-lg"
+          >
             ✕
           </button>
         </div>
@@ -126,7 +152,6 @@ const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => 
               ))}
             </div>
           )}
-          {/* ← Formulaire commentaire intégré ici */}
           <CommentForm photoId={photo._id} />
         </div>
       </div>
@@ -139,13 +164,12 @@ const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => 
 // SOUS-COMPOSANT — Hero Header
 // ============================================================
 
-const PortfolioHero = ({ user, authUser, username }: any) => {
+const PortfolioHero = ({ user, authUser }: any) => {
   const tagline = user.bio ? user.bio.split('.')[0] + '.' : 'Photographe & Créateur Visuel';
   const isOwner = authUser && String((authUser as any)?.id) === String(user._id);
 
   return (
     <div className="relative w-full bg-gray-800 overflow-hidden">
-      {/* Bannière */}
       <div className="h-64 md:h-80 w-full">
         {user.bannerImage
           ? <img src={`/uploads/${user.bannerImage}`} className="w-full h-full object-cover opacity-60" alt="Bannière" />
@@ -153,7 +177,6 @@ const PortfolioHero = ({ user, authUser, username }: any) => {
         }
       </div>
 
-      {/* Barre avatar + nom */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-black/60 backdrop-blur-sm flex items-center px-6 md:px-12">
         <div className="absolute -bottom-2 left-8 md:left-12">
           {user.avatar
@@ -168,7 +191,7 @@ const PortfolioHero = ({ user, authUser, username }: any) => {
           </div>
           {isOwner
             ? <Link to="/dashboard" className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block">← Dashboard</Link>
-            : <Link to="/"          className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block">← Retour au site</Link>
+            : <Link to="/" className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block">← Retour au site</Link>
           }
         </div>
       </div>
@@ -181,22 +204,22 @@ const PortfolioHero = ({ user, authUser, username }: any) => {
 // SOUS-COMPOSANT — Onglets
 // ============================================================
 
-const TAB_STYLE_ACTIVE  = 'bg-gray-800 text-yellow-400 border-b-2 border-yellow-400';
+const TAB_STYLE_ACTIVE = 'bg-gray-800 text-yellow-400 border-b-2 border-yellow-400';
 const TAB_STYLE_DEFAULT = 'text-gray-500 hover:text-white';
-const TAB_BASE          = 'px-6 py-3 text-sm font-bold rounded-t-lg transition';
+const TAB_BASE = 'px-6 py-3 text-sm font-bold rounded-t-lg transition';
 
 interface TabBarProps {
-  activeTab:   ActiveTab;
+  activeTab: ActiveTab;
   setActiveTab: (t: ActiveTab) => void;
-  userPages:   any[];
-  username:    string;
-  blogUrl:     string;
+  userPages: any[];
+  username: string;
+  blogUrl: string;
 }
 
 const TabBar = ({ activeTab, setActiveTab, userPages, username, blogUrl }: TabBarProps) => (
   <div className="max-w-7xl mx-auto px-4 border-b border-gray-800 mb-10">
     <div className="flex justify-center gap-2 md:gap-4 flex-wrap">
-      <button onClick={() => setActiveTab('about')}    className={`${TAB_BASE} ${activeTab === 'about'    ? TAB_STYLE_ACTIVE : TAB_STYLE_DEFAULT}`}>À propos</button>
+      <button onClick={() => setActiveTab('about')} className={`${TAB_BASE} ${activeTab === 'about' ? TAB_STYLE_ACTIVE : TAB_STYLE_DEFAULT}`}>À propos</button>
       <button onClick={() => setActiveTab('projects')} className={`${TAB_BASE} ${activeTab === 'projects' ? TAB_STYLE_ACTIVE : TAB_STYLE_DEFAULT}`}>Galeries</button>
       <a href={blogUrl} target="_blank" rel="noopener noreferrer" className={`${TAB_BASE} ${TAB_STYLE_DEFAULT}`}>Blog</a>
       {userPages.map(p => (
@@ -209,10 +232,16 @@ const TabBar = ({ activeTab, setActiveTab, userPages, username, blogUrl }: TabBa
 
 
 // ============================================================
-// SOUS-COMPOSANT — Onglet Galeries (avec clic photo → modale)
+// SOUS-COMPOSANT — Onglet Galeries
 // ============================================================
 
-const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
+interface TabProjectsProps {
+  albums: any[];
+  portfolioIntro?: string;
+  username: string;
+}
+
+const TabProjects = ({ albums, portfolioIntro, username }: TabProjectsProps) => (
   <div>
     <p className="text-center text-gray-400 mb-10 text-lg italic">
       {portfolioIntro || 'Découvrez mes projets.'}
@@ -224,14 +253,22 @@ const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {albums.map((album: any) => (
-          <Link to={`/album/${album._id}?mode=viewer`} key={album._id} className="group block">
+          <Link
+            key={album._id}
+            to={`/album/${album._id}?mode=viewer`}
+            state={{
+              fromPortfolio: true,
+              portfolioPath: `/portfolio/${username}`,
+              portfolioLabel: `← Retour au portfolio de ${username}`
+            }}
+            className="group block"
+          >
             <div className="relative overflow-hidden rounded-xl shadow-2xl bg-gray-800 transform transition duration-500 group-hover:scale-[1.02] group-hover:shadow-yellow-500/10">
               <div className="aspect-[4/3] overflow-hidden">
                 {album.coverImage
                   ? <img src={`/uploads/${album.coverImage}`} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" alt={album.title} />
                   : <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl">📷</div>
                 }
-                {/* Overlay au hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 flex items-end p-6">
                   <div>
                     <h3 className="text-2xl font-bold text-white">{album.title}</h3>
@@ -239,7 +276,6 @@ const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
                   </div>
                 </div>
               </div>
-              {/* Titre par défaut (masqué au hover) */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 group-hover:opacity-0 transition">
                 <h3 className="text-lg font-bold text-white drop-shadow-lg">{album.title}</h3>
               </div>
@@ -253,15 +289,15 @@ const TabProjects = ({ albums, portfolioIntro, onPhotoClick }: any) => (
 
 
 // ============================================================
-// SOUS-COMPOSANT — Onglet À propos / Actualités (partagé)
+// SOUS-COMPOSANT — Onglet À propos / Actualités
 // ============================================================
 
 interface ContentTabProps {
-  title:       string;
-  content:     string | undefined;
-  emptyText:   string;
-  ctaLabel:    string;
-  onCtaClick:  () => void;
+  title: string;
+  content: string | undefined;
+  emptyText: string;
+  ctaLabel: string;
+  onCtaClick: () => void;
 }
 
 const ContentTab = ({ title, content, emptyText, ctaLabel, onCtaClick }: ContentTabProps) => (
@@ -287,12 +323,12 @@ const ContentTab = ({ title, content, emptyText, ctaLabel, onCtaClick }: Content
 // ============================================================
 
 interface ContactModalProps {
-  userName:      string;
-  form:          ContactForm;
-  status:        ContactStatus;
-  onChange:      (field: keyof ContactForm, value: string) => void;
-  onSend:        () => void;
-  onClose:       () => void;
+  userName: string;
+  form: ContactForm;
+  status: ContactStatus;
+  onChange: (field: keyof ContactForm, value: string) => void;
+  onSend: () => void;
+  onClose: () => void;
 }
 
 const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: ContactModalProps) => (
@@ -307,14 +343,17 @@ const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: Con
         </div>
       ) : (
         <>
-          <input type="text"  placeholder="Votre nom *"   value={form.name}    onChange={e => onChange('name',    e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
-          <input type="email" placeholder="Votre email *" value={form.email}   onChange={e => onChange('email',   e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
-          <textarea           placeholder="Votre message *" value={form.message} onChange={e => onChange('message', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-28 mb-4" />
+          <input type="text" placeholder="Votre nom *" value={form.name} onChange={e => onChange('name', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
+          <input type="email" placeholder="Votre email *" value={form.email} onChange={e => onChange('email', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
+          <textarea placeholder="Votre message *" value={form.message} onChange={e => onChange('message', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-28 mb-4" />
           {status === 'error' && <p className="text-red-400 text-sm mb-3">Erreur lors de l'envoi. Réessayez.</p>}
           <div className="flex gap-2 justify-end">
             <button onClick={onClose} className="px-4 py-2 text-sm text-gray-400">Annuler</button>
-            <button onClick={onSend} disabled={status === 'sending'}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded text-sm font-bold disabled:opacity-50">
+            <button
+              onClick={onSend}
+              disabled={status === 'sending'}
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded text-sm font-bold disabled:opacity-50"
+            >
               {status === 'sending' ? 'Envoi...' : 'Envoyer'}
             </button>
           </div>
@@ -330,24 +369,19 @@ const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: Con
 // ============================================================
 
 const PortfolioPage = () => {
-  const { username }       = useParams<{ username: string }>();
+  const { username } = useParams<{ username: string }>();
   const { user: authUser } = useAuth();
 
-  const [user, setUser]         = useState<any>(null);
-  const [albums, setAlbums]     = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [albums, setAlbums] = useState<any[]>([]);
   const [userPages, setUserPages] = useState<any[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>('projects');
-  // Modale photo
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
 
-
-  const [showContact, setShowContact]   = useState(false);
-  const [contactForm, setContactForm]   = useState<ContactForm>({ name: '', email: '', message: '' });
+  const [showContact, setShowContact] = useState(false);
+  const [contactForm, setContactForm] = useState<ContactForm>({ name: '', email: '', message: '' });
   const [contactStatus, setContactStatus] = useState<ContactStatus>('idle');
-
-
-  // ── Chargement des données ────────────────────────────────
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -367,9 +401,6 @@ const PortfolioPage = () => {
     fetchPortfolio();
   }, [username]);
 
-
-  // ── Actions contact ───────────────────────────────────────
-
   const handleContactChange = (field: keyof ContactForm, value: string) =>
     setContactForm(f => ({ ...f, [field]: value }));
 
@@ -381,10 +412,10 @@ const PortfolioPage = () => {
     setContactStatus('sending');
     try {
       await api.post('/users/contact', {
-        toUserId:  user._id,
-        fromName:  contactForm.name,
+        toUserId: user._id,
+        fromName: contactForm.name,
         fromEmail: contactForm.email,
-        message:   contactForm.message
+        message: contactForm.message
       });
       setContactStatus('sent');
     } catch {
@@ -400,15 +431,11 @@ const PortfolioPage = () => {
 
   const openContact = () => setShowContact(true);
 
-
-  // ── Rendu ─────────────────────────────────────────────────
-
   if (loading) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Chargement...</div>;
-  if (!user)   return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Utilisateur introuvable</div>;
+  if (!user) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Utilisateur introuvable</div>;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white font-sans">
-
       <PortfolioHero user={user} authUser={authUser} username={username} />
       <div className="h-12 bg-gray-900" />
 
@@ -420,10 +447,13 @@ const PortfolioPage = () => {
         blogUrl={getBlogUrl(user.name)}
       />
 
-      {/* Contenu des onglets */}
       <div className="max-w-7xl mx-auto px-4 pb-24">
         {activeTab === 'projects' && (
-          <TabProjects albums={albums} portfolioIntro={user.portfolioIntro} />
+          <TabProjects
+            albums={albums}
+            portfolioIntro={user.portfolioIntro}
+            username={username!}
+          />
         )}
         {activeTab === 'about' && (
           <ContentTab
@@ -445,24 +475,23 @@ const PortfolioPage = () => {
         )}
       </div>
 
-      {/* Footer */}
       <div className="text-center py-10 border-t border-gray-800 mt-10 text-gray-600 text-sm">
         © {new Date().getFullYear()} {user.name}. Portfolio Hélioscope.
       </div>
 
-      {/* Bouton flottant contact */}
-      <button onClick={openContact} title="Me contacter"
-        className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-400 text-black p-4 rounded-full shadow-2xl flex items-center gap-2 font-bold text-sm transition transform hover:scale-110 z-50">
+      <button
+        onClick={openContact}
+        title="Me contacter"
+        className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-400 text-black p-4 rounded-full shadow-2xl flex items-center gap-2 font-bold text-sm transition transform hover:scale-110 z-50"
+      >
         <span>✉️</span>
         <span className="hidden sm:inline">Me Contacter</span>
       </button>
 
-      {/* Modale photo + commentaire */}
       {selectedPhoto && (
         <PhotoModal photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
       )}
 
-      {/* Modale contact */}
       {showContact && (
         <ContactModal
           userName={user.name}
@@ -473,7 +502,6 @@ const PortfolioPage = () => {
           onClose={handleCloseContact}
         />
       )}
-
     </div>
   );
 };
