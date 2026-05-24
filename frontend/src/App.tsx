@@ -1,7 +1,7 @@
 //
 // LUMINAVIEW — App.tsx
 // Point d'entrée du routing frontend
-// version v2.3.3
+// version v2.4.1
 //
 
 import React from 'react';
@@ -54,10 +54,11 @@ const RequireAuth: React.FC<{ children: React.ReactElement }> = ({ children }) =
 };
 
 // ============================================================
-// APP PRINCIPALE
+// ROUTES APP PRINCIPALE
+// Avec Layout global Hélioscope
 // ============================================================
 
-const MainApp: React.FC = () => {
+const MainRoutes: React.FC = () => {
   return (
     <Layout>
       <Routes>
@@ -82,6 +83,7 @@ const MainApp: React.FC = () => {
         <Route path="/dashboard/pages" element={<RequireAuth><UserPagesManager /></RequireAuth>} />
         <Route path="/dashboard/pages/new" element={<RequireAuth><UserPageEditor /></RequireAuth>} />
         <Route path="/dashboard/pages/edit/:id" element={<RequireAuth><UserPageEditor /></RequireAuth>} />
+        <Route path="/dashboard/user-page-editor" element={<RequireAuth><UserPageEditor /></RequireAuth>} />
         <Route path="/tools" element={<RequireAuth><Tools /></RequireAuth>} />
         <Route path="/dashboard/about" element={<RequireAuth><DashboardAbout /></RequireAuth>} />
         <Route path="/dashboard/help" element={<RequireAuth><DashboardHelp /></RequireAuth>} />
@@ -98,10 +100,11 @@ const MainApp: React.FC = () => {
 };
 
 // ============================================================
-// SOUS-DOMAINE
+// ROUTES SOUS-DOMAINE
+// Sans Layout global : chaque page publique gère sa propre présentation
 // ============================================================
 
-const SubdomainApp: React.FC = () => {
+const SubdomainRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<PortfolioPage />} />
@@ -124,7 +127,7 @@ const App: React.FC = () => {
       <ThemeProvider>
         <AuthProvider>
           <CommentsProvider>
-            {subdomain ? <SubdomainApp /> : <MainApp />}
+            {subdomain ? <SubdomainRoutes /> : <MainRoutes />}
           </CommentsProvider>
         </AuthProvider>
       </ThemeProvider>
