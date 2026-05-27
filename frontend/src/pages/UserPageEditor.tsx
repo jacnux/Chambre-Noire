@@ -2,12 +2,14 @@
 // luminaview
 //         UserPageEditor
 //
-//     Mai 2026 v2.4.1
+//     Mai 2026 v2.5.0
 // ===========================================
 
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../utils/api';
 import { useNavigate, useParams } from 'react-router-dom';
+
+type MenuGroup = 'none' | 'series' | 'exhibitions' | 'blog' | 'about';
 
 const UserPageEditor = () => {
   const navigate = useNavigate();
@@ -21,11 +23,15 @@ const UserPageEditor = () => {
   const [coverImage, setCoverImage] = useState('');
   const [coverPhotos, setCoverPhotos] = useState<any[]>([]);
   const [availableAlbums, setAvailableAlbums] = useState<any[]>([]);
+  const [availablePages, setAvailablePages] = useState<any[]>([]);
+  const [menuGroup, setMenuGroup] = useState<MenuGroup>('none');
+  const [parentPageId, setParentPageId] = useState('');
+  const [menuOrder, setMenuOrder] = useState(0);
+  const [showInMenu, setShowInMenu] = useState(false);
   const [albumSortAZ, setAlbumSortAZ] = useState<'az' | 'za'>('az');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  // 1. Charger la page si édition
   useEffect(() => {
     if (!id) return;
     const fetchPageData = async () => {
@@ -37,6 +43,10 @@ const UserPageEditor = () => {
         setIsPublished(pageData.isPublished || false);
         setShowOnBlog(pageData.showOnBlog || false);
         setCoverImage(pageData.coverImage || '');
+        setMenuGroup(pageData.menuGroup || 'none');
+        setParentPageId(pageData.parentPageId?._id || pageData.parentPageId || '');
+        setMenuOrder(pageData.menuOrder || 0);
+        setShowInMenu(pageData.showInMenu || false);
         const formattedSections = pageData.sections.map((s: any) => ({
           ...s,
           albumIds: s.albumIds.map((a: any) => a._id || a),
@@ -50,7 +60,6 @@ const UserPageEditor = () => {
     fetchPageData();
   }, [id, navigate]);
 
-  // 2. Charger les albums virtuels
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
@@ -66,7 +75,20 @@ const UserPageEditor = () => {
     fetchAlbums();
   }, []);
 
-  // 3. Charger les photos pour la cover
+  useEffect(() => {
+    const fetchPages = async () => {
+      try {
+        const res = await api.get('/user-pages/my/list');
+        if (Array.isArray(res.data)) {
+          setAvailablePages(res.data);
+        }
+      } catch (err) {
+        console.error('Erreur chargement pages', err);
+      }
+    };
+    fetchPages();
+  }, []);
+
   const prevAlbumIdRef = React.useRef<string | null>(null);
 
   useEffect(() => {
@@ -92,7 +114,6 @@ const UserPageEditor = () => {
     fetchCoverPhotos();
   }, [sections]);
 
-  // Albums triés alphabétiquement (toggle A→Z / Z→A)
   const sortedAlbums = useMemo(() => {
     const copy = [...availableAlbums];
     return albumSortAZ === 'az'
@@ -100,7 +121,22 @@ const UserPageEditor = () => {
       : copy.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'fr', { sensitivity: 'base' }));
   }, [availableAlbums, albumSortAZ]);
 
-  // Gestion sections
+  const eligibleParentPages = useMemo(() => {
+    return availablePages
+      .filter((page: any) => page._id !== id)
+      .filter((page: any) => page.menuGroup === menuGroup)
+      .sort((a: any, b: any) => (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }));
+  }, [availablePages, id, menuGroup]);
+
+  useEffect(() => {
+    if (menuGroup === 'blog' && !showOnBlog) {
+      setShowOnBlog(true);
+    }
+    if (menuGroup === 'none' || menuGroup === 'blog' || menuGroup === 'about') {
+      setParentPageId('');
+    }
+  }, [menuGroup, showOnBlog]);
+
   const addSection = (type: 'text' | 'gallery' | 'split_text_gallery') => {
     setSections(prev => [...prev, { type, content: '', albumIds: [], _id: Date.now().toString() }]);
   };
@@ -118,7 +154,6 @@ const UserPageEditor = () => {
     setSections(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Sauvegarde
   const handleSave = async () => {
     if (!title || !slug) {
       setMessage("Le titre et l'URL sont obligatoires.");
@@ -134,6 +169,10 @@ const UserPageEditor = () => {
         isPublished,
         showOnBlog,
         coverImage,
+        menuGroup,
+        parentPageId: parentPageId || null,
+        menuOrder,
+        showInMenu,
       });
       setMessage('Page sauvegardée !');
       setTimeout(() => navigate('/dashboard/pages'), 1000);
@@ -153,7 +192,6 @@ const UserPageEditor = () => {
     }
   };
 
-  // Bouton toggle tri albums (partagé entre toutes les sections)
   const sortToggleBtn = (
     <div className="flex justify-end mb-1">
       <button
@@ -178,7 +216,6 @@ const UserPageEditor = () => {
           <div className="bg-blue-600 p-3 rounded mb-4 text-center">{message}</div>
         )}
 
-        {/* Infos Principales */}
         <div className="bg-gray-800 p-6 rounded-lg mb-6">
           <div className="mb-4">
             <label className="block text-gray-400 mb-1">Titre</label>
@@ -202,7 +239,67 @@ const UserPageEditor = () => {
             />
           </div>
 
-          {/* Image de couverture */}
+          <div className="mb-4 border-t border-gray-700 pt-4">
+            <h3 className="text-lg font-bold text-white mb-3">Navigation</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-400 mb-1">Section du menu</label>
+                <select
+                  value={menuGroup}
+                  onChange={e => setMenuGroup(e.target.value as MenuGroup)}
+                  className="w-full p-3 bg-gray-700 rounded"
+                >
+                  <option value="none">Aucune</option>
+                  <option value="series">Séries</option>
+                  <option value="exhibitions">Expositions</option>
+                  <option value="blog">Blog</option>
+                  <option value="about">À propos</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-400 mb-1">Ordre d'affichage</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={menuOrder}
+                  onChange={e => setMenuOrder(Number(e.target.value) || 0)}
+                  className="w-full p-3 bg-gray-700 rounded"
+                />
+              </div>
+            </div>
+
+            {(menuGroup === 'series' || menuGroup === 'exhibitions') && (
+              <div className="mt-4">
+                <label className="block text-gray-400 mb-1">Page parente (optionnel)</label>
+                <select
+                  value={parentPageId}
+                  onChange={e => setParentPageId(e.target.value)}
+                  className="w-full p-3 bg-gray-700 rounded"
+                >
+                  <option value="">Aucune page parente</option>
+                  {eligibleParentPages.map((page: any) => (
+                    <option key={page._id} value={page._id}>{page.title}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-col sm:flex-row gap-4">
+              <button
+                type="button"
+                onClick={() => setShowInMenu(v => !v)}
+                className={`flex-1 p-3 rounded-lg border-2 transition font-bold ${
+                  showInMenu
+                    ? 'bg-yellow-700 border-yellow-500 text-white'
+                    : 'bg-gray-700 border-gray-600 text-gray-400'
+                }`}
+              >
+                {showInMenu ? '✓ Visible dans le menu' : '✕ Masqué du menu'}
+              </button>
+            </div>
+          </div>
+
           <div className="mb-4 border-t border-gray-700 pt-4">
             <label className="block text-gray-400 mb-1 font-bold">
               Image de couverture (Vignette)
@@ -245,7 +342,6 @@ const UserPageEditor = () => {
             )}
           </div>
 
-          {/* Visibilité */}
           <div className="border-t border-gray-700 pt-4 mt-4">
             <h3 className="text-lg font-bold text-white mb-3">Visibilité</h3>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -275,7 +371,6 @@ const UserPageEditor = () => {
           </div>
         </div>
 
-        {/* Sections */}
         {sections.map((section, index) => (
           <div
             key={section._id || index}
@@ -348,7 +443,6 @@ const UserPageEditor = () => {
           </div>
         ))}
 
-        {/* Boutons Ajouter Section */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <button
             onClick={() => addSection('text')}
@@ -370,7 +464,6 @@ const UserPageEditor = () => {
           </button>
         </div>
 
-        {/* Sauvegarde */}
         <button
           onClick={handleSave}
           disabled={loading}

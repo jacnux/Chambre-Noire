@@ -1,33 +1,24 @@
 // ============================================================
 // LUMINAVIEW — PortfolioPage.tsx
 // Page publique du portfolio d'un utilisateur
-// v2.4.0
+// v2.5.5
 // ============================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 
-
-// ============================================================
-// TYPES
-// ============================================================
-
 type ContactStatus = 'idle' | 'sending' | 'sent' | 'error';
-type ActiveTab = 'projects' | 'about' | 'services';
+type ActiveTab = 'home' | 'series' | 'exhibitions' | 'about';
+type MenuGroup = 'none' | 'series' | 'exhibitions' | 'blog' | 'about';
 
 interface ContactForm {
   name: string;
   email: string;
   message: string;
 }
-
-
-// ============================================================
-// UTILITAIRES
-// ============================================================
 
 const getBlogUrl = (userName: string): string => {
   const name = userName.toLowerCase();
@@ -36,11 +27,6 @@ const getBlogUrl = (userName: string): string => {
     ? `http://localhost:8080/?user=${name}`
     : `https://${name}-blog.helioscope.fr`;
 };
-
-
-// ============================================================
-// SOUS-COMPOSANT — Formulaire Commentaire Photo
-// ============================================================
 
 const CommentForm = ({ photoId }: { photoId: string }) => {
   const [name, setName] = useState('');
@@ -53,7 +39,9 @@ const CommentForm = ({ photoId }: { photoId: string }) => {
     setStatus('sending');
     try {
       await api.post(`/comments/${photoId}`, {
-        authorName: name, authorEmail: email, message
+        authorName: name,
+        authorEmail: email,
+        message,
       });
       setStatus('ok');
       setName('');
@@ -64,11 +52,13 @@ const CommentForm = ({ photoId }: { photoId: string }) => {
     }
   };
 
-  if (status === 'ok') return (
-    <div className="mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg text-green-400 text-sm text-center">
-      ✅ Merci pour votre commentaire !
-    </div>
-  );
+  if (status === 'ok') {
+    return (
+      <div className="mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg text-green-400 text-sm text-center">
+        ✅ Merci pour votre commentaire !
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 border-t border-white/10 pt-5 space-y-3">
@@ -112,11 +102,6 @@ const CommentForm = ({ photoId }: { photoId: string }) => {
   );
 };
 
-
-// ============================================================
-// SOUS-COMPOSANT — Modale Photo avec Commentaire
-// ============================================================
-
 const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => {
   if (!photo) return null;
   return (
@@ -140,9 +125,7 @@ const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => 
         </div>
         <div className="p-6">
           <h3 className="text-xl font-bold text-white">{photo.title}</h3>
-          {photo.description && (
-            <p className="text-gray-400 text-sm mt-1">{photo.description}</p>
-          )}
+          {photo.description && <p className="text-gray-400 text-sm mt-1">{photo.description}</p>}
           {photo.tags?.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {photo.tags.map((tag: string) => (
@@ -159,11 +142,6 @@ const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => 
   );
 };
 
-
-// ============================================================
-// SOUS-COMPOSANT — Hero Header
-// ============================================================
-
 const PortfolioHero = ({ user, authUser }: any) => {
   const tagline = user.bio ? user.bio.split('.')[0] + '.' : 'Photographe & Créateur Visuel';
   const isOwner = authUser && String((authUser as any)?.id) === String(user._id);
@@ -171,84 +149,203 @@ const PortfolioHero = ({ user, authUser }: any) => {
   return (
     <div className="relative w-full bg-gray-800 overflow-hidden">
       <div className="h-64 md:h-80 w-full">
-        {user.bannerImage
-          ? <img src={`/uploads/${user.bannerImage}`} className="w-full h-full object-cover opacity-60" alt="Bannière" />
-          : <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black" />
-        }
+        {user.bannerImage ? (
+          <img src={`/uploads/${user.bannerImage}`} className="w-full h-full object-cover opacity-60" alt="Bannière" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black" />
+        )}
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-black/60 backdrop-blur-sm flex items-center px-6 md:px-12">
         <div className="absolute -bottom-2 left-8 md:left-12">
-          {user.avatar
-            ? <img src={`/uploads/${user.avatar}`} className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-gray-900 shadow-xl object-cover bg-gray-700" alt="Avatar" />
-            : <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-gray-900 shadow-xl bg-gray-700 flex items-center justify-center text-4xl">👤</div>
-          }
+          {user.avatar ? (
+            <img
+              src={`/uploads/${user.avatar}`}
+              className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-gray-900 shadow-xl object-cover bg-gray-700"
+              alt="Avatar"
+            />
+          ) : (
+            <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-gray-900 shadow-xl bg-gray-700 flex items-center justify-center text-4xl">
+              👤
+            </div>
+          )}
         </div>
         <div className="ml-36 md:ml-44 flex-1 flex justify-between items-center">
           <div>
             <h1 className="text-2xl md:text-4xl font-extrabold text-white drop-shadow-lg tracking-tight">{user.name}</h1>
             <p className="text-sm md:text-base text-gray-300 mt-1 italic drop-shadow">{tagline}</p>
           </div>
-          {isOwner
-            ? <Link to="/dashboard" className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block">← Dashboard</Link>
-            : <Link to="/" className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block">← Retour au site</Link>
-          }
+          {!isOwner && (
+            <Link to="/" className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block">
+              ← Retour au site
+            </Link>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-
-// ============================================================
-// SOUS-COMPOSANT — Onglets
-// ============================================================
-
-const TAB_STYLE_ACTIVE = 'bg-gray-800 text-yellow-400 border-b-2 border-yellow-400';
-const TAB_STYLE_DEFAULT = 'text-gray-500 hover:text-white';
-const TAB_BASE = 'px-6 py-3 text-sm font-bold rounded-t-lg transition';
-
-interface TabBarProps {
+interface PortfolioMenuProps {
   activeTab: ActiveTab;
-  setActiveTab: (t: ActiveTab) => void;
-  userPages: any[];
+  setActiveTab: (tab: ActiveTab) => void;
   username: string;
   blogUrl: string;
+  seriesPages: any[];
+  exhibitionPages: any[];
 }
 
-const TabBar = ({ activeTab, setActiveTab, userPages, username, blogUrl }: TabBarProps) => (
-  <div className="max-w-7xl mx-auto px-4 border-b border-gray-800 mb-10">
-    <div className="flex justify-center gap-2 md:gap-4 flex-wrap">
-      <button onClick={() => setActiveTab('about')} className={`${TAB_BASE} ${activeTab === 'about' ? TAB_STYLE_ACTIVE : TAB_STYLE_DEFAULT}`}>À propos</button>
-      <button onClick={() => setActiveTab('projects')} className={`${TAB_BASE} ${activeTab === 'projects' ? TAB_STYLE_ACTIVE : TAB_STYLE_DEFAULT}`}>Galeries</button>
-      <a href={blogUrl} target="_blank" rel="noopener noreferrer" className={`${TAB_BASE} ${TAB_STYLE_DEFAULT}`}>Blog</a>
-      {userPages.map(p => (
-        <Link key={p._id} to={`/portfolio/${username}/${p.slug}`} className={`${TAB_BASE} ${TAB_STYLE_DEFAULT}`}>{p.title}</Link>
-      ))}
-      <button onClick={() => setActiveTab('services')} className={`${TAB_BASE} ${activeTab === 'services' ? TAB_STYLE_ACTIVE : TAB_STYLE_DEFAULT}`}>Mes Actualités</button>
+const baseMenuButtonClass = 'px-5 py-3 text-sm font-bold rounded-t-lg transition';
+const activeMenuButtonClass = 'bg-gray-800 text-yellow-400 border-b-2 border-yellow-400';
+const inactiveMenuButtonClass = 'text-gray-400 hover:text-white';
+
+const PortfolioMenu = ({
+  activeTab,
+  setActiveTab,
+  username,
+  blogUrl,
+  seriesPages,
+  exhibitionPages,
+}: PortfolioMenuProps) => {
+  const [openDropdown, setOpenDropdown] = useState<ActiveTab | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleDropdown = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setOpenDropdown(current => (current === tab ? null : tab));
+  };
+
+  const renderDropdown = (pages: any[], group: 'series' | 'exhibitions') => {
+    if (pages.length === 0 || openDropdown !== group) return null;
+
+    return (
+      <div className="absolute left-1/2 top-full z-40 mt-2 w-[min(92vw,28rem)] -translate-x-1/2 rounded-2xl border border-gray-800 bg-gray-900/95 shadow-2xl backdrop-blur overflow-hidden">
+        <div className="max-h-[26rem] overflow-y-auto divide-y divide-gray-800">
+          {pages.map(page => (
+            <Link
+              key={page._id}
+              to={`/portfolio/${username}/${page.slug}`}
+              className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition"
+              onClick={() => setOpenDropdown(null)}
+            >
+              <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+                {page.coverImage ? (
+                  <img
+                    src={`/uploads/${page.coverImage}`}
+                    alt={page.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-850 to-black flex items-center justify-center text-gray-500 text-[10px] uppercase tracking-[0.2em]">
+                    {group === 'exhibitions' ? 'Expo' : 'Série'}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 mb-1">
+                  {group === 'exhibitions' ? 'Exposition' : 'Série'}
+                </div>
+                <div className="text-white text-sm md:text-base font-medium leading-tight line-clamp-2">
+                  {page.title}
+                </div>
+              </div>
+              <div className="text-gray-500 text-lg">›</div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 border-b border-gray-800 mb-10" ref={menuRef}>
+      <div className="flex justify-center gap-2 md:gap-4 flex-wrap">
+        <button
+          onClick={() => {
+            setActiveTab('home');
+            setOpenDropdown(null);
+          }}
+          className={`${baseMenuButtonClass} ${activeTab === 'home' ? activeMenuButtonClass : inactiveMenuButtonClass}`}
+        >
+          Accueil
+        </button>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => toggleDropdown('series')}
+            aria-expanded={openDropdown === 'series'}
+            className={`${baseMenuButtonClass} ${activeTab === 'series' ? activeMenuButtonClass : inactiveMenuButtonClass} flex items-center gap-2`}
+          >
+            <span>Séries</span>
+            <span className={`text-xs transition-transform duration-200 ${openDropdown === 'series' ? 'rotate-180' : ''}`}>▾</span>
+          </button>
+          {renderDropdown(seriesPages, 'series')}
+        </div>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => toggleDropdown('exhibitions')}
+            aria-expanded={openDropdown === 'exhibitions'}
+            className={`${baseMenuButtonClass} ${activeTab === 'exhibitions' ? activeMenuButtonClass : inactiveMenuButtonClass} flex items-center gap-2`}
+          >
+            <span>Expositions</span>
+            <span className={`text-xs transition-transform duration-200 ${openDropdown === 'exhibitions' ? 'rotate-180' : ''}`}>▾</span>
+          </button>
+          {renderDropdown(exhibitionPages, 'exhibitions')}
+        </div>
+
+        <a
+          href={blogUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${baseMenuButtonClass} ${inactiveMenuButtonClass}`}
+        >
+          Blog
+        </a>
+        <button
+          onClick={() => {
+            setActiveTab('about');
+            setOpenDropdown(null);
+          }}
+          className={`${baseMenuButtonClass} ${activeTab === 'about' ? activeMenuButtonClass : inactiveMenuButtonClass}`}
+        >
+          À propos
+        </button>
+      </div>
     </div>
-  </div>
-);
-
-
-// ============================================================
-// SOUS-COMPOSANT — Onglet Galeries
-// ============================================================
+  );
+};
 
 interface TabProjectsProps {
   albums: any[];
   portfolioIntro?: string;
   username: string;
+  title?: string;
+  emptyText?: string;
 }
 
-const TabProjects = ({ albums, portfolioIntro, username }: TabProjectsProps) => (
+const TabProjects = ({ albums, portfolioIntro, username, title, emptyText }: TabProjectsProps) => (
   <div>
+    {title && <h2 className="text-3xl font-bold text-yellow-400 text-center mb-4">{title}</h2>}
     <p className="text-center text-gray-400 mb-10 text-lg italic">
       {portfolioIntro || 'Découvrez mes projets.'}
     </p>
     {albums.length === 0 ? (
       <div className="text-center py-20">
-        <p className="text-gray-500 text-xl">Aucun album mis en avant.</p>
+        <p className="text-gray-500 text-xl">{emptyText || 'Aucun album mis en avant.'}</p>
       </div>
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -259,16 +356,21 @@ const TabProjects = ({ albums, portfolioIntro, username }: TabProjectsProps) => 
             state={{
               fromPortfolio: true,
               portfolioPath: `/portfolio/${username}`,
-              portfolioLabel: `← Retour au portfolio de ${username}`
+              portfolioLabel: `← Retour au portfolio de ${username}`,
             }}
             className="group block"
           >
             <div className="relative overflow-hidden rounded-xl shadow-2xl bg-gray-800 transform transition duration-500 group-hover:scale-[1.02] group-hover:shadow-yellow-500/10">
               <div className="aspect-[4/3] overflow-hidden">
-                {album.coverImage
-                  ? <img src={`/uploads/${album.coverImage}`} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" alt={album.title} />
-                  : <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl">📷</div>
-                }
+                {album.coverImage ? (
+                  <img
+                    src={`/uploads/${album.coverImage}`}
+                    className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
+                    alt={album.title}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl">📷</div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 flex items-end p-6">
                   <div>
                     <h3 className="text-2xl font-bold text-white">{album.title}</h3>
@@ -287,10 +389,177 @@ const TabProjects = ({ albums, portfolioIntro, username }: TabProjectsProps) => 
   </div>
 );
 
+interface PageGridProps {
+  pages: any[];
+  username: string;
+  title: string;
+  intro: string;
+  emptyText: string;
+}
 
-// ============================================================
-// SOUS-COMPOSANT — Onglet À propos / Actualités
-// ============================================================
+const getPageExcerpt = (page: any) => {
+  const textSection = page.sections?.find((section: any) => section.type === 'text' || section.type === 'split_text_gallery');
+  const raw = textSection?.content || page.seoDescription || '';
+  const cleaned = String(raw).replace(/[#*_>`~-]/g, ' ').replace(/\s+/g, ' ').trim();
+  return cleaned.length > 140 ? `${cleaned.slice(0, 140).trim()}…` : cleaned;
+};
+
+const getPageMeta = (page: any) => {
+  const galleryCount = Array.isArray(page.sections)
+    ? page.sections.filter((section: any) => section.type === 'gallery' || section.type === 'split_text_gallery').length
+    : 0;
+
+  if (page.menuGroup === 'exhibitions') {
+    return galleryCount > 0
+      ? `${galleryCount} section${galleryCount > 1 ? 's' : ''} visuelle${galleryCount > 1 ? 's' : ''}`
+      : 'Exposition';
+  }
+
+  return galleryCount > 0
+    ? `${galleryCount} section${galleryCount > 1 ? 's' : ''} visuelle${galleryCount > 1 ? 's' : ''}`
+    : 'Série';
+};
+
+const getPageCover = (page: any) => {
+  return page.coverImage || page.heroImage || page.bannerImage || null;
+};
+
+const getPagePlaceholder = (page: any) => {
+  if (page.menuGroup === 'exhibitions') {
+    return {
+      label: 'Exposition',
+      accent: 'text-orange-100',
+      cardBorder: 'border-orange-200/15',
+      filmTone: 'from-stone-900 via-zinc-900 to-black',
+      sheetTone: 'bg-stone-950',
+      frameTone: 'bg-[#111111]',
+      mark: 'Cartel d’exposition',
+    };
+  }
+
+  return {
+    label: 'Série',
+    accent: 'text-amber-50',
+    cardBorder: 'border-amber-200/15',
+    filmTone: 'from-neutral-950 via-zinc-900 to-black',
+    sheetTone: 'bg-neutral-950',
+    frameTone: 'bg-[#101010]',
+    mark: 'Planche-contact',
+  };
+};
+
+const PageGrid = ({ pages, username, title, intro, emptyText }: PageGridProps) => (
+  <div>
+    <h2 className="text-3xl font-bold text-yellow-400 text-center mb-4">{title}</h2>
+    <p className="text-center text-gray-400 mb-10 text-lg italic">{intro}</p>
+
+    {pages.length === 0 ? (
+      <div className="text-center py-20">
+        <p className="text-gray-500 text-xl">{emptyText}</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {pages.map(page => {
+          const placeholder = getPagePlaceholder(page);
+          const cover = getPageCover(page);
+          const excerpt = getPageExcerpt(page);
+          return (
+            <Link
+              key={page._id}
+              to={`/portfolio/${username}/${page.slug}`}
+              className="group block"
+            >
+              <div className={`h-full overflow-hidden rounded-xl shadow-2xl bg-black border ${placeholder.cardBorder} transition duration-500 group-hover:scale-[1.02] group-hover:shadow-black/60`}>
+                <div className="aspect-[4/3] overflow-hidden bg-black relative">
+                  {cover ? (
+                    <>
+                      <img
+                        src={`/uploads/${cover}`}
+                        alt={page.title}
+                        className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-5">
+                        <div className={`text-[11px] uppercase tracking-[0.3em] ${placeholder.accent} mb-2`}>
+                          {placeholder.label}
+                        </div>
+                        <div className="text-white text-xl font-semibold leading-tight line-clamp-2 drop-shadow-lg">
+                          {page.title}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className={`w-full h-full ${placeholder.sheetTone} relative overflow-hidden p-4 sm:p-5`}>
+                      <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.22),transparent_18%),radial-gradient(circle_at_78%_24%,rgba(255,255,255,0.08),transparent_16%),radial-gradient(circle_at_50%_78%,rgba(255,255,255,0.06),transparent_20%)]" />
+                      <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,transparent_20%,transparent_80%,rgba(255,255,255,0.08)_100%)]" />
+
+                      <div className={`relative h-full rounded-[18px] ${placeholder.frameTone} border border-white/8 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] overflow-hidden`}>
+                        <div className={`absolute inset-0 bg-gradient-to-br ${placeholder.filmTone}`} />
+                        <div className="absolute inset-0 opacity-[0.12] bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)]" />
+                        <div className="absolute left-0 right-0 top-0 h-10 border-b border-white/5 bg-black/20" />
+                        <div className="absolute left-0 right-0 bottom-0 h-14 border-t border-white/5 bg-black/30" />
+
+                        <div className="absolute top-3 left-3 flex gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-white/30" />
+                          <span className="w-2 h-2 rounded-full bg-white/10" />
+                          <span className="w-2 h-2 rounded-full bg-white/10" />
+                        </div>
+
+                        <div className="absolute top-3 right-3 text-[9px] uppercase tracking-[0.28em] text-white/45">
+                          {placeholder.mark}
+                        </div>
+
+                        <div className="absolute inset-0 px-6 py-8 flex flex-col justify-between">
+                          <div>
+                            <div className={`text-[11px] uppercase tracking-[0.3em] ${placeholder.accent} mb-4`}>
+                              {placeholder.label}
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 mb-5 opacity-80">
+                              <div className="aspect-square border border-white/10 bg-black/20" />
+                              <div className="aspect-square border border-white/10 bg-black/30" />
+                              <div className="aspect-square border border-white/10 bg-black/10" />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="w-20 h-px bg-white/25 mb-4" />
+                            <div className="text-white text-2xl font-semibold leading-tight max-w-[13rem] line-clamp-3 mb-3">
+                              {page.title}
+                            </div>
+                            <div className="text-[11px] uppercase tracking-[0.24em] text-white/45">
+                              Tirage sans visuel
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-6 bg-gradient-to-b from-zinc-950 to-black">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <h3 className="text-xl font-bold text-white group-hover:text-yellow-300 transition line-clamp-2">
+                      {page.title}
+                    </h3>
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-gray-500 whitespace-nowrap pt-1">
+                      {getPageMeta(page)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400 line-clamp-3 min-h-[4.5rem]">
+                    {excerpt || 'Découvrir cette page.'}
+                  </p>
+                  <div className="mt-5 text-sm text-yellow-300 font-medium">
+                    Ouvrir →
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    )}
+  </div>
+);
 
 interface ContentTabProps {
   title: string;
@@ -304,23 +573,24 @@ const ContentTab = ({ title, content, emptyText, ctaLabel, onCtaClick }: Content
   <div className="max-w-3xl mx-auto">
     <div className="bg-gray-800/50 backdrop-blur border border-white/10 rounded-xl p-8 shadow-2xl">
       <h2 className="text-2xl font-bold text-yellow-400 mb-6">{title}</h2>
-      {content
-        ? <div className="prose prose-invert max-w-none"><ReactMarkdown>{content}</ReactMarkdown></div>
-        : <p className="text-gray-500 italic">{emptyText}</p>
-      }
+      {content ? (
+        <div className="prose prose-invert max-w-none">
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
+      ) : (
+        <p className="text-gray-500 italic">{emptyText}</p>
+      )}
       <div className="mt-8 pt-8 border-t border-gray-700 text-center">
-        <button onClick={onCtaClick} className="bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-3 rounded-full font-bold transition text-lg">
+        <button
+          onClick={onCtaClick}
+          className="bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-3 rounded-full font-bold transition text-lg"
+        >
           {ctaLabel}
         </button>
       </div>
     </div>
   </div>
 );
-
-
-// ============================================================
-// SOUS-COMPOSANT — Modale Contact
-// ============================================================
 
 interface ContactModalProps {
   userName: string;
@@ -339,16 +609,37 @@ const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: Con
       {status === 'sent' ? (
         <div className="text-center py-8">
           <p className="text-green-400 text-lg font-bold">✓ Message envoyé !</p>
-          <button onClick={onClose} className="mt-4 text-sm text-gray-400 hover:text-white">Fermer</button>
+          <button onClick={onClose} className="mt-4 text-sm text-gray-400 hover:text-white">
+            Fermer
+          </button>
         </div>
       ) : (
         <>
-          <input type="text" placeholder="Votre nom *" value={form.name} onChange={e => onChange('name', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
-          <input type="email" placeholder="Votre email *" value={form.email} onChange={e => onChange('email', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3" />
-          <textarea placeholder="Votre message *" value={form.message} onChange={e => onChange('message', e.target.value)} className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-28 mb-4" />
+          <input
+            type="text"
+            placeholder="Votre nom *"
+            value={form.name}
+            onChange={e => onChange('name', e.target.value)}
+            className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3"
+          />
+          <input
+            type="email"
+            placeholder="Votre email *"
+            value={form.email}
+            onChange={e => onChange('email', e.target.value)}
+            className="w-full bg-black/30 p-3 rounded border border-white/10 text-white mb-3"
+          />
+          <textarea
+            placeholder="Votre message *"
+            value={form.message}
+            onChange={e => onChange('message', e.target.value)}
+            className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-28 mb-4"
+          />
           {status === 'error' && <p className="text-red-400 text-sm mb-3">Erreur lors de l'envoi. Réessayez.</p>}
           <div className="flex gap-2 justify-end">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-gray-400">Annuler</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-gray-400">
+              Annuler
+            </button>
             <button
               onClick={onSend}
               disabled={status === 'sending'}
@@ -363,10 +654,17 @@ const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: Con
   </div>
 );
 
-
-// ============================================================
-// COMPOSANT PRINCIPAL
-// ============================================================
+const filterMenuPages = (pages: any[], group: MenuGroup) => {
+  return [...pages]
+    .filter(page => page.menuGroup === group)
+    .filter(page => page.showInMenu === true)
+    .sort((a, b) => {
+      const orderA = a.menuOrder ?? 0;
+      const orderB = b.menuOrder ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
+    });
+};
 
 const PortfolioPage = () => {
   const { username } = useParams<{ username: string }>();
@@ -376,7 +674,7 @@ const PortfolioPage = () => {
   const [albums, setAlbums] = useState<any[]>([]);
   const [userPages, setUserPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('projects');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
 
   const [showContact, setShowContact] = useState(false);
@@ -389,7 +687,8 @@ const PortfolioPage = () => {
         const res = await api.get(`/albums/portfolio/${username}`);
         setUser(res.data.user);
         setAlbums(res.data.albums);
-        api.get(`/user-pages/${username}`)
+        api
+          .get(`/user-pages/${username}`)
           .then(r => setUserPages(r.data))
           .catch(() => {});
       } catch (err) {
@@ -401,8 +700,12 @@ const PortfolioPage = () => {
     fetchPortfolio();
   }, [username]);
 
-  const handleContactChange = (field: keyof ContactForm, value: string) =>
+  const seriesPages = useMemo(() => filterMenuPages(userPages, 'series'), [userPages]);
+  const exhibitionPages = useMemo(() => filterMenuPages(userPages, 'exhibitions'), [userPages]);
+
+  const handleContactChange = (field: keyof ContactForm, value: string) => {
     setContactForm(f => ({ ...f, [field]: value }));
+  };
 
   const handleSendContact = async () => {
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
@@ -415,7 +718,7 @@ const PortfolioPage = () => {
         toUserId: user._id,
         fromName: contactForm.name,
         fromEmail: contactForm.email,
-        message: contactForm.message
+        message: contactForm.message,
       });
       setContactStatus('sent');
     } catch {
@@ -431,45 +734,65 @@ const PortfolioPage = () => {
 
   const openContact = () => setShowContact(true);
 
-  if (loading) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Chargement...</div>;
-  if (!user) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Utilisateur introuvable</div>;
+  if (loading) {
+    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Chargement...</div>;
+  }
+
+  if (!user) {
+    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Utilisateur introuvable</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white font-sans">
       <PortfolioHero user={user} authUser={authUser} username={username} />
       <div className="h-12 bg-gray-900" />
 
-      <TabBar
+      <PortfolioMenu
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        userPages={userPages}
         username={username!}
         blogUrl={getBlogUrl(user.name)}
+        seriesPages={seriesPages}
+        exhibitionPages={exhibitionPages}
       />
 
       <div className="max-w-7xl mx-auto px-4 pb-24">
-        {activeTab === 'projects' && (
+        {activeTab === 'home' && (
           <TabProjects
             albums={albums}
             portfolioIntro={user.portfolioIntro}
             username={username!}
+            title="Accueil"
+            emptyText="Aucun contenu mis en avant pour le moment."
           />
         )}
+
+        {activeTab === 'series' && (
+          <PageGrid
+            pages={seriesPages}
+            username={username!}
+            title="Séries"
+            intro="Explorez les séries photographiques présentées comme des ensembles éditoriaux complets."
+            emptyText="Aucune série publiée pour le moment."
+          />
+        )}
+
+        {activeTab === 'exhibitions' && (
+          <PageGrid
+            pages={exhibitionPages}
+            username={username!}
+            title="Expositions"
+            intro="Retrouvez ici les expositions, accrochages et présentations publiques du travail."
+            emptyText="Aucune exposition publiée pour le moment."
+          />
+        )}
+
         {activeTab === 'about' && (
           <ContentTab
             title={`À propos de ${user.name}`}
             content={user.bio}
             emptyText="Aucune biographie renseignée."
             ctaLabel="Me contacter"
-            onCtaClick={openContact}
-          />
-        )}
-        {activeTab === 'services' && (
-          <ContentTab
-            title="Actualités"
-            content={user.servicesDescription}
-            emptyText="Informations non renseignées."
-            ctaLabel="Demander un devis"
             onCtaClick={openContact}
           />
         )}
@@ -488,9 +811,7 @@ const PortfolioPage = () => {
         <span className="hidden sm:inline">Me Contacter</span>
       </button>
 
-      {selectedPhoto && (
-        <PhotoModal photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
-      )}
+      {selectedPhoto && <PhotoModal photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />}
 
       {showContact && (
         <ContactModal

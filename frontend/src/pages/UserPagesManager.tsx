@@ -2,7 +2,7 @@
 // luminaview
 //         UserPagesManager
 //
-//     Mai 2026 v2.4.1
+//     Mai 2026 v2.5.0
 // ===========================================
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -10,10 +10,22 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useTheme } from '../context/ThemeContext';
 
+type PageSortMode = 'az' | 'za' | null;
+
+type MenuGroup = 'none' | 'series' | 'exhibitions' | 'blog' | 'about';
+
+const MENU_GROUP_LABELS: Record<MenuGroup, string> = {
+  none: 'Aucune',
+  series: 'Séries',
+  exhibitions: 'Expositions',
+  blog: 'Blog',
+  about: 'À propos',
+};
+
 const UserPagesManager = () => {
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pageSortAZ, setPageSortAZ] = useState<'az' | 'za' | null>(null);
+  const [pageSortAZ, setPageSortAZ] = useState<PageSortMode>(null);
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -40,7 +52,7 @@ const UserPagesManager = () => {
     if (!window.confirm(`Supprimer "${title}" ?`)) return;
     try {
       await api.delete(`/user-pages/my/${id}`);
-      setPages(pages.filter(p => p._id !== id));
+      setPages(prev => prev.filter(p => p._id !== id));
     } catch (err) {
       alert('Erreur suppression');
     }
@@ -53,7 +65,6 @@ const UserPagesManager = () => {
     });
   };
 
-  // Tri alphabétique — null = ordre par défaut (plus récent au plus ancien)
   const sortedPages = useMemo(() => {
     if (!pageSortAZ) return pages;
     const copy = [...pages];
@@ -64,7 +75,7 @@ const UserPagesManager = () => {
 
   const shellTextClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
   const mutedTextClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
-  const emptyTextClass = theme === 'dark' ? 'text-gray-500' : 'text-gray-500';
+  const emptyTextClass = 'text-gray-500';
   const cardClass = theme === 'dark'
     ? 'bg-gray-800/70 border border-gray-700 backdrop-blur-xl'
     : 'bg-white/90 border border-gray-200 backdrop-blur-xl shadow-sm';
@@ -77,6 +88,15 @@ const UserPagesManager = () => {
       ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
       : 'bg-gray-200 hover:bg-gray-300 text-gray-700';
 
+  const neutralBadgeClass = theme === 'dark'
+    ? 'bg-gray-700 text-gray-300'
+    : 'bg-gray-200 text-gray-700';
+
+  const getMenuGroupLabel = (group?: string) => {
+    const key = (group || 'none') as MenuGroup;
+    return MENU_GROUP_LABELS[key] || 'Aucune';
+  };
+
   if (loading) {
     return <div className={`p-8 ${shellTextClass}`}>Chargement...</div>;
   }
@@ -84,12 +104,9 @@ const UserPagesManager = () => {
   return (
     <div className={`w-full ${shellTextClass}`}>
       <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
-
-        {/* Header */}
         <div className="flex justify-between items-center mb-8 gap-4 flex-wrap">
           <h1 className="text-3xl font-bold text-yellow-500">Mes Pages</h1>
           <div className="flex gap-2 items-center flex-wrap">
-            {/* Bouton toggle tri alphabétique */}
             <button
               type="button"
               onClick={() => setPageSortAZ(v => {
@@ -102,8 +119,8 @@ const UserPagesManager = () => {
                 pageSortAZ === 'az'
                   ? 'Basculer Z→A'
                   : pageSortAZ === 'za'
-                  ? 'Retour ordre par défaut'
-                  : 'Trier A→Z'
+                    ? 'Retour ordre par défaut'
+                    : 'Trier A→Z'
               }
             >
               {pageSortAZ === 'az' ? '🔤 Z→A' : pageSortAZ === 'za' ? '↺ Défaut' : '🔤 A→Z'}
@@ -124,21 +141,41 @@ const UserPagesManager = () => {
             {sortedPages.map(page => (
               <div
                 key={page._id}
-                className={`p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${cardClass}`}
+                className={`p-4 rounded-lg flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 ${cardClass}`}
               >
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-xl font-bold truncate">{page.title}</h2>
-                  <p className={`text-sm ${mutedTextClass}`}>/{page.slug}</p>
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    <span className={`text-xs px-2 py-1 rounded ${page.isPublished ? 'bg-green-700 text-green-100' : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                <div className="flex-1 min-w-0 w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-xl font-bold truncate">{page.title}</h2>
+                      <p className={`text-sm ${mutedTextClass}`}>/{page.slug}</p>
+                    </div>
+                    <div className="text-sm text-right">
+                      <p className={mutedTextClass}>Ordre menu : <span className="font-semibold">{page.menuOrder ?? 0}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    <span className={`text-xs px-2 py-1 rounded ${page.isPublished ? 'bg-green-700 text-green-100' : neutralBadgeClass}`}>
                       {page.isPublished ? '✓ Portfolio' : '✕ Portfolio'}
                     </span>
-                    <span className={`text-xs px-2 py-1 rounded ${page.showOnBlog ? 'bg-blue-700 text-blue-100' : theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                    <span className={`text-xs px-2 py-1 rounded ${page.showOnBlog ? 'bg-blue-700 text-blue-100' : neutralBadgeClass}`}>
                       {page.showOnBlog ? '✓ Blog' : '✕ Blog'}
                     </span>
+                    <span className={`text-xs px-2 py-1 rounded ${page.showInMenu ? 'bg-yellow-700 text-yellow-100' : neutralBadgeClass}`}>
+                      {page.showInMenu ? '✓ Menu' : '✕ Menu'}
+                    </span>
+                    <span className={`text-xs px-2 py-1 rounded ${neutralBadgeClass}`}>
+                      Section : {getMenuGroupLabel(page.menuGroup)}
+                    </span>
+                    {page.parentPageId?.title && (
+                      <span className={`text-xs px-2 py-1 rounded ${neutralBadgeClass}`}>
+                        Parent : {page.parentPageId.title}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className="flex gap-2 flex-wrap justify-end">
+
+                <div className="flex gap-2 flex-wrap justify-end w-full lg:w-auto">
                   <button
                     onClick={() => copyLink(page.slug)}
                     className={`px-3 py-1 rounded text-sm transition ${shareButtonClass}`}

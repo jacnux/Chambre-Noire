@@ -2,7 +2,7 @@
 // luminaview
 //         UserPageView
 //
-//     Mai 2026 v2.3.0
+//     Mai 2026 v2.4.1
 // ===========================================
 
 import React, { useState, useEffect } from 'react';
@@ -11,9 +11,6 @@ import api from '../utils/api';
 import Lightbox from '../components/Lightbox';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 
-// ============================================================
-// SOUS-COMPOSANT — Formulaire Commentaire
-// ============================================================
 const CommentForm = ({ photoId, onDone }: { photoId: string; onDone?: () => void }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -75,9 +72,6 @@ const CommentForm = ({ photoId, onDone }: { photoId: string; onDone?: () => void
   );
 };
 
-// ============================================================
-// SOUS-COMPOSANT — Modale Commentaire
-// ============================================================
 const CommentModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
     <div className="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6">
@@ -103,9 +97,6 @@ const CommentModal = ({ photo, onClose }: { photo: any; onClose: () => void }) =
   </div>
 );
 
-// ============================================================
-// COMPOSANT PRINCIPAL — UserPageView
-// ============================================================
 const UserPageView = () => {
   const { username, slug } = useParams<{ username?: string; slug?: string }>();
   const [page, setPage] = useState<any>(null);
@@ -116,6 +107,7 @@ const UserPageView = () => {
   const [reportReason, setReportReason] = useState('');
   const [commentPhoto, setCommentPhoto] = useState<any>(null);
   const [lightboxData, setLightboxData] = useState<{ photos: any[]; index: number } | null>(null);
+  const [showChildMenu, setShowChildMenu] = useState(false);
 
   const host = window.location.hostname;
   const hostParts = host.split('.');
@@ -127,7 +119,7 @@ const UserPageView = () => {
   useEffect(() => {
     if (!slug) {
       setLoading(false);
-      setError("Paramètre slug manquant.");
+      setError('Paramètre slug manquant.');
       return;
     }
 
@@ -169,7 +161,7 @@ const UserPageView = () => {
     }
 
     if (!page?._id) {
-      alert("Impossible de signaler cette page.");
+      alert('Impossible de signaler cette page.');
       return;
     }
 
@@ -206,6 +198,7 @@ const UserPageView = () => {
   }
 
   const sections = Array.isArray(page.sections) ? page.sections : [];
+  const childPages = Array.isArray(page.childPages) ? page.childPages : [];
 
   const renderPhoto = (photo: any, photos: any[], i: number) => (
     <div key={photo._id || i} className="relative group">
@@ -245,6 +238,66 @@ const UserPageView = () => {
       </div>
 
       <div className="max-w-6xl mx-auto py-10 px-4">
+        {childPages.length > 0 && (
+          <div className="mb-10 max-w-xl">
+            <button
+              type="button"
+              onClick={() => setShowChildMenu(prev => !prev)}
+              className="w-full flex items-center justify-between rounded-xl border border-gray-700 bg-gray-800/80 hover:bg-gray-800 px-4 py-3 text-left transition"
+              aria-expanded={showChildMenu}
+              aria-label="Afficher les sous-pages"
+            >
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.25em] text-gray-400 mb-1">Navigation</div>
+                <div className="text-white font-medium">
+                  Sous-pages {childPages.length > 0 ? `(${childPages.length})` : ''}
+                </div>
+              </div>
+              <span className={`text-gray-400 transition-transform duration-200 ${showChildMenu ? 'rotate-180' : ''}`}>
+                ▾
+              </span>
+            </button>
+
+            {showChildMenu && (
+              <div className="mt-3 rounded-2xl border border-gray-800 bg-gray-900/95 backdrop-blur overflow-hidden shadow-2xl">
+                <div className="divide-y divide-gray-800">
+                  {childPages.map((child: any) => (
+                    <Link
+                      key={child._id}
+                      to={isSubdomainMode && !username ? `/${child.slug}` : `/portfolio/${username}/${child.slug}`}
+                      className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition"
+                      onClick={() => setShowChildMenu(false)}
+                    >
+                      <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+                        {child.coverImage ? (
+                          <img
+                            src={`/uploads/${child.coverImage}`}
+                            alt={child.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-850 to-black flex items-center justify-center text-gray-500 text-[10px] uppercase tracking-[0.2em]">
+                            {child.menuGroup === 'exhibitions' ? 'Expo' : 'Série'}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 mb-1">
+                          {child.menuGroup === 'exhibitions' ? 'Exposition' : 'Série'}
+                        </div>
+                        <div className="text-white text-sm md:text-base font-medium leading-tight truncate">
+                          {child.title}
+                        </div>
+                      </div>
+                      <div className="text-gray-500 text-lg">›</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {sections.length === 0 ? (
           <p className="text-center text-gray-500 italic">Cette page est vide.</p>
         ) : (
