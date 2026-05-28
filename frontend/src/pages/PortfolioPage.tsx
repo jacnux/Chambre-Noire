@@ -1,7 +1,7 @@
 // ============================================================
 // LUMINAVIEW — PortfolioPage.tsx
 // Page publique du portfolio d'un utilisateur
-// v2.5.5
+// v2.5.6 — cartes séries/expos + menu affiné
 // ============================================================
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -175,11 +175,16 @@ const PortfolioHero = ({ user, authUser }: any) => {
             <h1 className="text-2xl md:text-4xl font-extrabold text-white drop-shadow-lg tracking-tight">{user.name}</h1>
             <p className="text-sm md:text-base text-gray-300 mt-1 italic drop-shadow">{tagline}</p>
           </div>
+          {/*
           {!isOwner && (
-            <Link to="/" className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block">
+            <Link
+              to="/"
+              className="text-xs text-gray-300 hover:text-white bg-white/10 px-3 py-2 rounded-full transition hidden sm:block"
+            >
               ← Retour au site
             </Link>
           )}
+          */}
         </div>
       </div>
     </div>
@@ -195,9 +200,12 @@ interface PortfolioMenuProps {
   exhibitionPages: any[];
 }
 
-const baseMenuButtonClass = 'px-5 py-3 text-sm font-bold rounded-t-lg transition';
-const activeMenuButtonClass = 'bg-gray-800 text-yellow-400 border-b-2 border-yellow-400';
-const inactiveMenuButtonClass = 'text-gray-400 hover:text-white';
+const baseMenuButtonClass =
+  'px-5 py-3 text-sm font-bold rounded-t-lg transition outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/70';
+const activeMenuButtonClass =
+  'bg-gray-800 text-yellow-300 border-b-2 border-yellow-300 shadow-[inset_0_-1px_0_rgba(253,224,71,0.35)]';
+const inactiveMenuButtonClass =
+  'text-gray-400 hover:text-white hover:bg-white/5';
 
 const PortfolioMenu = ({
   activeTab,
@@ -210,6 +218,7 @@ const PortfolioMenu = ({
   const [openDropdown, setOpenDropdown] = useState<ActiveTab | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  // clic extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -221,6 +230,18 @@ const PortfolioMenu = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // fermeture clavier (Esc)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const toggleDropdown = (tab: ActiveTab) => {
     setActiveTab(tab);
     setOpenDropdown(current => (current === tab ? null : tab));
@@ -230,13 +251,13 @@ const PortfolioMenu = ({
     if (pages.length === 0 || openDropdown !== group) return null;
 
     return (
-      <div className="absolute left-1/2 top-full z-40 mt-2 w-[min(92vw,28rem)] -translate-x-1/2 rounded-2xl border border-gray-800 bg-gray-900/95 shadow-2xl backdrop-blur overflow-hidden">
+      <div className="absolute left-1/2 top-full z-40 mt-2 w-[min(94vw,28rem)] -translate-x-1/2 rounded-2xl border border-gray-800 bg-gray-900/95 shadow-2xl backdrop-blur overflow-hidden">
         <div className="max-h-[26rem] overflow-y-auto divide-y divide-gray-800">
           {pages.map(page => (
             <Link
               key={page._id}
               to={`/portfolio/${username}/${page.slug}`}
-              className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition"
+              className="flex items-center gap-4 px-4 py-3.5 hover:bg-white/5 transition"
               onClick={() => setOpenDropdown(null)}
             >
               <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
@@ -276,7 +297,9 @@ const PortfolioMenu = ({
             setActiveTab('home');
             setOpenDropdown(null);
           }}
-          className={`${baseMenuButtonClass} ${activeTab === 'home' ? activeMenuButtonClass : inactiveMenuButtonClass}`}
+          className={`${baseMenuButtonClass} ${
+            activeTab === 'home' ? activeMenuButtonClass : inactiveMenuButtonClass
+          }`}
         >
           Accueil
         </button>
@@ -286,10 +309,18 @@ const PortfolioMenu = ({
             type="button"
             onClick={() => toggleDropdown('series')}
             aria-expanded={openDropdown === 'series'}
-            className={`${baseMenuButtonClass} ${activeTab === 'series' ? activeMenuButtonClass : inactiveMenuButtonClass} flex items-center gap-2`}
+            className={`${baseMenuButtonClass} ${
+              activeTab === 'series' ? activeMenuButtonClass : inactiveMenuButtonClass
+            } flex items-center gap-2`}
           >
             <span>Séries</span>
-            <span className={`text-xs transition-transform duration-200 ${openDropdown === 'series' ? 'rotate-180' : ''}`}>▾</span>
+            <span
+              className={`text-xs transition-transform duration-200 ${
+                openDropdown === 'series' ? 'rotate-180' : ''
+              }`}
+            >
+              ▾
+            </span>
           </button>
           {renderDropdown(seriesPages, 'series')}
         </div>
@@ -299,10 +330,18 @@ const PortfolioMenu = ({
             type="button"
             onClick={() => toggleDropdown('exhibitions')}
             aria-expanded={openDropdown === 'exhibitions'}
-            className={`${baseMenuButtonClass} ${activeTab === 'exhibitions' ? activeMenuButtonClass : inactiveMenuButtonClass} flex items-center gap-2`}
+            className={`${baseMenuButtonClass} ${
+              activeTab === 'exhibitions' ? activeMenuButtonClass : inactiveMenuButtonClass
+            } flex items-center gap-2`}
           >
             <span>Expositions</span>
-            <span className={`text-xs transition-transform duration-200 ${openDropdown === 'exhibitions' ? 'rotate-180' : ''}`}>▾</span>
+            <span
+              className={`text-xs transition-transform duration-200 ${
+                openDropdown === 'exhibitions' ? 'rotate-180' : ''
+              }`}
+            >
+              ▾
+            </span>
           </button>
           {renderDropdown(exhibitionPages, 'exhibitions')}
         </div>
@@ -320,7 +359,9 @@ const PortfolioMenu = ({
             setActiveTab('about');
             setOpenDropdown(null);
           }}
-          className={`${baseMenuButtonClass} ${activeTab === 'about' ? activeMenuButtonClass : inactiveMenuButtonClass}`}
+          className={`${baseMenuButtonClass} ${
+            activeTab === 'about' ? activeMenuButtonClass : inactiveMenuButtonClass
+          }`}
         >
           À propos
         </button>
@@ -398,15 +439,24 @@ interface PageGridProps {
 }
 
 const getPageExcerpt = (page: any) => {
-  const textSection = page.sections?.find((section: any) => section.type === 'text' || section.type === 'split_text_gallery');
+  const textSection = page.sections?.find(
+    (section: any) => section.type === 'text' || section.type === 'split_text_gallery'
+  );
   const raw = textSection?.content || page.seoDescription || '';
-  const cleaned = String(raw).replace(/[#*_>`~-]/g, ' ').replace(/\s+/g, ' ').trim();
-  return cleaned.length > 140 ? `${cleaned.slice(0, 140).trim()}…` : cleaned;
+  const cleaned = String(raw)
+    .replace(/[#*_>`~-]/g, ' ')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned.length > 110 ? `${cleaned.slice(0, 110).trim()}…` : cleaned;
 };
 
 const getPageMeta = (page: any) => {
   const galleryCount = Array.isArray(page.sections)
-    ? page.sections.filter((section: any) => section.type === 'gallery' || section.type === 'split_text_gallery').length
+    ? page.sections.filter(
+        (section: any) => section.type === 'gallery' || section.type === 'split_text_gallery'
+      ).length
     : 0;
 
   if (page.menuGroup === 'exhibitions') {
@@ -420,6 +470,11 @@ const getPageMeta = (page: any) => {
     : 'Série';
 };
 
+const getPageSecondaryMeta = (page: any) => {
+  if (page.menuGroup === 'exhibitions') return 'Présentation publique';
+  return 'Ensemble éditorial';
+};
+
 const getPageCover = (page: any) => {
   return page.coverImage || page.heroImage || page.bannerImage || null;
 };
@@ -429,22 +484,24 @@ const getPagePlaceholder = (page: any) => {
     return {
       label: 'Exposition',
       accent: 'text-orange-100',
-      cardBorder: 'border-orange-200/15',
+      cardBorder: 'border-stone-200/10',
       filmTone: 'from-stone-900 via-zinc-900 to-black',
       sheetTone: 'bg-stone-950',
       frameTone: 'bg-[#111111]',
       mark: 'Cartel d’exposition',
+      footerTone: 'from-[#120f0d] to-black',
     };
   }
 
   return {
     label: 'Série',
     accent: 'text-amber-50',
-    cardBorder: 'border-amber-200/15',
+    cardBorder: 'border-zinc-200/10',
     filmTone: 'from-neutral-950 via-zinc-900 to-black',
     sheetTone: 'bg-neutral-950',
     frameTone: 'bg-[#101010]',
     mark: 'Planche-contact',
+    footerTone: 'from-[#0d0d0d] to-black',
   };
 };
 
@@ -463,71 +520,84 @@ const PageGrid = ({ pages, username, title, intro, emptyText }: PageGridProps) =
           const placeholder = getPagePlaceholder(page);
           const cover = getPageCover(page);
           const excerpt = getPageExcerpt(page);
+
           return (
             <Link
               key={page._id}
               to={`/portfolio/${username}/${page.slug}`}
-              className="group block"
+              className="group block h-full"
             >
-              <div className={`h-full overflow-hidden rounded-xl shadow-2xl bg-black border ${placeholder.cardBorder} transition duration-500 group-hover:scale-[1.02] group-hover:shadow-black/60`}>
-                <div className="aspect-[4/3] overflow-hidden bg-black relative">
+              <article
+                className={`h-full overflow-hidden rounded-xl bg-black border ${placeholder.cardBorder} shadow-[0_18px_60px_rgba(0,0,0,0.34)] transition duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(0,0,0,0.45)]`}
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-black">
                   {cover ? (
                     <>
                       <img
                         src={`/uploads/${cover}`}
                         alt={page.title}
-                        className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
+                        className="w-full h-full object-cover transition duration-500 ease-out group-hover:scale-[1.03]"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-5">
-                        <div className={`text-[11px] uppercase tracking-[0.3em] ${placeholder.accent} mb-2`}>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/18 to-transparent" />
+                      <div className="absolute inset-x-0 top-0 p-4 flex items-start justify-between">
+                        <span
+                          className={`text-[10px] uppercase tracking-[0.28em] ${placeholder.accent} bg-black/35 px-2.5 py-1 rounded-full border border-white/10 backdrop-blur-sm`}
+                        >
                           {placeholder.label}
-                        </div>
-                        <div className="text-white text-xl font-semibold leading-tight line-clamp-2 drop-shadow-lg">
-                          {page.title}
+                        </span>
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 p-5">
+                        <div className="max-w-[85%]">
+                          <h3 className="text-white text-[1.35rem] font-semibold leading-tight line-clamp-2 drop-shadow-md">
+                            {page.title}
+                          </h3>
                         </div>
                       </div>
                     </>
                   ) : (
                     <div className={`w-full h-full ${placeholder.sheetTone} relative overflow-hidden p-4 sm:p-5`}>
-                      <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.22),transparent_18%),radial-gradient(circle_at_78%_24%,rgba(255,255,255,0.08),transparent_16%),radial-gradient(circle_at_50%_78%,rgba(255,255,255,0.06),transparent_20%)]" />
-                      <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,transparent_20%,transparent_80%,rgba(255,255,255,0.08)_100%)]" />
+                      <div className="absolute inset-0 opacity-[0.10] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.22),transparent_18%),radial-gradient(circle_at_78%_24%,rgba(255,255,255,0.08),transparent_16%),radial-gradient(circle_at_50%_78%,rgba(255,255,255,0.06),transparent_20%)]" />
+                      <div className="absolute inset-0 opacity-[0.06] bg-[linear-gradient(180deg,rgba(255,255,255,0.14)_0%,transparent_20%,transparent_80%,rgba(255,255,255,0.08)_100%)]" />
 
-                      <div className={`relative h-full rounded-[18px] ${placeholder.frameTone} border border-white/8 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] overflow-hidden`}>
+                      <div
+                        className={`relative h-full rounded-[18px] ${placeholder.frameTone} border border-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] overflow-hidden`}
+                      >
                         <div className={`absolute inset-0 bg-gradient-to-br ${placeholder.filmTone}`} />
-                        <div className="absolute inset-0 opacity-[0.12] bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)]" />
+                        <div className="absolute inset-0 opacity-[0.10] bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)]" />
                         <div className="absolute left-0 right-0 top-0 h-10 border-b border-white/5 bg-black/20" />
                         <div className="absolute left-0 right-0 bottom-0 h-14 border-t border-white/5 bg-black/30" />
 
                         <div className="absolute top-3 left-3 flex gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-white/30" />
+                          <span className="w-2 h-2 rounded-full bg-white/28" />
                           <span className="w-2 h-2 rounded-full bg-white/10" />
                           <span className="w-2 h-2 rounded-full bg-white/10" />
                         </div>
 
-                        <div className="absolute top-3 right-3 text-[9px] uppercase tracking-[0.28em] text-white/45">
+                        <div className="absolute top-3 right-3 text-[9px] uppercase tracking-[0.28em] text-white/40">
                           {placeholder.mark}
                         </div>
 
                         <div className="absolute inset-0 px-6 py-8 flex flex-col justify-between">
                           <div>
-                            <div className={`text-[11px] uppercase tracking-[0.3em] ${placeholder.accent} mb-4`}>
+                            <div
+                              className={`text-[10px] uppercase tracking-[0.30em] ${placeholder.accent} mb-4`}
+                            >
                               {placeholder.label}
                             </div>
-                            <div className="grid grid-cols-3 gap-2 mb-5 opacity-80">
+                            <div className="grid grid-cols-3 gap-2 mb-5 opacity-75">
                               <div className="aspect-square border border-white/10 bg-black/20" />
                               <div className="aspect-square border border-white/10 bg-black/30" />
                               <div className="aspect-square border border-white/10 bg-black/10" />
                             </div>
                           </div>
 
-                          <div>
-                            <div className="w-20 h-px bg-white/25 mb-4" />
-                            <div className="text-white text-2xl font-semibold leading-tight max-w-[13rem] line-clamp-3 mb-3">
+                          <div className="max-w-[14rem]">
+                            <div className="w-20 h-px bg-white/20 mb-4" />
+                            <div className="text-white text-[1.45rem] font-semibold leading-tight line-clamp-3 mb-3">
                               {page.title}
                             </div>
-                            <div className="text-[11px] uppercase tracking-[0.24em] text-white/45">
-                              Tirage sans visuel
+                            <div className="text-[10px] uppercase tracking-[0.24em] text-white/42">
+                              Sans visuel de couverture
                             </div>
                           </div>
                         </div>
@@ -536,23 +606,38 @@ const PageGrid = ({ pages, username, title, intro, emptyText }: PageGridProps) =
                   )}
                 </div>
 
-                <div className="p-6 bg-gradient-to-b from-zinc-950 to-black">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <h3 className="text-xl font-bold text-white group-hover:text-yellow-300 transition line-clamp-2">
-                      {page.title}
-                    </h3>
-                    <span className="text-[11px] uppercase tracking-[0.18em] text-gray-500 whitespace-nowrap pt-1">
+                <div className={`p-5 md:p-6 bg-gradient-to-b ${placeholder.footerTone} border-t border-white/6`}>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="min-w-0">
+                      <div
+                        className={`text-[10px] uppercase tracking-[0.26em] ${placeholder.accent} mb-2`}
+                      >
+                        {getPageSecondaryMeta(page)}
+                      </div>
+                      <h3 className="text-lg md:text-[1.15rem] font-semibold text-white leading-snug line-clamp-2 group-hover:text-yellow-200 transition">
+                        {page.title}
+                      </h3>
+                    </div>
+
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500 whitespace-nowrap pt-1">
                       {getPageMeta(page)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-400 line-clamp-3 min-h-[4.5rem]">
+
+                  <p className="text-sm text-gray-400 line-clamp-2 min-h-[3rem] max-w-[44ch]">
                     {excerpt || 'Découvrir cette page.'}
                   </p>
-                  <div className="mt-5 text-sm text-yellow-300 font-medium">
-                    Ouvrir →
+
+                  <div className="mt-5 flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-[0.22em] text-gray-600">
+                      Portfolio
+                    </span>
+                    <span className="text-sm text-yellow-300 font-medium group-hover:translate-x-0.5 transition-transform">
+                      Ouvrir →
+                    </span>
                   </div>
                 </div>
-              </div>
+              </article>
             </Link>
           );
         })}
@@ -635,7 +720,9 @@ const ContactModal = ({ userName, form, status, onChange, onSend, onClose }: Con
             onChange={e => onChange('message', e.target.value)}
             className="w-full bg-black/30 p-3 rounded border border-white/10 text-white h-28 mb-4"
           />
-          {status === 'error' && <p className="text-red-400 text-sm mb-3">Erreur lors de l'envoi. Réessayez.</p>}
+          {status === 'error' && (
+            <p className="text-red-400 text-sm mb-3">Erreur lors de l&apos;envoi. Réessayez.</p>
+          )}
           <div className="flex gap-2 justify-end">
             <button onClick={onClose} className="px-4 py-2 text-sm text-gray-400">
               Annuler
@@ -678,7 +765,11 @@ const PortfolioPage = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
 
   const [showContact, setShowContact] = useState(false);
-  const [contactForm, setContactForm] = useState<ContactForm>({ name: '', email: '', message: '' });
+  const [contactForm, setContactForm] = useState<ContactForm>({
+    name: '',
+    email: '',
+    message: '',
+  });
   const [contactStatus, setContactStatus] = useState<ContactStatus>('idle');
 
   useEffect(() => {
@@ -735,16 +826,24 @@ const PortfolioPage = () => {
   const openContact = () => setShowContact(true);
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Chargement...</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        Chargement...
+      </div>
+    );
   }
 
   if (!user) {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Utilisateur introuvable</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        Utilisateur introuvable
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white font-sans">
-      <PortfolioHero user={user} authUser={authUser} username={username} />
+      <PortfolioHero user={user} authUser={authUser} />
       <div className="h-12 bg-gray-900" />
 
       <PortfolioMenu
