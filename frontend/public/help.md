@@ -1,84 +1,193 @@
-# Manuel Utilisateur (Version 2.4)
+# Manuel utilisateur — portfolio LuminaView et règles de pages
 
-Bienvenue sur Hélioscope. Ce guide vous accompagne dans la prise en main de votre espace.
+Ce document présente le fonctionnement du portfolio LuminaView dans sa version actuelle, en intégrant le nouveau menu public, les nouveaux champs de navigation, la logique parent/enfant des pages et les règles d’édition à respecter pour obtenir un affichage cohérent.
 
-### 1. Tableau de bord & Navigation
-Une fois connecté, vous accédez à votre tableau de bord central.
-*   **Albums** : Vos dossiers de photos classiques (shootings clients, projets).
-*   **Galeries** : Vos albums dynamiques créés automatiquement via des tags.
-*   **Mes Pages** : Créez vos pages personnalisées (Bio, Tarifs, Matériel).
-*   **Mon Blog** : Rédigez et publiez vos articles.
-*   **Mon Profil** : Modifiez votre avatar, bannière et informations publiques.
-*   **Commentaires** : Consultez et gérez les commentaires laissés par vos visiteurs sur vos photos.
+## 1. Tableau de bord et navigation
 
-### 2. Gérer ses Albums & Galeries
+Une fois connecté, l’utilisateur accède à son tableau de bord principal.
 
-#### Les Albums Classiques
-Ils contiennent les photos que vous uploadez manuellement.
-*   **Créer** : Cliquez sur le bouton vert "+ Créer".
-*   **Uploader** : Glissez-déposez vos photos. Vous pouvez ajouter un titre, une description et des **Tags** (mots-clés) à chaque image.
-*   **Visibilité** : Rendez l'album public ou privé (visible uniquement via lien).
-*   **Photo de couverture** : Cliquez sur "Modifier l'album" et sélectionnez la miniature souhaitée parmi vos photos.
+- **Albums** : dossiers de photos classiques, alimentés manuellement.
+- **Galeries** : albums dynamiques construits à partir de tags.
+- **Mes Pages** : pages du portfolio public, avec contenu éditorial et navigation.
+- **Mon Blog** : articles publiés dans la rubrique blog.
+- **Mon Profil** : avatar, bannière et informations publiques.
+- **Commentaires** : consultation et gestion des commentaires reçus sur les photos.
 
-#### Les Galeries Virtuelles (Fonctionnalité Pro)
-Créez des collections dynamiques sans dupliquer les fichiers.
-1.  Créez un nouvel album et cochez l'option **"Galerie Virtuelle"**.
-2.  Sélectionnez vos **Tags** :
-    *   Cliquez sur un tag pour l'ajouter (fond vert = inclus).
-    *   Cliquez à nouveau pour l'exclure (fond rouge = exclu).
-    *   Cliquez une troisième fois pour le rendre neutre.
-3.  L'album se remplira automatiquement avec toutes les photos correspondant à vos critères.
+## 2. Gérer ses albums et galeries
 
-### 3. Créer son Portfolio ("Mes Pages")
+### Albums classiques
 
-Cette section vous permet de créer un site vitrine personnel.
+Les albums classiques contiennent les photos ajoutées manuellement.
 
-*   **Créer une page** : Donnez un titre (ex: "Mes Tarifs") et un slug (l'URL, ex: `tarifs`).
-*   **Ajouter des sections** :
-    *   **Bloc Texte** : Pour rédiger vos présentations en Markdown enrichi (voir section 7).
-    *   **Bloc Galerie** : Sélectionnez un de vos albums ou galeries pour l'afficher.
-*   **Publier** : Une fois publié, la page sera visible à l'adresse `helioscope.fr/portfolio/votre-pseudo/votre-slug`.
-*   **Mettre en avant** : Sur votre profil principal, les pages publiées apparaîtront comme des onglets cliquables.
+- **Créer** : cliquer sur le bouton de création.
+- **Ajouter des photos** : glisser-déposer les images ou utiliser l’interface d’upload.
+- **Renseigner les métadonnées** : titre, description et tags peuvent être ajoutés à chaque photo.
+- **Définir la visibilité** : un album peut être public ou privé.
+- **Choisir une photo de couverture** : dans l’édition de l’album, sélectionner la miniature utilisée comme visuel principal.
 
-### 4. Le Blog
+### Galeries virtuelles
 
-*   Accédez à "Mon Blog" depuis le menu.
-*   Rédigez vos articles avec un titre, un contenu et une image de couverture.
-*   Les articles publiés sont visibles sur votre blog personnel.
+Les galeries virtuelles permettent de créer des collections dynamiques sans dupliquer les fichiers.
 
-### 5. Les Commentaires
+1. Créer un nouvel album.
+2. Activer l’option **Galerie Virtuelle**.
+3. Sélectionner les tags à inclure, exclure ou laisser neutres.
+4. La galerie se remplit automatiquement avec les photos correspondant aux critères définis.
 
-#### Pour les visiteurs — Commenter une photo
+## 3. Nouveau portfolio public
 
-Sur votre Portfolio public ou votre Blog, chaque photo dispose d'un bouton **💬 Commenter**.
+Le portfolio public s’organise désormais autour d’un menu principal resserré.
 
-*   Cliquez sur le bouton **💬** visible sous la photo ou au survol.
-*   Renseignez votre **prénom/pseudo** (obligatoire), votre **email** (facultatif, pour recevoir une réponse) et votre **message**.
-*   Cliquez sur **Envoyer** — un message de confirmation s'affiche immédiatement.
+- **Accueil**
+- **Séries**
+- **Expositions**
+- **Blog**
+- **À propos**
 
-> Le commentaire est transmis au photographe et soumis à validation avant publication éventuelle.
+Cette structure permet de mieux distinguer les contenus éditoriaux, les séries photographiques, les expositions et les pages de présentation.
 
-#### Pour vous — Gérer les commentaires reçus
+## 4. Créer une page dans « Mes Pages »
 
-Accédez à l'onglet **Commentaires** dans votre tableau de bord pour consulter tous les commentaires laissés par vos visiteurs.
+La section **Mes Pages** permet de construire le portfolio public.
 
-*   Les commentaires sont **regroupés par photo** avec la vignette correspondante.
-*   Un badge indique le nombre de **nouveaux commentaires** non lus sur chaque photo.
-*   **Répondre par email** : si le visiteur a laissé son adresse email, un bouton ✉️ **Répondre** apparaît. Cliquez dessus, rédigez votre réponse dans la fenêtre qui s'ouvre, puis validez. Le visiteur recevra votre réponse directement dans sa boîte mail.
-*   Les commentaires lus sont automatiquement marqués comme tels après l'envoi d'une réponse.
+- **Créer une page** : définir un titre et un slug.
+- **Ajouter des sections** :
+  - **Bloc Texte** : contenu rédigé en Markdown enrichi.
+  - **Bloc Galerie** : affichage d’un album ou d’une galerie.
+  - **Bloc mixte texte + galerie** : texte éditorial accompagné d’images.
+- **Publier** : une page publiée devient accessible publiquement.
+- **Organiser la navigation** : la page peut être reliée à une rubrique, à une page parente et à un ordre d’affichage.
 
-### 6. Partage & Sécurité
+## 5. Champs de navigation dans l’éditeur
 
-*   **Lien Public** : Pour chaque album, cliquez sur "Partager" pour obtenir un lien direct ou un shortcode WordPress.
-*   **Données** : Vos tags et photos vous appartiennent. La recherche par tags est sécurisée : vous ne voyez que vos propres tags.
+Chaque page peut être configurée avec plusieurs champs de navigation.
 
----
+| Champ | Rôle | Effet public |
+|---|---|---|
+| `menuGroup` | Définit la rubrique principale de la page | Place la page dans **Séries**, **Expositions**, **Blog**, **À propos** ou hors menu |
+| `parentPageId` | Définit une page parente | Permet de créer une relation parent / sous-page |
+| `menuOrder` | Définit l’ordre d’affichage | Trie les pages dans la navigation |
+| `showInMenu` | Active ou masque la présence dans le menu | Une page peut être publique sans apparaître dans le menu principal |
 
-### 7. Mise en forme Markdown dans les blocs texte
+### Valeurs recommandées de `menuGroup`
 
-Les blocs texte de vos pages supportent le **Markdown enrichi** avec HTML inline.
+- `series` : pour une série photographique ou un ensemble cohérent de travaux.
+- `exhibitions` : pour une exposition, une présentation publique ou un projet pensé comme accrochage.
+- `blog` : pour un article, une note, une actualité ou un texte public.
+- `about` : pour une page de présentation, de démarche ou de biographie.
 
-#### Titres et listes
+## 6. Règles parent / enfant dans les pages
+
+### Principe général
+
+Une page n’est plus seulement un contenu libre : elle peut aussi devenir un élément de navigation dans l’arborescence du portfolio.
+
+- Une page peut être **parente** d’une ou plusieurs sous-pages.
+- Une sous-page peut elle-même avoir ses propres sous-pages.
+- Le système autorise donc une organisation hiérarchique, y compris des pages filles de niveau **n-2**.
+
+### Cas du menu « Séries »
+
+Dans le menu **Séries**, chaque rubrique principale, par exemple **Photo de rue** ou **Nature morte**, fonctionne comme une **page parent**.
+
+Cette page parent :
+- présente brièvement la sous-rubrique,
+- affiche la liste ou les cartes de ses pages filles,
+- peut afficher un texte de présentation,
+- ne doit pas être utilisée comme une page de série développée complète si elle sert avant tout de navigation.
+
+Les pages filles de niveau 1 rattachées à cette rubrique sont les véritables pages de série développées.
+
+Elles affichent :
+- une introduction éditoriale dans l’en-tête,
+- puis les blocs de contenu dans le corps de page : texte, galeries ou blocs mixtes.
+
+### Règle d’affichage du premier bloc texte
+
+Pour les pages de type **Séries** ou **Expositions**, le premier bloc texte est utilisé comme **introduction éditoriale** dans l’en-tête.
+
+Conséquences :
+- ce premier bloc texte apparaît dans l’en-tête,
+- il n’est pas réaffiché une seconde fois dans le corps de la page,
+- les autres blocs texte ajoutés ensuite s’affichent normalement sous l’en-tête.
+
+### Règle pour les pages parent avec sous-pages
+
+Une page qui possède des sous-pages se comporte comme une page d’index.
+
+Elle peut afficher :
+- son titre,
+- son image de couverture,
+- son texte d’introduction,
+- la navigation vers ses pages filles.
+
+Les autres blocs éditoriaux peuvent également être affichés si la logique de rendu les autorise, à l’exception du premier bloc texte lorsqu’il est déjà utilisé dans l’en-tête.
+
+### Sous-pages de niveau n-2
+
+Une page fille peut elle-même contenir des pages filles. Cela permet de créer un deuxième niveau hiérarchique.
+
+Exemple :
+- **Séries**
+- **Nature morte** (page parent)
+- **Fleurs fanées** (page fille niveau 1)
+- **Variations noires** (page fille niveau n-2)
+
+Cette structure permet d’organiser un travail complexe sans surcharger le menu principal.
+
+## 7. Images de couverture et navigation secondaire
+
+Lorsqu’une page possède des sous-pages, celles-ci peuvent apparaître dans un menu déroulant ou dans un bloc de navigation secondaire.
+
+Pour obtenir un affichage visuel cohérent, il est recommandé de renseigner `coverImage` sur les pages utilisées dans cette navigation.
+
+Cela permet d’afficher :
+- une vignette ou image de couverture,
+- le titre de la sous-page,
+- son lien public.
+
+## 8. Blog
+
+La rubrique **Mon Blog** permet de rédiger et publier des articles.
+
+- saisir un titre,
+- rédiger le contenu,
+- ajouter une image de couverture,
+- publier l’article pour le rendre visible publiquement.
+
+## 9. Commentaires
+
+### Pour les visiteurs
+
+Sur le portfolio public ou le blog, chaque photo peut proposer un bouton **💬 Commenter**.
+
+Le visiteur peut :
+- saisir un prénom ou pseudo,
+- laisser un email de contact facultatif,
+- écrire un message,
+- envoyer le commentaire via le formulaire.
+
+Un message de confirmation s’affiche après l’envoi.
+
+### Pour l’auteur
+
+Dans le tableau de bord, l’onglet **Commentaires** regroupe les commentaires reçus.
+
+- les commentaires sont regroupés par photo,
+- un badge peut indiquer les nouveaux commentaires,
+- une réponse par email est possible lorsque l’adresse du visiteur est disponible.
+
+## 10. Partage et sécurité
+
+- **Lien public** : chaque album peut être partagé via un lien direct.
+- **Données** : les tags et photos restent associés au compte de leur propriétaire.
+- **Recherche par tags** : l’utilisateur ne voit que ses propres tags.
+
+## 11. Mise en forme Markdown dans les blocs texte
+
+Les blocs texte supportent le **Markdown enrichi** avec HTML inline.
+
+### Titres et listes
 
 ```markdown
 # Mon titre principal
@@ -88,51 +197,56 @@ Les blocs texte de vos pages supportent le **Markdown enrichi** avec HTML inline
 * Autre élément
 ```
 
-#### Images
+### Images
 
-Afficher une image seule :
+Image simple :
+
 ```markdown
 ![Description](/uploads/ma-photo.jpg)
 ```
 
-Afficher une image **redimensionnée** (HTML inline requis) :
+Image redimensionnée :
+
 ```markdown
 <img src="/uploads/ma-photo.jpg" alt="Description" width="300">
 ```
 
-Image **cliquable** (lien vers un album) :
+Image cliquable :
+
 ```markdown
 [![Description](/uploads/ma-photo.jpg)](https://helioscope.fr/album/mon-album)
 ```
 
-Image redimensionnée ET cliquable :
+Image redimensionnée et cliquable :
+
 ```markdown
 <a href="https://helioscope.fr/album/mon-album">
   <img src="/uploads/ma-photo.jpg" alt="Description" width="300">
 </a>
 ```
 
-#### Liens texte
+### Liens texte
 
 ```markdown
 [Voir l'album](https://helioscope.fr/album/mon-album)
 ```
 
-#### Retours à la ligne
+### Retours à la ligne
 
 | Besoin | Syntaxe |
-|--------|---------|
+|---|---|
 | Nouveau paragraphe | Laisser une ligne vide entre les blocs |
 | Saut de ligne simple | Terminer la ligne par deux espaces puis Entrée |
-| Saut de ligne forcé (HTML) | `<br>` dans le texte |
+| Saut de ligne forcé | `<br>` |
 
-Exemple avec image + saut de ligne + lien :
+Exemple :
+
 ```markdown
 <img src="/uploads/expo.jpg" alt="Montage" width="200"><br>
 [À la manière de](https://helioscope.fr/album/mon-album?mode=viewer)
 ```
 
-#### Liste d'expositions avec vignettes
+### Liste d’expositions avec vignettes
 
 ```markdown
 # Mes expositions
@@ -142,15 +256,30 @@ Exemple avec image + saut de ligne + lien :
 * Cinq Sens. - Impressions
 ```
 
-#### Texte en couleur / style avancé
+### Couleur et style avancé
 
-Pour personnaliser la couleur du texte dans un bloc :
 ```html
 <span style="color: white;">Mon texte en blanc</span>
 <span style="color: #e8af34;">Mon texte doré</span>
 ```
 
----
+## 12. Bonnes pratiques d’édition
 
-### Besoin d'aide ?
-Une question ? Contactez-nous via le formulaire de contact ou consultez notre FAQ.
+Pour éviter les incohérences d’affichage, il est recommandé de respecter les règles suivantes.
+
+- Utiliser le premier bloc texte comme introduction de page lorsqu’il s’agit d’une série ou d’une exposition.
+- Ajouter les autres textes dans des blocs séparés si l’on souhaite du contenu sous l’en-tête.
+- Utiliser `parentPageId` uniquement lorsqu’une relation hiérarchique est réellement souhaitée.
+- Vérifier que `coverImage` est renseigné pour les pages qui doivent apparaître sous forme de carte ou vignette.
+- Contrôler `showInMenu` pour éviter qu’une page technique ou secondaire n’apparaisse dans la navigation principale.
+- Utiliser `menuOrder` pour stabiliser l’ordre d’affichage des rubriques et sous-pages.
+
+## 13. Besoin d’aide
+
+En cas de doute, il est conseillé de vérifier :
+
+- la rubrique choisie dans `menuGroup`,
+- la présence éventuelle d’un parent dans `parentPageId`,
+- la présence d’une image de couverture,
+- l’ordre des blocs dans la page,
+- et la publication effective de la page.

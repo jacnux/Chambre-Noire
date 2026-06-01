@@ -117,6 +117,19 @@ router.get('/my/list', authenticateToken, async (req: Request, res: Response) =>
   }
 });
 
+router.get('/my/cover-photos', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const photos = await Photo.find({ userId: req.user.userId })
+      .select('_id filename title createdAt')
+      .sort({ createdAt: -1, index: 1 });
+
+    res.json(photos);
+  } catch (error) {
+    console.error('Erreur /my/cover-photos:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 router.get('/my/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const page = await UserPage.findOne({ _id: req.params.id, userId: req.user.userId })

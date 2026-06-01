@@ -1,32 +1,29 @@
-#  Hélioscope
+# LuminaView
 
+## La plateforme éditoriale et portfolio pour les photographes
 
- ## La Plateforme Tout-en-Un pour les Photographes
- 
+![LuminaView](/uploads/Helioscope_ecran.jpg)
 
+**La photographie mérite une présence en ligne à la fois sobre, élégante et vivante.**
 
+LuminaView n’est pas seulement un hébergeur d’images. C’est un environnement complet pensé pour les photographes qui veulent à la fois organiser leurs images, construire un portfolio public cohérent, publier des textes, présenter des séries, annoncer des expositions et garder la main sur leur univers sans entrer dans une logique technique lourde. [cite:742][cite:889]
 
-![helioscope](/uploads/Helioscope_ecran.jpg)
+**Un portfolio structuré comme une véritable ligne éditoriale**  
+Avec LuminaView, le portfolio ne se limite plus à une succession de galeries. Il s’organise autour d’un menu public clair — **Accueil**, **Séries**, **Expositions**, **Blog**, **À propos** — qui permet de distinguer les travaux photographiques, les projets d’exposition, les textes et les pages de contexte. Cette structure donne au visiteur une lecture plus stable et plus lisible de l’ensemble du travail présenté. [cite:742][cite:892]
 
+**Des pages riches, hiérarchisées et personnalisables**  
+Chaque page peut devenir un véritable espace éditorial. Vous pouvez créer des pages indépendantes, des pages parent, des sous-pages, et même des niveaux hiérarchiques supplémentaires lorsque le travail l’exige. Les séries et les expositions peuvent ainsi être organisées avec une logique parent / enfant, tout en conservant une image de couverture, une introduction dans l’en-tête et des blocs de contenu détaillés dans le corps de page. [cite:742][cite:889]
 
+**Une écriture visuelle plus souple**  
+Les pages prennent en charge plusieurs types de contenus : blocs texte, galeries et blocs mixtes texte + images. Le premier bloc texte peut servir d’introduction éditoriale dans l’en-tête, tandis que les autres blocs permettent de développer le propos dans la page elle-même. Cette logique donne plus de tenue aux séries, aux expositions et aux présentations de travaux en cours. [cite:742][cite:887][cite:858]
 
-**L'art de la photographie mérite un écrin à la hauteur de sa beauté.**
+**Des galeries intelligentes pour un travail vivant**  
+Avec les galeries virtuelles, LuminaView permet de constituer des ensembles d’images dynamiques sans dupliquer les fichiers. Les photos peuvent être regroupées selon des tags, réorganisées dans des albums, puis réutilisées dans le portfolio, dans les pages éditoriales ou dans les présentations publiques. La plateforme accompagne ainsi un usage photographique réel, où un même corpus peut nourrir plusieurs formes de publication. [cite:889][cite:894]
 
-Hélioscope n'est pas seulement un hébergeur d'images, c'est le studio numérique complet que tout photographe rêve d'avoir. Conçue pour simplifier votre vie créative, la plateforme vous permet de gérer vos shootings, de présenter votre travail au monde et de développer votre activité, le tout sans aucune ligne de code.
+**Un blog intégré au portfolio**  
+Le blog n’est pas un module séparé ajouté à la fin. Il fait partie du même espace public et prolonge naturellement le portfolio. Il permet de publier des textes, des notes, des actualités, des récits de travail ou des articles liés aux images, dans une continuité éditoriale avec les séries et les expositions. [cite:890][cite:892]
 
-**Une vitrine professionnelle en quelques clics**
-Créez un portfolio élégant et personnalisable. Affichez vos meilleurs travaux, rédigez votre bio, publiez vos tarifs et partagez vos galeries. Votre site vitrine est prêt en quelques minutes.
+**Commentaires, partage et continuité de travail**  
+LuminaView intègre aussi les commentaires sur les photos, la gestion des albums et le choix d’images de couverture pour les pages. La plateforme peut servir à la fois de site principal, de portfolio éditorial et d’outil de présentation évolutif, avec une structure pensée pour accompagner un travail photographique dans la durée. [cite:889][cite:891][cite:897]
 
-**Gestion intelligente des albums**
-Fini la gestion fastidieuse des dossiers. Avec les **Galeries Virtuelles**, définissez des règles (tags) et laissez Hélioscope assembler automatiquement vos meilleures photos. Envoyez des liens privés et sécurisés à vos clients pour qu'ils visionnent leurs photos dans une visionneuse professionnelle haute résolution.
-
-**Pages personnalisées riches**
-Dans vos blocs texte, utilisez le Markdown enrichi pour mettre en forme vos contenus : titres, listes, images redimensionnables, liens cliquables et retours à la ligne maîtrisés. Le HTML inline (`<img>`, `<br>`, `<a>`) est supporté pour un contrôle total de la mise en page.
-
-**Votre Blog intégré**
-Partagez votre actualité, vos coulisses de shooting ou vos tutoriels. Chaque utilisateur dispose de son propre espace blog indépendant, parfaitement intégré à son portfolio.
-
-**Liberté & Partage**
-Hélioscope s'adapte à votre workflow. Intégrez facilement vos galeries sur votre site WordPress existant ou utilisez Hélioscope comme site principal.
-
-**Rejoignez la communauté Hélioscope et transformez votre passion en présence digitale.**
+**LuminaView donne aux photographes un outil pour montrer, organiser et faire vivre leur travail, avec davantage de profondeur éditoriale qu’une simple galerie en ligne.** [cite:742][cite:889]

@@ -99,10 +99,23 @@ const getPagePlaceholder = (page: any) => {
   };
 };
 
+/*const filterMenuPages = (pages: any[], group: MenuGroup) => {
+  return [...pages]
+    .filter(page => page.menuGroup === group)
+    .filter(page => page.showInMenu === true)
+    .sort((a, b) => {
+      const orderA = a.menuOrder ?? 0;
+      const orderB = b.menuOrder ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' });
+    });
+};*/
+
 const filterMenuPages = (pages: any[], group: MenuGroup) => {
   return [...pages]
     .filter(page => page.menuGroup === group)
     .filter(page => page.showInMenu === true)
+    .filter(page => !page.parentPageId)
     .sort((a, b) => {
       const orderA = a.menuOrder ?? 0;
       const orderB = b.menuOrder ?? 0;
@@ -283,7 +296,7 @@ const PortfolioHero = ({ user, authUser, onContact }: any) => {
                   Contacter
                 </button>
               </div>
-            )}  */} 
+            )}  */}
           </div>
         </div>
       </div>

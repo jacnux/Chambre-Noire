@@ -2,7 +2,7 @@
 // luminaview
 //         UserPageView
 //
-//     Mai 2026 v2.5.0
+//     Juin 2026 v2.5.4
 // ===========================================
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -97,37 +97,13 @@ const CommentModal = ({ photo, onClose }: { photo: any; onClose: () => void }) =
   </div>
 );
 
-/* const stripMarkdown = (value: string = '') =>
-  String(value)
+const stripMarkdown = (value: string = '') => {
+  const raw = String(value || '');
+  const withoutMd = raw
     .replace(/[#*_>`~-]/g, ' ')
-    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-    .replace(/\s+/g, ' ')
-    .trim();*/
-
-    const stripMarkdown = (value: string = '') => {
-      const raw = String(value || '');
-
-      // 1. Nettoyage Markdown de base
-      const withoutMd = raw
-        .replace(/[#*_>`~-]/g, ' ')
-        .replace(/\[(.*?)\]\(.*?\)/g, '$1');
-
-      // 2. Suppression des balises HTML (br, img, etc.)
-      const withoutHtml = withoutMd.replace(/<[^>]*>/g, ' ');
-
-      // 3. Normalisation des espaces
-      return withoutHtml.replace(/\s+/g, ' ').trim();
-    };
-
-const getEditorialIntro = (page: any) => {
-  const textSection = Array.isArray(page?.sections)
-    ? page.sections.find((section: any) => section?.type === 'text' || section?.type === 'split_text_gallery')
-    : null;
-
-  const source = stripMarkdown(textSection?.content || page?.seoDescription || '');
-  if (!source) return '';
-
-  return source.length > 240 ? `${source.slice(0, 240).trim()}…` : source;
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1');
+  const withoutHtml = withoutMd.replace(/<[^>]*>/g, ' ');
+  return withoutHtml.replace(/\s+/g, ' ').trim();
 };
 
 const getHeroImage = (page: any) => page?.coverImage || page?.heroImage || page?.bannerImage || null;
@@ -155,7 +131,8 @@ const UserPageView = () => {
   const isSubdomainMode =
     host !== 'localhost' &&
     host !== '127.0.0.1' &&
-    ((host.endsWith('.localhost') && hostParts.length >= 2) || (!host.endsWith('.localhost') && hostParts.length >= 3 && hostParts[0] !== 'www'));
+    ((host.endsWith('.localhost') && hostParts.length >= 2) ||
+      (!host.endsWith('.localhost') && hostParts.length >= 3 && hostParts[0] !== 'www'));
 
   useEffect(() => {
     if (!slug) {
@@ -176,9 +153,10 @@ const UserPageView = () => {
         setError('');
         const cleanSlug = slug.trim();
 
-        const endpoint = isSubdomainMode && !username
-          ? `/user-pages/public/subdomain/${cleanSlug}`
-          : `/user-pages/${username}/${cleanSlug}`;
+        const endpoint =
+          isSubdomainMode && !username
+            ? `/user-pages/public/subdomain/${cleanSlug}`
+            : `/user-pages/${username}/${cleanSlug}`;
 
         const res = await api.get(endpoint);
         setPage(res.data);
@@ -223,7 +201,6 @@ const UserPageView = () => {
   };
 
   const heroImage = useMemo(() => getHeroImage(page), [page]);
-  const editorialIntro = useMemo(() => getEditorialIntro(page), [page]);
   const pageLabel = useMemo(() => getPageLabel(page), [page]);
 
   if (loading) {
@@ -244,6 +221,14 @@ const UserPageView = () => {
 
   const sections = Array.isArray(page.sections) ? page.sections : [];
   const childPages = Array.isArray(page.childPages) ? page.childPages : [];
+
+  const firstTextSection = sections.find((section: any) => section?.type === 'text');
+  const editorialIntro = firstTextSection ? stripMarkdown(firstTextSection.content || '') : '';
+  const editorialIntroExcerpt = editorialIntro
+    ? editorialIntro.length > 240
+      ? `${editorialIntro.slice(0, 240).trim()}…`
+      : editorialIntro
+    : '';
 
   const renderPhoto = (photo: any, photos: any[], i: number) => (
     <div key={photo._id || i} className="relative group">
@@ -302,10 +287,10 @@ const UserPageView = () => {
               <div className="text-sm text-gray-500 mt-4 inline-block">Portfolio public</div>
             )}
 
-            {editorialIntro && (
+            {editorialIntroExcerpt && (
               <div className="mt-6 border-t border-white/10 pt-6 max-w-3xl">
                 <p className="text-base md:text-lg leading-8 text-gray-200">
-                  {editorialIntro}
+                  {editorialIntroExcerpt}
                 </p>
               </div>
             )}
@@ -381,6 +366,9 @@ const UserPageView = () => {
             if (!section) return null;
 
             if (section.type === 'text') {
+              const isFirstTextSection = section === firstTextSection;
+              if (isFirstTextSection) return null;
+
               return (
                 <section key={index} className="mb-12 max-w-4xl mx-auto">
                   <div className="bg-white/[0.03] p-6 md:p-8 rounded-2xl border border-white/10 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
@@ -411,9 +399,7 @@ const UserPageView = () => {
                         )}
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                           {album.photos &&
-                            album.photos.map((photo: any, i: number) =>
-                              renderPhoto(photo, album.photos, i),
-                            )}
+                            album.photos.map((photo: any, i: number) => renderPhoto(photo, album.photos, i))}
                         </div>
                       </div>
                     );
@@ -441,9 +427,7 @@ const UserPageView = () => {
                         return (
                           <div key={album._id || Math.random()} className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                             {album.photos &&
-                              album.photos.map((photo: any, i: number) =>
-                                renderPhoto(photo, album.photos, i),
-                              )}
+                              album.photos.map((photo: any, i: number) => renderPhoto(photo, album.photos, i))}
                           </div>
                         );
                       })
