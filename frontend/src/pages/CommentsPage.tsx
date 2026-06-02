@@ -1,8 +1,8 @@
 // ===============================
-// LuminaView - Mai 2026
-// version 2.4.1
+// LuminaView - Juin 2026
+// version 2.4.2
 // CommentsPage.tsx
-// suite propre : tri uniquement, aucun changement de design
+// suite propre : tri conservé, ajout message si aucun email
 // ===============================
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -224,12 +224,16 @@ const CommentsPage = () => {
                         </p>
                       </div>
 
-                      <div className="flex gap-3 flex-shrink-0">
-                        {c.authorEmail && (
+                      <div className="flex gap-3 flex-shrink-0 items-center">
+                        {c.authorEmail ? (
                           <button onClick={() => setReplyTarget(c)}
                             className="text-xs text-blue-400 hover:text-blue-300 transition">
                             ✉️ Répondre
                           </button>
+                        ) : (
+                          <span className="text-xs text-gray-500 italic">
+                            Aucune adresse email renseignée
+                          </span>
                         )}
                         {!c.isRead && (
                           <button onClick={() => markRead(c._id)}

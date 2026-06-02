@@ -537,7 +537,7 @@ const AlbumView = () => {
                       <>
                         <button onClick={e => { e.stopPropagation(); setEditingPhoto(photo); }} className="w-8 h-8 bg-white/20 backdrop-blur rounded-full shadow-lg text-white hover:bg-white/40 flex items-center justify-center" title="Modifier">✎</button>
                         <button onClick={e => { e.stopPropagation(); setInfoPhoto(photo); }} className="w-8 h-8 bg-white/20 backdrop-blur rounded-full shadow-lg text-white hover:bg-white/40 flex items-center justify-center font-bold text-xs" title="Info">i</button>
-                        <button onClick={e => { e.stopPropagation(); handleShare(photo); }} className="w-8 h-8 bg-white/20 backdrop-blur rounded-full shadow-lg text-white hover:bg-white/40 flex items-center justify-center" title="Partager">↗</button>
+                        <button onClick={e => { e.stopPropagation(); handleShare(photo); }} className="w-8 h-8 bg-white/20 backdrop-blur rounded-full shadow-lg text-white hover:bg-white/40 flex items-center justify-center" title="Partager">🔗</button>
                         {!album?.isVirtual && (
                           <button onClick={e => { e.stopPropagation(); handleDeletePhoto(photo._id); }} className="w-8 h-8 bg-red-500/50 backdrop-blur rounded-full shadow-lg text-white hover:bg-red-500 flex items-center justify-center" title="Supprimer">✕</button>
                         )}

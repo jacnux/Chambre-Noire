@@ -2,7 +2,7 @@
 // luminaview
 //         UserPageView
 //
-//     Juin 2026 v2.5.4
+//     Juin 2026 v2.5.6
 // ===========================================
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -114,6 +114,12 @@ const getPageLabel = (page: any) => {
   return 'Page';
 };
 
+const getExcerpt = (value: string = '', max = 240) => {
+  const clean = stripMarkdown(value);
+  if (!clean) return '';
+  return clean.length > max ? `${clean.slice(0, max).trim()}…` : clean;
+};
+
 const UserPageView = () => {
   const { username, slug } = useParams<{ username?: string; slug?: string }>();
   const [page, setPage] = useState<any>(null);
@@ -221,14 +227,26 @@ const UserPageView = () => {
 
   const sections = Array.isArray(page.sections) ? page.sections : [];
   const childPages = Array.isArray(page.childPages) ? page.childPages : [];
+  const parentPage = page?.parentPageId || null;
 
+  const summaryTextSection = sections.find(
+    (section: any) => section?.type === 'text' && section?.summary
+  );
   const firstTextSection = sections.find((section: any) => section?.type === 'text');
-  const editorialIntro = firstTextSection ? stripMarkdown(firstTextSection.content || '') : '';
-  const editorialIntroExcerpt = editorialIntro
-    ? editorialIntro.length > 240
-      ? `${editorialIntro.slice(0, 240).trim()}…`
-      : editorialIntro
-    : '';
+
+  const editorialIntroSource =
+    page?.editorialSummary ||
+    summaryTextSection?.content ||
+    firstTextSection?.content ||
+    '';
+
+  const editorialIntroExcerpt = getExcerpt(editorialIntroSource, 240);
+
+  const parentPageHref = parentPage
+    ? isSubdomainMode && !username
+      ? `/${parentPage.slug}`
+      : `/portfolio/${username}/${parentPage.slug}`
+    : null;
 
   const renderPhoto = (photo: any, photos: any[], i: number) => (
     <div key={photo._id || i} className="relative group">
@@ -276,7 +294,14 @@ const UserPageView = () => {
               {page.title || 'Page'}
             </h1>
 
-            {!isSubdomainMode && username ? (
+            {parentPage && parentPageHref ? (
+              <Link
+                to={parentPageHref}
+                className="inline-flex items-center text-sm text-gray-400 hover:text-white mt-4 transition"
+              >
+                ← Retour à {parentPage.title}
+              </Link>
+            ) : !isSubdomainMode && username ? (
               <Link
                 to={`/portfolio/${username}`}
                 className="inline-flex items-center text-sm text-gray-400 hover:text-white mt-4 transition"
@@ -322,37 +347,48 @@ const UserPageView = () => {
             {showChildMenu && (
               <div className="mt-3 rounded-2xl border border-gray-800 bg-gray-950/95 backdrop-blur overflow-hidden shadow-2xl">
                 <div className="divide-y divide-gray-800">
-                  {childPages.map((child: any) => (
-                    <Link
-                      key={child._id}
-                      to={isSubdomainMode && !username ? `/${child.slug}` : `/portfolio/${username}/${child.slug}`}
-                      className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition"
-                      onClick={() => setShowChildMenu(false)}
-                    >
-                      <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
-                        {child.coverImage ? (
-                          <img
-                            src={`/uploads/${child.coverImage}`}
-                            alt={child.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center text-gray-500 text-[10px] uppercase tracking-[0.2em]">
-                            {child.menuGroup === 'exhibitions' ? 'Expo' : 'Série'}
+                  {childPages.map((child: any) => {
+                    const childExcerpt = getExcerpt(child?.editorialSummary || '', 120);
+
+                    return (
+                      <Link
+                        key={child._id}
+                        to={isSubdomainMode && !username ? `/${child.slug}` : `/portfolio/${username}/${child.slug}`}
+                        className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition"
+                        onClick={() => setShowChildMenu(false)}
+                      >
+                        <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+                          {child.coverImage ? (
+                            <img
+                              src={`/uploads/${child.coverImage}`}
+                              alt={child.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center text-gray-500 text-[10px] uppercase tracking-[0.2em]">
+                              {child.menuGroup === 'exhibitions' ? 'Expo' : 'Série'}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 mb-1">
+                            {child.menuGroup === 'exhibitions' ? 'Exposition' : 'Série'}
                           </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 mb-1">
-                          {child.menuGroup === 'exhibitions' ? 'Exposition' : 'Série'}
+                          <div className="text-white text-sm md:text-base font-medium leading-tight truncate">
+                            {child.title}
+                          </div>
+                          {childExcerpt && (
+                            <p className="text-xs md:text-sm text-gray-400 leading-relaxed mt-1">
+                              {childExcerpt}
+                            </p>
+                          )}
                         </div>
-                        <div className="text-white text-sm md:text-base font-medium leading-tight truncate">
-                          {child.title}
-                        </div>
-                      </div>
-                      <div className="text-gray-500 text-lg">›</div>
-                    </Link>
-                  ))}
+
+                        <div className="text-gray-500 text-lg">›</div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -366,8 +402,11 @@ const UserPageView = () => {
             if (!section) return null;
 
             if (section.type === 'text') {
-              const isFirstTextSection = section === firstTextSection;
-              if (isFirstTextSection) return null;
+              const isHeaderIntroSection =
+                section === summaryTextSection ||
+                (!summaryTextSection && section === firstTextSection);
+
+              if (isHeaderIntroSection) return null;
 
               return (
                 <section key={index} className="mb-12 max-w-4xl mx-auto">
@@ -391,7 +430,7 @@ const UserPageView = () => {
                     if (!album) return null;
 
                     return (
-                      <div key={album._id || Math.random()} className="my-6">
+                      <div key={album._id || `album-${index}`} className="my-6">
                         {album.title && (
                           <div className="mb-5 flex items-end justify-between gap-4 border-b border-white/10 pb-3">
                             <h3 className="text-xl md:text-2xl font-semibold text-white tracking-tight">{album.title}</h3>
@@ -425,7 +464,7 @@ const UserPageView = () => {
                         if (!album) return null;
 
                         return (
-                          <div key={album._id || Math.random()} className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+                          <div key={album._id || `split-album-${index}`} className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                             {album.photos &&
                               album.photos.map((photo: any, i: number) => renderPhoto(photo, album.photos, i))}
                           </div>

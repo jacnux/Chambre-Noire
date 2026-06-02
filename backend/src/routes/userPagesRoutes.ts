@@ -1,6 +1,7 @@
 // ============================================================
 // LUMINAVIEW API — userPagesRoutes
-// v2.4.1 — Mai 2026
+// v2.6.4 — Juin 2026
+// résumé éditorial persistant + sections.summary
 // ============================================================
 
 import { Router, Request, Response } from 'express';
@@ -39,6 +40,11 @@ const normalizeObjectId = (value: unknown) => {
   return mongoose.Types.ObjectId.isValid(value) ? value : null;
 };
 
+const normalizeEditorialSummary = (value: unknown) => {
+  if (typeof value !== 'string') return '';
+  return value.trim();
+};
+
 const hydratePageAlbumsWithPhotos = async (page: any, ownerUserId: string) => {
   const pageObject = page.toObject();
 
@@ -58,6 +64,7 @@ const hydratePageAlbumsWithPhotos = async (page: any, ownerUserId: string) => {
               .split(',')
               .map((t: string) => t.trim())
               .filter((t: string) => t);
+
             const positiveTags = tagsList.filter((t: string) => !t.startsWith('-'));
             const negativeTags = tagsList
               .filter((t: string) => t.startsWith('-'))
@@ -95,18 +102,14 @@ const getPublicChildPages = async (pageId: string, userId: string) => {
     showInMenu: true,
     $or: [{ isPublished: true }, { showOnBlog: true }],
   })
-    .select('title slug coverImage menuGroup menuOrder showInMenu parentPageId')
+    .select('title slug coverImage menuGroup menuOrder showInMenu parentPageId editorialSummary')
     .sort({ menuOrder: 1, title: 1 });
 };
-
-// ==========================================
-// PARTIE PRIVÉE
-// ==========================================
 
 router.get('/my/list', authenticateToken, async (req: Request, res: Response) => {
   try {
     const pages = await UserPage.find({ userId: req.user.userId })
-      .select('title slug isPublished showOnBlog menuGroup parentPageId menuOrder showInMenu createdAt updatedAt')
+      .select('title slug isPublished showOnBlog menuGroup parentPageId menuOrder showInMenu editorialSummary createdAt updatedAt')
       .populate('parentPageId', 'title slug')
       .sort({ updatedAt: -1 });
 
@@ -158,6 +161,8 @@ router.post('/my/save', authenticateToken, async (req: Request, res: Response) =
       parentPageId,
       menuOrder,
       showInMenu,
+      editorialSummary,
+      seoDescription,
     } = req.body;
 
     const userId = req.user.userId;
@@ -169,7 +174,10 @@ router.post('/my/save', authenticateToken, async (req: Request, res: Response) =
     const cleanSections = Array.isArray(sections)
       ? sections.map((s: any) => {
           const { _id, ...rest } = s;
-          return rest;
+          return {
+            ...rest,
+            summary: Boolean(rest.summary),
+          };
         })
       : [];
 
@@ -188,6 +196,8 @@ router.post('/my/save', authenticateToken, async (req: Request, res: Response) =
     const cleanMenuOrder = Number.isFinite(Number(menuOrder)) ? Number(menuOrder) : 0;
     const cleanShowInMenu = Boolean(showInMenu);
     const cleanShowOnBlog = Boolean(showOnBlog);
+    const cleanEditorialSummary = normalizeEditorialSummary(editorialSummary);
+    const cleanSeoDescription = typeof seoDescription === 'string' ? seoDescription.trim() : '';
 
     if (cleanParentPageId) {
       const parentPage = await UserPage.findOne({ _id: cleanParentPageId, userId }).select('menuGroup');
@@ -197,7 +207,7 @@ router.post('/my/save', authenticateToken, async (req: Request, res: Response) =
       }
 
       if (!['series', 'exhibitions'].includes(cleanMenuGroup)) {
-        return res.status(400).json({ error: 'Une page parente n\'est autorisée que pour Séries ou Expositions.' });
+        return res.status(400).json({ error: "Une page parente n'est autorisée que pour Séries ou Expositions." });
       }
 
       if (parentPage.menuGroup !== cleanMenuGroup) {
@@ -216,6 +226,8 @@ router.post('/my/save', authenticateToken, async (req: Request, res: Response) =
       parentPageId: cleanParentPageId,
       menuOrder: cleanMenuOrder,
       showInMenu: cleanShowInMenu,
+      editorialSummary: cleanEditorialSummary,
+      seoDescription: cleanSeoDescription,
     };
 
     if (id) {
@@ -231,6 +243,7 @@ router.post('/my/save', authenticateToken, async (req: Request, res: Response) =
     if (error.code === 11000) {
       return res.status(409).json({ error: 'Ce slug existe déjà pour cette page.' });
     }
+
     console.error('Erreur /my/save:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -246,10 +259,6 @@ router.delete('/my/:id', authenticateToken, async (req: Request, res: Response) 
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-
-// ==========================================
-// PARTIE PUBLIQUE
-// ==========================================
 
 router.get('/public/subdomain/:slug', async (req: Request, res: Response) => {
   try {
@@ -288,7 +297,7 @@ router.get('/:username', async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
     const pages = await UserPage.find({ userId: user._id, isPublished: true })
-      .select('title slug coverImage menuGroup parentPageId menuOrder showInMenu showOnBlog')
+      .select('title slug coverImage menuGroup parentPageId menuOrder showInMenu showOnBlog editorialSummary')
       .populate('parentPageId', 'title slug')
       .sort({ menuOrder: 1, title: 1 });
 

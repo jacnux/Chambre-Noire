@@ -9,7 +9,8 @@ const SectionSchema = new mongoose.Schema({
   content: String,
   albumIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Album' }],
   imageUrl: String,
-  order: { type: Number, default: 0 }
+  order: { type: Number, default: 0 },
+  summary: { type: Boolean, default: false }
 }, { _id: true });
 
 const UserPageSchema = new mongoose.Schema({
@@ -38,6 +39,7 @@ const UserPageSchema = new mongoose.Schema({
     default: false
   },
   sections: [SectionSchema],
+  editorialSummary: String,
   seoDescription: String
 }, { timestamps: true });
 

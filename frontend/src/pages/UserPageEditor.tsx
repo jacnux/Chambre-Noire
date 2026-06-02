@@ -2,7 +2,8 @@
 // luminaview
 //         UserPageEditor
 //
-//     Mai 2026 v2.6.3
+//     Juin 2026 v2.6.4
+// résumé éditorial persistant + patch minimal
 // ===========================================
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -32,7 +33,7 @@ interface PageRef {
 }
 
 interface PageSection {
-  _id: string;
+  id: string;
   type: SectionType;
   content: string;
   albumIds: string[];
@@ -53,7 +54,7 @@ const SECTION_DESCRIPTIONS: Record<SectionType, string> = {
 };
 
 const emptySection = (type: SectionType): PageSection => ({
-  _id: `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  id: `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
   type,
   content: '',
   albumIds: [],
@@ -111,10 +112,11 @@ const UserPageEditor = () => {
         setParentPageId(pageData.parentPageId?._id || pageData.parentPageId || '');
         setMenuOrder(pageData.menuOrder || 0);
         setShowInMenu(pageData.showInMenu || false);
+        setEditorialSummary(pageData.editorialSummary || '');
 
         const formattedSections: PageSection[] = Array.isArray(pageData.sections)
           ? pageData.sections.map((s: any, index: number) => ({
-              _id: s._id || `section-${index}`,
+              id: s._id || `section-${index}`,
               type: s.type,
               content: s.content || '',
               albumIds: Array.isArray(s.albumIds) ? s.albumIds.map((a: any) => a._id || a) : [],
@@ -124,9 +126,6 @@ const UserPageEditor = () => {
           : [];
 
         setSections(formattedSections);
-
-        const firstText = formattedSections.find(section => section.type === 'text' && section.summary);
-        setEditorialSummary(firstText?.content || '');
       } catch (err) {
         alert('Erreur chargement page');
         navigate('/dashboard/pages');
@@ -141,7 +140,7 @@ const UserPageEditor = () => {
       try {
         const res = await api.get('/albums/my/albums');
         if (Array.isArray(res.data)) {
-          setAvailableAlbums(res.data.filter((a: Album) => a.isVirtual === true));
+          setAvailableAlbums(res.data.filter((a: Album) => a.isVirtual !== true));
         }
       } catch (err) {
         console.error('Erreur chargement albums', err);
@@ -155,9 +154,7 @@ const UserPageEditor = () => {
     const fetchPages = async () => {
       try {
         const res = await api.get('/user-pages/my/list');
-        if (Array.isArray(res.data)) {
-          setAvailablePages(res.data);
-        }
+        if (Array.isArray(res.data)) setAvailablePages(res.data);
       } catch (err) {
         console.error('Erreur chargement pages', err);
       }
@@ -190,26 +187,22 @@ const UserPageEditor = () => {
   }, [coverAlbumId]);
 
   useEffect(() => {
-    if (menuGroup === 'blog' && !showOnBlog) {
-      setShowOnBlog(true);
-    }
-    if (menuGroup === 'none' || menuGroup === 'blog' || menuGroup === 'about') {
-      setParentPageId('');
-    }
+    if (menuGroup === 'blog' && !showOnBlog) setShowOnBlog(true);
+    if (menuGroup === 'none' || menuGroup === 'blog' || menuGroup === 'about') setParentPageId('');
   }, [menuGroup, showOnBlog]);
 
   const sortedAlbums = useMemo(() => {
     const copy = [...availableAlbums];
     return albumSortAZ === 'az'
-      ? copy.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }))
-      : copy.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'fr', { sensitivity: 'base' }));
+      ? copy.sort((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
+      : copy.sort((a, b) => b.title.localeCompare(a.title, 'fr', { sensitivity: 'base' }));
   }, [availableAlbums, albumSortAZ]);
 
   const eligibleParentPages = useMemo(() => {
     return availablePages
       .filter(page => page._id !== id)
       .filter(page => page.menuGroup === menuGroup)
-      .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }));
+      .sort((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }));
   }, [availablePages, id, menuGroup]);
 
   const pageKindLabel = menuGroup === 'exhibitions' ? 'exposition' : menuGroup === 'series' ? 'série' : 'page';
@@ -217,7 +210,7 @@ const UserPageEditor = () => {
 
   const visualSectionCount = useMemo(
     () => sections.filter(section => section.type === 'gallery' || section.type === 'split_text_gallery').length,
-    [sections],
+    [sections]
   );
 
   const addSection = (type: SectionType) => {
@@ -262,40 +255,46 @@ const UserPageEditor = () => {
       const summaryIndex = prev.findIndex(section => section.type === 'text' && section.summary);
       if (summaryIndex >= 0) {
         return prev.map((section, index) =>
-          index === summaryIndex ? { ...section, content: text, summary: true } : section,
+          index === summaryIndex ? { ...section, content: text, summary: true } : section
         );
       }
+
       return [{ ...emptySection('text'), content: text, summary: true }, ...prev];
     });
   };
 
   const insertEditorialSummary = () => {
+    if (!editorialSummary.trim()) {
+      setMessage('Le résumé éditorial est vide.');
+      return;
+    }
+
     if (sections.some(section => section.type === 'text' && section.summary)) {
       setMessage('Le résumé éditorial existe déjà dans cette page.');
       return;
     }
+
     setSections(prev => [{ ...emptySection('text'), content: editorialSummary.trim(), summary: true }, ...prev]);
   };
 
   const handleSave = async () => {
     if (!title || !slug) {
-      setMessage("Le titre et l'URL sont obligatoires.");
+    setMessage("Le titre et l'URL sont obligatoires.");
       return;
     }
 
     const cleanedSections = sections.map(section => ({
-      _id: section._id,
       type: section.type,
       content: section.content,
       albumIds: section.albumIds,
       ratio: section.ratio,
-      summary: section.summary,
+      summary: Boolean(section.summary),
     }));
 
     if (hasEditorialMode) {
       const firstSection = cleanedSections[0];
       if (!firstSection || firstSection.type !== 'text') {
-        setMessage(`Une ${pageKindLabel} doit commencer par un bloc texte d’introduction.`);
+        setMessage(`Une ${pageKindLabel} doit commencer par un bloc texte d'introduction.`);
         return;
       }
     }
@@ -316,7 +315,9 @@ const UserPageEditor = () => {
         parentPageId: parentPageId || null,
         menuOrder,
         showInMenu,
+        editorialSummary: editorialSummary.trim(),
       });
+
       setMessage('Page sauvegardée !');
       setTimeout(() => navigate('/dashboard/pages'), 900);
     } catch (err: any) {
@@ -330,9 +331,7 @@ const UserPageEditor = () => {
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setTitle(val);
-    if (!slug && !id) {
-      setSlug(normalizeSlug(val));
-    }
+    if (!slug || !id) setSlug(normalizeSlug(val));
   };
 
   const sortToggleBtn = (
@@ -343,7 +342,7 @@ const UserPageEditor = () => {
         className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2.5 py-1.5 rounded transition"
         title={albumSortAZ === 'az' ? 'Basculer Z→A' : 'Basculer A→Z'}
       >
-        {albumSortAZ === 'az' ? '🔤 A→Z' : '🔤 Z→A'}
+        {albumSortAZ === 'az' ? 'A→Z' : 'Z→A'}
       </button>
     </div>
   );
@@ -376,12 +375,11 @@ const UserPageEditor = () => {
                 value={title}
                 onChange={handleTitleChange}
                 className="w-full p-3 bg-gray-800 border border-white/10 rounded-xl"
-                placeholder="Ex: Nature morte, fragments d’atelier"
+                placeholder="Ex : Nature morte, fragments d'atelier"
               />
             </div>
-
             <div>
-              <label className="block text-gray-400 mb-1.5 text-sm">URL (slug)</label>
+              <label className="block text-gray-400 mb-1.5 text-sm">URL / slug</label>
               <input
                 type="text"
                 value={slug}
@@ -414,9 +412,9 @@ const UserPageEditor = () => {
                 <label className="block text-gray-400 mb-1.5 text-sm">Ordre d'affichage</label>
                 <input
                   type="number"
-                  min="0"
+                  min={0}
                   value={menuOrder}
-                  onChange={e => setMenuOrder(Number(e.target.value) || 0)}
+                  onChange={e => setMenuOrder(Number(e.target.value || 0))}
                   className="w-full p-3 bg-gray-800 border border-white/10 rounded-xl"
                 />
               </div>
@@ -424,7 +422,7 @@ const UserPageEditor = () => {
 
             {(menuGroup === 'series' || menuGroup === 'exhibitions') && (
               <div className="mt-4">
-                <label className="block text-gray-400 mb-1.5 text-sm">Page parente (optionnel)</label>
+                <label className="block text-gray-400 mb-1.5 text-sm">Page parente optionnelle</label>
                 <select
                   value={parentPageId}
                   onChange={e => setParentPageId(e.target.value)}
@@ -450,7 +448,7 @@ const UserPageEditor = () => {
                     : 'bg-gray-800 border-white/10 text-gray-400'
                 }`}
               >
-                {showInMenu ? '✓ Visible dans le menu' : '✕ Masquée du menu'}
+                {showInMenu ? 'Visible dans le menu' : 'Masqué du menu'}
               </button>
             </div>
           </div>
@@ -492,9 +490,9 @@ const UserPageEditor = () => {
           </div>
 
           <div className="mt-6 border-t border-white/10 pt-6">
-            <label className="block text-gray-300 mb-1.5 font-semibold">Image de couverture (vignette)</label>
+            <label className="block text-gray-300 mb-1.5 font-semibold">Image de couverture / vignette</label>
             <p className="text-sm text-gray-500 mb-3">
-              Choisis d’abord une galerie source, puis une image parmi les photos de cette galerie.
+              Choisis d'abord une galerie source, puis une image parmi les photos de cette galerie.
             </p>
 
             <div className="space-y-3">
@@ -532,25 +530,15 @@ const UserPageEditor = () => {
                       ))}
                     </select>
                   ) : (
-                    <p className="text-gray-500 text-sm italic">
-                      Aucune photo disponible dans cette galerie.
-                    </p>
+                    <p className="text-gray-500 text-sm italic">Aucune photo disponible dans cette galerie.</p>
                   )}
                 </div>
               )}
 
               {coverImage && (
                 <div className="flex items-center gap-4 mt-2">
-                  <img
-                    src={`/uploads/${coverImage}`}
-                    className="h-20 w-20 object-cover rounded-lg border border-white/10"
-                    alt="Aperçu"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setCoverImage('')}
-                    className="text-sm text-red-400 hover:text-red-300"
-                  >
+                  <img src={`/uploads/${coverImage}`} className="h-20 w-20 object-cover rounded-lg border border-white/10" alt="Aperçu" />
+                  <button type="button" onClick={() => setCoverImage('')} className="text-sm text-red-400 hover:text-red-300">
                     Supprimer l'image
                   </button>
                 </div>
@@ -570,8 +558,9 @@ const UserPageEditor = () => {
                     : 'bg-gray-800 border-white/10 text-gray-400'
                 }`}
               >
-                {isPublished ? '✓ Publiée sur le portfolio' : '✕ Hors ligne (portfolio)'}
+                {isPublished ? 'Publié sur le portfolio' : 'Hors ligne portfolio'}
               </button>
+
               <button
                 type="button"
                 onClick={() => setShowOnBlog(v => !v)}
@@ -581,7 +570,7 @@ const UserPageEditor = () => {
                     : 'bg-gray-800 border-white/10 text-gray-400'
                 }`}
               >
-                {showOnBlog ? '✓ Visible sur le blog' : '✕ Masquée du blog'}
+                {showOnBlog ? 'Visible sur le blog' : 'Masqué du blog'}
               </button>
             </div>
           </div>
@@ -595,39 +584,28 @@ const UserPageEditor = () => {
                 {sections.length} bloc{sections.length > 1 ? 's' : ''} · {visualSectionCount} bloc{visualSectionCount > 1 ? 's' : ''} visuel{visualSectionCount > 1 ? 's' : ''}
               </p>
             </div>
+
             <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => addSection('text')}
-                className="px-4 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition"
-              >
-                + Texte
+              <button onClick={() => addSection('text')} className="px-4 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition">
+                Texte
               </button>
-              <button
-                onClick={() => addSection('gallery')}
-                className="px-4 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-semibold transition"
-              >
-                + Galerie
+              <button onClick={() => addSection('gallery')} className="px-4 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-semibold transition">
+                Galerie
               </button>
-              <button
-                onClick={() => addSection('split_text_gallery')}
-                className="px-4 py-3 bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition"
-              >
-                + Mixte 30/70
+              <button onClick={() => addSection('split_text_gallery')} className="px-4 py-3 bg-teal-600 hover:bg-teal-500 rounded-xl font-semibold transition">
+                Mixte 30/70
               </button>
             </div>
           </div>
 
           {sections.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-8 text-center text-gray-500">
-              Aucun bloc pour l’instant. Commence par un texte d’introduction, puis ajoute une galerie ou un bloc mixte.
+              Aucun bloc pour l'instant. Commence par un texte d'introduction, puis ajoute une galerie ou un bloc mixte.
             </div>
           ) : (
             <div className="space-y-4">
               {sections.map((section, index) => (
-                <div
-                  key={section._id || index}
-                  className="bg-black/30 p-5 rounded-2xl border border-white/10"
-                >
+                <div key={section.id || index} className="bg-black/30 p-5 rounded-2xl border border-white/10">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
                     <div>
                       <div className="flex items-center gap-3 flex-wrap">
@@ -651,7 +629,7 @@ const UserPageEditor = () => {
                         disabled={index === 0}
                         className="px-3 py-2 rounded-lg bg-gray-800 text-sm text-gray-300 disabled:opacity-30"
                       >
-                        ↑ Monter
+                        Monter
                       </button>
                       <button
                         type="button"
@@ -659,7 +637,7 @@ const UserPageEditor = () => {
                         disabled={index === sections.length - 1}
                         className="px-3 py-2 rounded-lg bg-gray-800 text-sm text-gray-300 disabled:opacity-30"
                       >
-                        ↓ Descendre
+                        Descendre
                       </button>
                       {section.type === 'text' && hasEditorialMode && (
                         <button
@@ -687,7 +665,7 @@ const UserPageEditor = () => {
                       <label className="block text-sm text-gray-400 mb-2">Texte</label>
                       <textarea
                         className="w-full min-h-[10rem] bg-gray-800 border border-white/10 p-3 rounded-xl"
-                        value={section.content || ''}
+                        value={section.content}
                         onChange={e => updateSectionContent(index, 'content', e.target.value)}
                         placeholder="Texte libre en markdown ou texte simple..."
                       />
@@ -718,7 +696,7 @@ const UserPageEditor = () => {
                       <div className="flex items-center justify-between flex-wrap gap-3">
                         <div>
                           <div className="text-sm text-gray-300 font-medium">Bloc mixte</div>
-                          <div className="text-xs text-gray-500">Ratio recommandé : 30% texte / 70% galerie.</div>
+                          <div className="text-xs text-gray-500">Ratio recommandé : 30 texte / 70 galerie.</div>
                         </div>
                         <div className="text-xs px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-200">
                           Ratio {section.ratio || '30/70'}
@@ -730,11 +708,12 @@ const UserPageEditor = () => {
                           <label className="block text-sm text-gray-400 mb-2">Texte</label>
                           <textarea
                             className="w-full min-h-[12rem] bg-gray-800 border border-white/10 p-3 rounded-xl text-sm"
-                            value={section.content || ''}
+                            value={section.content}
                             onChange={e => updateSectionContent(index, 'content', e.target.value)}
-                            placeholder="Texte d’accompagnement, cartel, contexte, note de salle..."
+                            placeholder="Texte d'accompagnement, cartel, contexte, note de salle..."
                           />
                         </div>
+
                         <div className="w-full md:w-[70%]">
                           <label className="block text-sm text-gray-400 mb-2">Album lié</label>
                           {sortToggleBtn}
