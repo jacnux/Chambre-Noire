@@ -130,7 +130,7 @@ const UserPageView = () => {
   const [reportReason, setReportReason] = useState('');
   const [commentPhoto, setCommentPhoto] = useState<any>(null);
   const [lightboxData, setLightboxData] = useState<{ photos: any[]; index: number } | null>(null);
-  const [showChildMenu, setShowChildMenu] = useState(false);
+  const [showChildMenu, setShowChildMenu] = useState(true);
 
   const host = window.location.hostname;
   const hostParts = host.split('.');
@@ -166,6 +166,7 @@ const UserPageView = () => {
 
         const res = await api.get(endpoint);
         setPage(res.data);
+        setShowChildMenu(true);
       } catch (err: any) {
         setError(err.response?.data?.error || err.response?.data?.message || 'Page introuvable.');
       } finally {
@@ -207,6 +208,12 @@ const UserPageView = () => {
   };
 
   const heroImage = useMemo(() => getHeroImage(page), [page]);
+
+  /* const heroImage = useMemo(() => {
+      if (page?.menuGroup === 'series' || page?.menuGroup === 'exhibitions') return null;
+      return getHeroImage(page);
+    }, [page]);  */
+
   const pageLabel = useMemo(() => getPageLabel(page), [page]);
 
   if (loading) {
@@ -336,7 +343,7 @@ const UserPageView = () => {
               <div>
                 <div className="text-[11px] uppercase tracking-[0.25em] text-gray-400 mb-1">Navigation</div>
                 <div className="text-white font-medium">
-                  Sous-pages {childPages.length > 0 ? `(${childPages.length})` : ''}
+                  Pages associées {childPages.length > 0 ? `(${childPages.length})` : ''}
                 </div>
               </div>
               <span className={`text-gray-400 transition-transform duration-200 ${showChildMenu ? 'rotate-180' : ''}`}>
@@ -355,7 +362,6 @@ const UserPageView = () => {
                         key={child._id}
                         to={isSubdomainMode && !username ? `/${child.slug}` : `/portfolio/${username}/${child.slug}`}
                         className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition"
-                        onClick={() => setShowChildMenu(false)}
                       >
                         <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
                           {child.coverImage ? (
@@ -454,7 +460,10 @@ const UserPageView = () => {
                   className="mb-14 grid grid-cols-1 lg:grid-cols-[minmax(0,0.34fr)_minmax(0,0.66fr)] gap-8 items-start border-b border-white/10 pb-12"
                 >
                   <div className="bg-white/[0.04] p-6 md:p-7 rounded-2xl border border-white/10 self-stretch overflow-hidden">
-                    <div className="prose prose-invert prose-sm md:prose-base max-w-none prose-p:text-gray-100 prose-headings:text-white prose-strong:text-white prose-a:text-yellow-400">
+                  {/*  <div className="prose prose-invert prose-sm md:prose-base max-w-none prose-p:text-gray-100 prose-headings:text-white prose-strong:text-white prose-a:text-yellow-400">
+                      <MarkdownRenderer className="prose">{section.content || ''}</MarkdownRenderer>
+                    </div>  */}
+                    <div className="prose prose-invert max-w-none prose-p:text-gray-100 prose-headings:text-white prose-strong:text-white prose-a:text-yellow-400 text-base leading-7 md:text-[17px] md:leading-8">
                       <MarkdownRenderer className="prose">{section.content || ''}</MarkdownRenderer>
                     </div>
                   </div>

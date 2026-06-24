@@ -140,7 +140,7 @@ const UserPageEditor = () => {
       try {
         const res = await api.get('/albums/my/albums');
         if (Array.isArray(res.data)) {
-          setAvailableAlbums(res.data.filter((a: Album) => a.isVirtual !== true));
+          setAvailableAlbums(res.data.filter((a: Album) => a.isVirtual === true));
         }
       } catch (err) {
         console.error('Erreur chargement albums', err);
