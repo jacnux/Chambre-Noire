@@ -65,52 +65,52 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="relative z-10 min-h-screen pb-20 flex flex-col">
         {/* Header sticky */}
         <div
-          className={`sticky top-0 z-20 border-b p-3 sm:p-4 backdrop-blur-lg flex justify-between items-center gap-2 shadow-lg ${
+          className={`sticky top-0 z-20 border-b p-3 sm:p-4 backdrop-blur-md flex justify-between items-center gap-2 shadow-xl transition-all duration-300 ${
             theme === 'dark'
-              ? 'bg-gray-900/80 border-gray-700'
-              : 'bg-white/90 border-gray-200'
+              ? 'bg-gray-950/70 border-white/[0.06] shadow-black/20'
+              : 'bg-white/85 border-gray-200/50 shadow-gray-200/10'
           }`}
         >
           <div className="flex-shrink-0 flex flex-col justify-center">
             <Link
               to="/dashboard"
-              className="text-xl sm:text-2xl font-bold text-yellow-500 drop-shadow-lg tracking-wide hover:text-yellow-400 transition"
+              className="text-xl sm:text-2xl font-extrabold text-yellow-500 tracking-wide hover:text-yellow-400 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 drop-shadow-[0_2px_8px_rgba(234,179,8,0.15)]"
             >
               Hélioscope
             </Link>
             {user && (
               <span
-                className={`text-xs ml-1 mt-0.5 ${
+                className={`text-[10px] sm:text-xs ml-1 mt-0.5 tracking-wider ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                 }`}
               >
                 Espace de :{' '}
-                <span className="font-medium text-yellow-600">
+                <span className="font-semibold text-yellow-600">
                   {user?.name}
                 </span>
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-3">
             {user ? (
               <>
                 {/* Tabs principaux */}
                 <div
-                  className={`flex gap-1 p-1 rounded-full border ${
+                  className={`flex gap-1 p-1 rounded-full border transition-all duration-300 ${
                     theme === 'dark'
-                      ? 'bg-gray-800/80 border-gray-700'
-                      : 'bg-gray-100 border-gray-200'
+                      ? 'bg-gray-900/50 border-white/[0.06]'
+                      : 'bg-gray-100/80 border-gray-200'
                   }`}
                 >
                   <Link
                     to="/dashboard"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition ${
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                       location.pathname === '/dashboard'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-600 text-white shadow-[0_4px_12px_rgba(37,99,235,0.3)]'
                         : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white'
-                        : 'text-gray-600 hover:text-black'
+                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
                     }`}
                   >
                     📁 Albums
@@ -118,12 +118,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   <Link
                     to="/galleries"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition ${
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                       location.pathname === '/galleries'
-                        ? 'bg-purple-600 text-white'
+                        ? 'bg-purple-600 text-white shadow-[0_4px_12px_rgba(147,51,234,0.3)]'
                         : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white'
-                        : 'text-gray-600 hover:text-black'
+                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
                     }`}
                   >
                     🖼️ Galeries
@@ -131,18 +131,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   <Link
                     to="/comments"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1.5 ${
                       isCommentsRoute
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-600 text-white shadow-[0_4px_12px_rgba(37,99,235,0.3)]'
                         : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white'
-                        : 'text-gray-600 hover:text-black'
+                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
                     }`}
                   >
                     <span>💬</span>
                     <span>Commentaires</span>
                     {unreadCount > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                      <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
@@ -150,12 +150,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   <Link
                     to="/manage-blog"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1 ${
                       location.pathname === '/manage-blog'
-                        ? 'bg-orange-600 text-white'
+                        ? 'bg-orange-600 text-white shadow-[0_4px_12px_rgba(234,88,12,0.3)]'
                         : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white'
-                        : 'text-gray-600 hover:text-black'
+                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
                     }`}
                   >
                     <span>📝</span> Mon Blog
@@ -163,12 +163,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   <Link
                     to="/dashboard/pages"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1 ${
                       location.pathname.startsWith('/dashboard/pages')
-                        ? 'bg-yellow-500 text-black'
+                        ? 'bg-yellow-500 text-black shadow-[0_4px_12px_rgba(234,179,8,0.25)]'
                         : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white'
-                        : 'text-gray-600 hover:text-black'
+                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
                     }`}
                   >
                     <span>📄</span> Mes Pages
@@ -178,26 +178,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {/* Bouton créer */}
                 <Link
                   to="/create-album"
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition shadow-sm"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shadow-md shadow-green-950/20 hover:shadow-green-900/30 hover:scale-[1.03] active:scale-[0.97]"
                 >
                   + Créer
                 </Link>
 
                 {/* Actions à droite */}
                 <div
-                  className={`flex items-center gap-1 rounded-full p-1 border ${
+                  className={`flex items-center gap-1 rounded-full p-1 border transition-all duration-300 ${
                     theme === 'dark'
-                      ? 'bg-gray-800/80 border-gray-700'
+                      ? 'bg-gray-900/50 border-white/[0.06]'
                       : 'bg-gray-100 border-gray-200'
                   }`}
                 >
                   {isAdmin && (
                     <button
                       onClick={() => navigate('/admin/users')}
-                      className={`p-2 rounded-full transition ${
+                      className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${
                         theme === 'dark'
-                          ? 'hover:bg-gray-700 text-gray-300'
-                          : 'hover:bg-gray-200 text-gray-600'
+                          ? 'hover:bg-white/[0.06] text-gray-300 hover:text-white'
+                          : 'hover:bg-black/[0.06] text-gray-600 hover:text-black'
                       }`}
                       title="Admin Users"
                     >
@@ -207,7 +207,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   {isAdmin && (
                     <button
                       onClick={() => navigate('/admin/reports')}
-                      className="p-2 rounded-full transition text-red-400"
+                      className="p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                       title="Signalements"
                     >
                       🚩
@@ -216,10 +216,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   {isAdmin && (
                     <button
                       onClick={() => navigate('/admin/comments')}
-                      className={`p-2 rounded-full transition ${
+                      className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${
                         theme === 'dark'
-                          ? 'hover:bg-gray-700 text-gray-300'
-                          : 'hover:bg-gray-200 text-gray-600'
+                          ? 'hover:bg-white/[0.06] text-gray-300 hover:text-white'
+                          : 'hover:bg-black/[0.06] text-gray-600 hover:text-black'
                       }`}
                       title="Commentaires"
                     >
@@ -229,10 +229,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   <button
                     onClick={() => navigate('/tools')}
-                    className={`p-2 rounded-full transition ${
+                    className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${
                       theme === 'dark'
-                        ? 'hover:bg-gray-700 text-gray-300'
-                        : 'hover:bg-gray-200 text-gray-600'
+                        ? 'hover:bg-white/[0.06] text-gray-300 hover:text-white'
+                        : 'hover:bg-black/[0.06] text-gray-600 hover:text-black'
                     }`}
                     title="Outils"
                   >
@@ -241,8 +241,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   <button
                     onClick={toggleTheme}
-                    className={`p-2 rounded-full transition text-xl ${
-                      theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                    className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 text-lg ${
+                      theme === 'dark' ? 'hover:bg-white/[0.06]' : 'hover:bg-black/[0.06]'
                     }`}
                     title="Changer le thème"
                   >
@@ -250,10 +250,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </button>
                   <Link
                     to="/dashboard/about"
-                    className={`p-2 rounded-full transition ${
+                    className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${
                       theme === 'dark'
-                        ? 'hover:bg-gray-700 text-gray-300'
-                        : 'hover:bg-gray-200 text-gray-600'
+                        ? 'hover:bg-white/[0.06] text-gray-300 hover:text-white'
+                        : 'hover:bg-black/[0.06] text-gray-600 hover:text-black'
                     }`}
                     title="À propos"
                   >
@@ -261,10 +261,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </Link>
                   <Link
                     to="/dashboard/help"
-                    className={`p-2 rounded-full transition ${
+                    className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${
                       theme === 'dark'
-                        ? 'hover:bg-gray-700 text-gray-300'
-                        : 'hover:bg-gray-200 text-gray-600'
+                        ? 'hover:bg-white/[0.06] text-gray-300 hover:text-white'
+                        : 'hover:bg-black/[0.06] text-gray-600 hover:text-black'
                     }`}
                     title="Aide"
                   >
@@ -273,10 +273,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   <button
                     onClick={() => navigate('/edit-profile')}
-                    className={`p-2 rounded-full transition ${
+                    className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${
                       theme === 'dark'
-                        ? 'hover:bg-gray-700 text-gray-300'
-                        : 'hover:bg-gray-200 text-gray-600'
+                        ? 'hover:bg-white/[0.06] text-gray-300 hover:text-white'
+                        : 'hover:bg-black/[0.06] text-gray-600 hover:text-black'
                     }`}
                     title="Profil"
                   >
@@ -284,7 +284,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </button>
                   <button
                     onClick={logout}
-                    className="p-2 rounded-full hover:bg-red-500/50 text-red-400 hover:text-white transition"
+                    className="p-2 rounded-full hover:bg-red-500/10 text-red-400 hover:text-red-300 transition-all duration-200 hover:scale-105 active:scale-95"
                     title="Sortir"
                   >
                     ⏻
