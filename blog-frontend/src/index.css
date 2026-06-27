@@ -1,6 +1,3 @@
-/* Import Google Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
 /* --- TAILWIND BASE --- */
 @tailwind base;
 @tailwind components;
@@ -8,31 +5,32 @@
 
 /* --- VARIABLES CSS (MODE CLAIR PAR DÉFAUT) --- */
 :root {
-  --primary: #fbbf24; /* Jaune Or */
-  --bg-main: #f3f4f6; /* Gris clair */
+  --primary: #d97706; /* Jaune Or Chaud */
+  --bg-main: #f8fafc; /* Slate 50 */
   --bg-card: #ffffff;
-  --bg-navbar: rgba(255, 255, 255, 0.9);
-  --text-main: #111827; /* Noir */
-  --text-muted: #6b7280;
-  --border-color: rgba(0, 0, 0, 0.08);
-  --shadow-color: rgba(0, 0, 0, 0.1);
+  --bg-navbar: rgba(255, 255, 255, 0.75);
+  --text-main: #0f172a; /* Slate 900 */
+  --text-muted: #475569; /* Slate 600 */
+  --border-color: rgba(0, 0, 0, 0.06);
+  --shadow-color: rgba(0, 0, 0, 0.05);
 }
 
 /* --- VARIABLES CSS (MODE SOMBRE) --- */
 .dark {
-  --bg-main: #111827; /* Gris foncé */
-  --bg-card: #1f2937;
-  --bg-navbar: rgba(17, 24, 39, 0.9);
-  --text-main: #f9fafb; /* Blanc */
-  --text-muted: #9ca3af;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --shadow-color: rgba(0, 0, 0, 0.4);
+  --primary: #f59e0b; /* Jaune Or vif */
+  --bg-main: #030712; /* Deep slate-950 */
+  --bg-card: #0f172a; /* Deep slate-900 */
+  --bg-navbar: rgba(3, 7, 18, 0.75);
+  --text-main: #f9fafb; /* Slate 50 */
+  --text-muted: #94a3b8; /* Slate 400 */
+  --border-color: rgba(255, 255, 255, 0.06);
+  --shadow-color: rgba(0, 0, 0, 0.5);
 }
 
 /* --- BASE --- */
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
