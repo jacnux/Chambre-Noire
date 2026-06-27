@@ -1,7 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const LegalPage = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const from = searchParams.get('from');
+  const isExternal = from && (from.startsWith('http://') || from.startsWith('https://'));
+
   return (
     <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-3xl mx-auto bg-white/5 border border-white/10 rounded-xl p-8 shadow-xl">
@@ -49,7 +54,11 @@ const LegalPage = () => {
         </section>
 
         <div className="text-center mt-8 border-t border-white/10 pt-4">
-          <Link to="/" className="text-sm text-gray-400 hover:text-white">← Retour à l'accueil</Link>
+          {isExternal ? (
+            <a href={from!} className="text-sm text-gray-400 hover:text-white">← Retour au blog</a>
+          ) : (
+            <Link to="/" className="text-sm text-gray-400 hover:text-white">← Retour à l'accueil</Link>
+          )}
         </div>
       </div>
     </div>

@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
           <div className="flex flex-col gap-2">
             <Link to={`/about${s}`} className="text-xs text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Biographie</Link>
             <Link to={`/contact${s}`} className="text-xs text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Nous contacter</Link>
-            <a href={`${getMainAppUrl()}/legal`} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mentions Légales</a>
+            <a href={`${getMainAppUrl()}/legal?from=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mentions Légales</a>
           </div>
         </div>
 
