@@ -485,6 +485,7 @@ body {
   display: flex;
   flex-direction: column;
   user-select: none;
+  overflow-y: auto;
 }
 
 .lightbox-header {
@@ -638,4 +639,120 @@ body {
     width: 100%;
     padding: 25px 20px;
   }
+}
+
+/* --- FORMULAIRE COMMENTAIRE DANS LIGHTBOX --- */
+.lightbox-comments {
+  max-width: 800px;
+  width: 90%;
+  margin: 30px auto 50px auto;
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.lightbox-comments h4 {
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin-bottom: 5px;
+  letter-spacing: 0.05em;
+}
+
+.comments-notice {
+  font-size: 0.8rem;
+  color: #999999;
+  margin-bottom: 20px;
+}
+
+.lightbox-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.lightbox-comment-form .form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.lightbox-comment-form .form-group {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lightbox-comment-form label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #cccccc;
+  letter-spacing: 0.02em;
+}
+
+.lightbox-comment-form input,
+.lightbox-comment-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.lightbox-comment-form input:focus,
+.lightbox-comment-form textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.btn-submit-comment {
+  align-self: flex-start;
+  background-color: var(--color-accent);
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-submit-comment:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.btn-submit-comment:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.comment-alert {
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.comment-alert.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.comment-alert.error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
 }

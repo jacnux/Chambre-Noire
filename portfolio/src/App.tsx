@@ -105,6 +105,14 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  
+  // États pour le formulaire de commentaire
+  const [commentAuthor, setCommentAuthor] = useState('');
+  const [commentEmail, setCommentEmail] = useState('');
+  const [commentMessage, setCommentMessage] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [commentSuccess, setCommentSuccess] = useState<string | null>(null);
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   // Charger le profil et les albums vedettes
   useEffect(() => {
@@ -148,6 +156,41 @@ const App: React.FC = () => {
     };
     fetchPhotos();
   }, [selectedAlbumId]);
+
+  // Nettoyer le formulaire de commentaire lors d'un changement de photo
+  useEffect(() => {
+    setCommentAuthor('');
+    setCommentEmail('');
+    setCommentMessage('');
+    setCommentSuccess(null);
+    setCommentError(null);
+  }, [lightboxIndex]);
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (lightboxIndex === null || photos.length === 0) return;
+    const photo = photos[lightboxIndex];
+    
+    try {
+      setSubmittingComment(true);
+      setCommentSuccess(null);
+      setCommentError(null);
+      
+      await axios.post(`/api/comments/${photo._id}`, {
+        authorName: commentAuthor,
+        authorEmail: commentEmail,
+        message: commentMessage
+      });
+      
+      setCommentSuccess("Votre commentaire a été envoyé avec succès au photographe !");
+      setCommentMessage('');
+    } catch (err: any) {
+      console.error("Erreur envoi commentaire:", err);
+      setCommentError(err.response?.data?.error || "Impossible d'envoyer le commentaire pour le moment.");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
 
   // Gérer la navigation
   const navigateTo = (page: 'home' | 'galleries' | 'album' | 'about' | 'contact', albumId: string | null = null) => {
@@ -512,6 +555,56 @@ const App: React.FC = () => {
               {photos[lightboxIndex].description && (
                 <p className="lightbox-desc">{photos[lightboxIndex].description}</p>
               )}
+            </div>
+
+            {/* Formulaire de commentaire sous le footer de la lightbox */}
+            <div className="lightbox-comments">
+              <h4>Ajouter un commentaire</h4>
+              <p className="comments-notice">Votre message sera envoyé directement au photographe.</p>
+              
+              {commentSuccess && <div className="comment-alert success">{commentSuccess}</div>}
+              {commentError && <div className="comment-alert error">{commentError}</div>}
+              
+              <form onSubmit={handleCommentSubmit} className="lightbox-comment-form">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Nom :</label>
+                    <input 
+                      type="text" 
+                      value={commentAuthor} 
+                      onChange={e => setCommentAuthor(e.target.value)} 
+                      required 
+                      placeholder="Votre nom"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Email :</label>
+                    <input 
+                      type="email" 
+                      value={commentEmail} 
+                      onChange={e => setCommentEmail(e.target.value)} 
+                      placeholder="nom@exemple.com"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Message :</label>
+                  <textarea 
+                    rows={3} 
+                    value={commentMessage} 
+                    onChange={e => setCommentMessage(e.target.value)} 
+                    required 
+                    placeholder="Laissez votre commentaire..."
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  className="btn-submit-comment"
+                  disabled={submittingComment}
+                >
+                  {submittingComment ? "Envoi..." : "Envoyer le commentaire"}
+                </button>
+              </form>
             </div>
           </motion.div>
         )}
