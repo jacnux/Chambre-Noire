@@ -63,6 +63,14 @@ const formatName = (name?: string): string => {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 };
 
+const getBlogUrl = (name?: string): string => {
+  if (!name) return '#';
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  return isLocal
+    ? `http://localhost:3001`
+    : `https://${name.toLowerCase()}-blog.helioscope.fr`;
+};
+
 interface UserProfile {
   name: string;
   email: string;
@@ -448,11 +456,11 @@ const App: React.FC = () => {
 
               <li>
                 <a 
-                  href="#" 
-                  onClick={(e) => { e.preventDefault(); navigateTo('galleries'); }}
-                  className={currentPage === 'galleries' || currentPage === 'album' ? 'active' : ''}
+                  href={getBlogUrl(profile?.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Galeries (Toutes)
+                  Actualités
                 </a>
               </li>
               
@@ -517,6 +525,45 @@ const App: React.FC = () => {
                 <div className="home-text">
                   <ReactMarkdown>{profile?.portfolioIntro || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</ReactMarkdown>
                 </div>
+
+                {/* SECTION NOUVEAUTÉS - LES GALERIES DU PHOTOGRAPHE */}
+                {albums.length > 0 && (
+                  <div className="home-news-section" style={{ marginTop: '50px' }}>
+                    <h2 className="section-title" style={{ marginBottom: '30px' }}>Nouveautés</h2>
+                    <motion.div 
+                      className="grid-gallery"
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="show"
+                    >
+                      {albums.map((album) => (
+                        <motion.a 
+                          key={album._id} 
+                          href="#" 
+                          onClick={(e) => { e.preventDefault(); navigateTo('album', album._id); }}
+                          className="gallery-card"
+                          variants={itemVariants}
+                        >
+                          <div className="gallery-cover-container">
+                            {album.coverImage ? (
+                              <img 
+                                src={`/uploads/${album.coverImage}`} 
+                                alt={album.title} 
+                                className="gallery-cover" 
+                              />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e5e7eb', color: '#9ca3af' }}>📷</div>
+                            )}
+                          </div>
+                          <div className="gallery-info">
+                            <h3>{album.title}</h3>
+                            {album.description && <p>{album.description}</p>}
+                          </div>
+                        </motion.a>
+                      ))}
+                    </motion.div>
+                  </div>
+                )}
               </motion.div>
             )}
 
