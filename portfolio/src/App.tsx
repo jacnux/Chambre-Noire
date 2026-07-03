@@ -114,6 +114,14 @@ const App: React.FC = () => {
   const [commentSuccess, setCommentSuccess] = useState<string | null>(null);
   const [commentError, setCommentError] = useState<string | null>(null);
 
+  // États pour le formulaire de signalement
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [submittingReport, setSubmittingReport] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
+
   // Charger le profil et les albums vedettes
   useEffect(() => {
     const fetchProfile = async () => {
@@ -157,13 +165,18 @@ const App: React.FC = () => {
     fetchPhotos();
   }, [selectedAlbumId]);
 
-  // Nettoyer le formulaire de commentaire lors d'un changement de photo
+  // Nettoyer le formulaire de commentaire et de signalement lors d'un changement de photo
   useEffect(() => {
     setCommentAuthor('');
     setCommentEmail('');
     setCommentMessage('');
     setCommentSuccess(null);
     setCommentError(null);
+    setShowCommentModal(false);
+    setShowReportModal(false);
+    setReportReason('');
+    setReportSuccess(null);
+    setReportError(null);
   }, [lightboxIndex]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -189,6 +202,35 @@ const App: React.FC = () => {
       setCommentError(err.response?.data?.error || "Impossible d'envoyer le commentaire pour le moment.");
     } finally {
       setSubmittingComment(false);
+    }
+  };
+
+  const handleSendReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAlbumId) {
+      setReportError("Impossible de signaler cette image car l'album est introuvable.");
+      return;
+    }
+    
+    try {
+      setSubmittingReport(true);
+      setReportSuccess(null);
+      setReportError(null);
+      
+      await axios.post('/api/reports', {
+        type: 'album',
+        targetId: selectedAlbumId,
+        reason: reportReason.trim()
+      });
+      
+      setReportSuccess("Le signalement a été transmis avec succès à l'administrateur.");
+      setReportReason('');
+      setTimeout(() => setShowReportModal(false), 2000);
+    } catch (err: any) {
+      console.error("Erreur envoi signalement:", err);
+      setReportError(err.response?.data?.error || "Impossible d'envoyer le signalement pour le moment.");
+    } finally {
+      setSubmittingReport(false);
     }
   };
 
@@ -557,55 +599,122 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Formulaire de commentaire sous le footer de la lightbox */}
-            <div className="lightbox-comments">
-              <h4>Ajouter un commentaire</h4>
-              <p className="comments-notice">Votre message sera envoyé directement au photographe.</p>
-              
-              {commentSuccess && <div className="comment-alert success">{commentSuccess}</div>}
-              {commentError && <div className="comment-alert error">{commentError}</div>}
-              
-              <form onSubmit={handleCommentSubmit} className="lightbox-comment-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Nom :</label>
-                    <input 
-                      type="text" 
-                      value={commentAuthor} 
-                      onChange={e => setCommentAuthor(e.target.value)} 
-                      required 
-                      placeholder="Votre nom"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Email :</label>
-                    <input 
-                      type="email" 
-                      value={commentEmail} 
-                      onChange={e => setCommentEmail(e.target.value)} 
-                      placeholder="nom@exemple.com"
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Message :</label>
-                  <textarea 
-                    rows={3} 
-                    value={commentMessage} 
-                    onChange={e => setCommentMessage(e.target.value)} 
-                    required 
-                    placeholder="Laissez votre commentaire..."
-                  />
-                </div>
-                <button 
-                  type="submit" 
-                  className="btn-submit-comment"
-                  disabled={submittingComment}
-                >
-                  {submittingComment ? "Envoi..." : "Envoyer le commentaire"}
-                </button>
-              </form>
+            {/* BOUTONS D'ACTION FLOTTANTS EN BAS À DROITE */}
+            <div className="lightbox-actions">
+              <button 
+                className="lightbox-action-btn comment-btn" 
+                onClick={() => setShowCommentModal(true)}
+                title="Ajouter un commentaire"
+              >
+                💬
+              </button>
+              <button 
+                className="lightbox-action-btn report-btn" 
+                onClick={() => setShowReportModal(true)}
+                title="Signaler l'image"
+              >
+                🚩
+              </button>
             </div>
+
+            {/* MODALE INTERNE : AJOUTER UN COMMENTAIRE */}
+            {showCommentModal && (
+              <div className="lightbox-popup-overlay" onClick={() => setShowCommentModal(false)}>
+                <div className="lightbox-popup-card" onClick={e => e.stopPropagation()}>
+                  <div className="popup-header">
+                    <h4>Ajouter un commentaire</h4>
+                    <button className="popup-close" onClick={() => setShowCommentModal(false)}>×</button>
+                  </div>
+                  
+                  {commentSuccess && <div className="comment-alert success">{commentSuccess}</div>}
+                  {commentError && <div className="comment-alert error">{commentError}</div>}
+                  
+                  <form onSubmit={handleCommentSubmit} className="lightbox-comment-form">
+                    <div className="form-group">
+                      <label>Nom :</label>
+                      <input 
+                        type="text" 
+                        value={commentAuthor} 
+                        onChange={e => setCommentAuthor(e.target.value)} 
+                        required 
+                        placeholder="Votre nom"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Email (optionnel) :</label>
+                      <input 
+                        type="email" 
+                        value={commentEmail} 
+                        onChange={e => setCommentEmail(e.target.value)} 
+                        placeholder="nom@exemple.com"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Message :</label>
+                      <textarea 
+                        rows={4} 
+                        value={commentMessage} 
+                        onChange={e => setCommentMessage(e.target.value)} 
+                        required 
+                        placeholder="Laissez votre commentaire..."
+                      />
+                    </div>
+                    <div className="popup-actions">
+                      <button type="button" className="btn-cancel" onClick={() => setShowCommentModal(false)}>Annuler</button>
+                      <button 
+                        type="submit" 
+                        className="btn-submit-comment"
+                        disabled={submittingComment}
+                      >
+                        {submittingComment ? "Envoi..." : "Envoyer"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* MODALE INTERNE : SIGNALER UN CONTENU INAPPROPRIÉ */}
+            {showReportModal && (
+              <div className="lightbox-popup-overlay" onClick={() => setShowReportModal(false)}>
+                <div className="lightbox-popup-card" onClick={e => e.stopPropagation()}>
+                  <div className="popup-header">
+                    <h4 style={{ color: '#ef4444' }}>Signaler l'image</h4>
+                    <button className="popup-close" onClick={() => setShowReportModal(false)}>×</button>
+                  </div>
+                  
+                  {reportSuccess && <div className="comment-alert success">{reportSuccess}</div>}
+                  {reportError && <div className="comment-alert error">{reportError}</div>}
+                  
+                  <form onSubmit={handleSendReport} className="lightbox-comment-form">
+                    <p style={{ fontSize: '0.8rem', color: '#b3b3b3', marginBottom: '10px' }}>
+                      Veuillez indiquer la raison pour laquelle vous estimez cette image inappropriée.
+                    </p>
+                    <div className="form-group">
+                      <label>Raison du signalement :</label>
+                      <textarea 
+                        rows={4} 
+                        value={reportReason} 
+                        onChange={e => setReportReason(e.target.value)} 
+                        required 
+                        placeholder="Ex: Image inappropriée, droit d'auteur..."
+                      />
+                    </div>
+                    <div className="popup-actions">
+                      <button type="button" className="btn-cancel" onClick={() => setShowReportModal(false)}>Annuler</button>
+                      <button 
+                        type="submit" 
+                        className="btn-submit-comment"
+                        style={{ backgroundColor: '#ef4444' }}
+                        disabled={submittingReport}
+                      >
+                        {submittingReport ? "Envoi..." : "Signaler"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
