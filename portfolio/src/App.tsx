@@ -125,6 +125,9 @@ const App: React.FC = () => {
   // État plein écran
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Choix de la couleur du fond de la lightbox ('black', 'gray', 'white')
+  const [lightboxBgColor, setLightboxBgColor] = useState<'black' | 'gray' | 'white'>('black');
+
   // Charger le profil et les albums vedettes
   useEffect(() => {
     const fetchProfile = async () => {
@@ -569,7 +572,7 @@ const App: React.FC = () => {
       <AnimatePresence>
         {lightboxIndex !== null && photos.length > 0 && (
           <motion.div 
-            className="lightbox-overlay"
+            className={`lightbox-overlay bg-${lightboxBgColor}`}
             variants={lightboxVariants}
             initial="initial"
             animate="animate"
@@ -580,6 +583,24 @@ const App: React.FC = () => {
               <span className="lightbox-title">
                 {photos[lightboxIndex].title || 'Sans titre'}
               </span>
+
+              <div className="lightbox-bg-selector">
+                <button 
+                  className={`bg-dot black ${lightboxBgColor === 'black' ? 'active' : ''}`}
+                  onClick={() => setLightboxBgColor('black')}
+                  title="Fond Noir"
+                />
+                <button 
+                  className={`bg-dot gray ${lightboxBgColor === 'gray' ? 'active' : ''}`}
+                  onClick={() => setLightboxBgColor('gray')}
+                  title="Fond Gris"
+                />
+                <button 
+                  className={`bg-dot white ${lightboxBgColor === 'white' ? 'active' : ''}`}
+                  onClick={() => setLightboxBgColor('white')}
+                  title="Fond Blanc"
+                />
+              </div>
               <button className="lightbox-close" onClick={() => {
                 setLightboxIndex(null);
                 if (document.fullscreenElement) {

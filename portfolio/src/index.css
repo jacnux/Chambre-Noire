@@ -844,3 +844,80 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.2);
   color: #f87171;
 }
+
+/* Sélecteur de couleur de fond de la lightbox */
+.lightbox-bg-selector {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-right: 25px;
+}
+
+.bg-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.bg-dot:hover {
+  transform: scale(1.25);
+}
+
+.bg-dot.active {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 6px var(--color-accent);
+  transform: scale(1.15);
+}
+
+.bg-dot.black {
+  background-color: #000000;
+}
+
+.bg-dot.gray {
+  background-color: #333333;
+}
+
+.bg-dot.white {
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.bg-dot.white.active {
+  border-color: var(--color-accent);
+}
+
+/* Changements dynamiques de couleur de fond de la lightbox */
+.lightbox-overlay.bg-black {
+  background-color: #000000;
+}
+
+.lightbox-overlay.bg-gray {
+  background-color: #262626;
+}
+
+.lightbox-overlay.bg-white {
+  background-color: #f3f4f6;
+}
+
+/* Adaptations chromatiques */
+.lightbox-overlay.bg-white .lightbox-title,
+.lightbox-overlay.bg-white .lightbox-close,
+.lightbox-overlay.bg-white .lightbox-nav-btn {
+  color: #1a1a1a;
+  text-shadow: none;
+}
+
+.lightbox-overlay.bg-white .lightbox-header {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.lightbox-overlay.bg-white .lightbox-footer {
+  color: #1a1a1a;
+  background-color: rgba(243, 244, 246, 0.95);
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
