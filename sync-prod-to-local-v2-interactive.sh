@@ -9,7 +9,7 @@ PROD_DUMP_IN_CONTAINER="/tmp/luminaview-prod.gz"
 PROD_DUMP_ON_HOST="/tmp/luminaview-prod.gz"
 LOCAL_DUMP_FILE="$LOCAL_APP_DIR/luminaview-prod.gz"
 LOCAL_BACKUP_FILE="$LOCAL_APP_DIR/luminaview-local-backup.gz"
-LOCAL_UPLOADS_DIR="$LOCAL_APP_DIR/backend/uploads"
+LOCAL_UPLOADS_DIR="$LOCAL_APP_DIR/data/uploads"
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1"
@@ -106,7 +106,7 @@ restore_local_db() {
 sync_uploads() {
   log "Synchronisation du dossier uploads depuis la production"
   rsync -av --progress \
-    "$PROD_HOST:$PROD_APP_DIR/uploads/" \
+    "$PROD_HOST:$PROD_APP_DIR/data/uploads/" \
     "$LOCAL_UPLOADS_DIR/" \
     || fail "Impossible de synchroniser les uploads"
 }
