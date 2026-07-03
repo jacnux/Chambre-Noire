@@ -348,15 +348,15 @@ const App: React.FC = () => {
             )}
           </>
         )}
+        
+        {/* FOOTER & MENTION LUMINAVIEW */}
+        <footer className="footer">
+          <div>© 2026 - {profile?.name || 'Jac'}.</div>
+          <div>
+            Propulsé par <a href={window.location.origin} target="_blank" rel="noopener noreferrer">LuminaView</a>
+          </div>
+        </footer>
       </main>
-
-      {/* FOOTER & MENTION LUMINAVIEW */}
-      <footer className="footer">
-        <div>© 2026 - {profile?.name || 'Jac'}.</div>
-        <div>
-          Propulsé par <a href={window.location.origin} target="_blank" rel="noopener noreferrer">LuminaView</a>
-        </div>
-      </footer>
 
       {/* VISIONNEUSE LIGHTBOX (PLEIN ÉCRAN NOIR) */}
       {lightboxIndex !== null && photos.length > 0 && (
