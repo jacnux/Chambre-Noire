@@ -131,6 +131,18 @@ services:
     networks:
       - lumina-network
 
+  portfolio:
+    build:
+      context: ./portfolio
+    container_name: luminaview-portfolio
+    restart: always
+    ports:
+      - "8090:80"
+    depends_on:
+      - backend
+    networks:
+      - lumina-network
+
 networks:
   lumina-network:
     driver: bridge
