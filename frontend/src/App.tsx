@@ -18,6 +18,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import AlbumView from './pages/AlbumView';
+import EmbedAlbumView from './pages/EmbedAlbumView';
 import PortfolioPage from './pages/PortfolioPage';
 import UserPageView from './pages/UserPageView';
 import LegalPage from './pages/LegalPage';
@@ -69,6 +70,7 @@ const MainRoutes: React.FC = () => {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/legal" element={<LegalPage />} />
         <Route path="/album/:id" element={<AlbumView />} />
+        <Route path="/embed/album/:id" element={<EmbedAlbumView />} />
         <Route path="/portfolio/:username" element={<PortfolioPage />} />
         <Route path="/portfolio/:username/:slug" element={<UserPageView />} />
 
@@ -109,6 +111,7 @@ const SubdomainRoutes: React.FC = () => {
     <Routes>
       <Route path="/" element={<PortfolioPage />} />
       <Route path="/album/:id" element={<AlbumView />} />
+      <Route path="/embed/album/:id" element={<EmbedAlbumView />} />
       <Route path="/:slug" element={<UserPageView />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

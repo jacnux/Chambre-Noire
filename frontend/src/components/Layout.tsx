@@ -36,6 +36,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const showBackgroundImage = theme === 'dark' && isAuthenticatedArea;
 
+  const isEmbedRoute = location.pathname.startsWith('/embed/');
+
+  if (isEmbedRoute) {
+    return <>{children}</>;
+  }
+
   return (
     <div
       className={`relative min-h-screen w-full overflow-hidden ${

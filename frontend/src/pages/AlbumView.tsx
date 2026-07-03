@@ -103,6 +103,133 @@ const CommentModal = ({ photo, onClose }: { photo: any; onClose: () => void }) =
 );
 
 // ============================================================
+// SOUS-COMPOSANT — Modale d'intégration (Embed)
+// ============================================================
+const EmbedModal = ({ albumId, isPublic, onClose }: { albumId: string; isPublic: boolean; onClose: () => void }) => {
+  const embedUrl = `${window.location.origin}/embed/album/${albumId}`;
+  const iframeCode = `<iframe src="${embedUrl}" width="100%" height="600" style="border:0; border-radius:12px; overflow:hidden;" allowfullscreen></iframe>`;
+  const apiAlbumUrl = `${window.location.origin}/api/albums/${albumId}`;
+  const apiPhotosUrl = `${window.location.origin}/api/albums/photos/${albumId}`;
+
+  const [copiedIframe, setCopiedIframe] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedApiAlbum, setCopiedApiAlbum] = useState(false);
+  const [copiedApiPhotos, setCopiedApiPhotos] = useState(false);
+
+  const copyToClipboard = (text: string, setCopied: (v: boolean) => void) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+      <div className="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl p-6 text-white animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            🔌 Intégrer cette galerie
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">✕</button>
+        </div>
+        
+        <div className="space-y-6 overflow-y-auto max-h-[70vh] pr-1">
+          {!isPublic && (
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-yellow-300 text-xs">
+              ⚠️ <strong>Attention :</strong> Cette galerie est actuellement <strong>privée</strong>. Pour que l'intégration fonctionne sur d'autres sites, vous devez d'abord la rendre <strong>publique</strong> (via l'interrupteur de visibilité de l'album).
+            </div>
+          )}
+
+          {/* Iframe Option */}
+          <div>
+            <h4 className="text-sm font-semibold text-yellow-500 mb-2">Option 1 : Intégration Iframe (Clé en main)</h4>
+            <p className="text-xs text-gray-400 mb-2">
+              Copiez ce code HTML pour afficher la galerie directement sur votre site (WordPress, blog, portfolio, etc.).
+            </p>
+            <div className="relative">
+              <pre className="bg-black/50 p-3 rounded-lg text-xs font-mono overflow-x-auto border border-white/10 pr-20 select-all whitespace-pre-wrap break-all">
+                {iframeCode}
+              </pre>
+              <button
+                onClick={() => copyToClipboard(iframeCode, setCopiedIframe)}
+                className="absolute right-2 top-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1 rounded-lg transition"
+              >
+                {copiedIframe ? 'Copié !' : 'Copier'}
+              </button>
+            </div>
+          </div>
+
+          {/* Lien Direct Option */}
+          <div>
+            <h4 className="text-sm font-semibold text-yellow-500 mb-2">Lien direct de partage</h4>
+            <div className="relative">
+              <pre className="bg-black/50 p-3 rounded-lg text-xs font-mono overflow-x-auto border border-white/10 pr-20 select-all break-all">
+                {embedUrl}
+              </pre>
+              <button
+                onClick={() => copyToClipboard(embedUrl, setCopiedUrl)}
+                className="absolute right-2 top-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1 rounded-lg transition"
+              >
+                {copiedUrl ? 'Copié !' : 'Copier'}
+              </button>
+            </div>
+          </div>
+
+          {/* Developer API Option */}
+          <div>
+            <h4 className="text-sm font-semibold text-yellow-500 mb-2">Option 2 : API JSON (Pour développeurs)</h4>
+            <p className="text-xs text-gray-400 mb-2">
+              Utilisez nos API REST pour récupérer les données brutes (JSON) et créer votre propre interface.
+            </p>
+            
+            <div className="space-y-3">
+              <div>
+                <div className="text-[10px] text-gray-400 mb-1">Détails de l'album :</div>
+                <div className="relative">
+                  <pre className="bg-black/50 p-3 rounded-lg text-xs font-mono overflow-x-auto border border-white/10 pr-20 select-all break-all">
+                    {apiAlbumUrl}
+                  </pre>
+                  <button
+                    onClick={() => copyToClipboard(apiAlbumUrl, setCopiedApiAlbum)}
+                    className="absolute right-2 top-2 bg-gray-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded-lg transition"
+                  >
+                    {copiedApiAlbum ? 'Copié !' : 'Copier'}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[10px] text-gray-400 mb-1">Liste des photos :</div>
+                <div className="relative">
+                  <pre className="bg-black/50 p-3 rounded-lg text-xs font-mono overflow-x-auto border border-white/10 pr-20 select-all break-all">
+                    {apiPhotosUrl}
+                  </pre>
+                  <button
+                    onClick={() => copyToClipboard(apiPhotosUrl, setCopiedApiPhotos)}
+                    className="absolute right-2 top-2 bg-gray-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded-lg transition"
+                  >
+                    {copiedApiPhotos ? 'Copié !' : 'Copier'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-xl transition"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
 // COMPOSANT PRINCIPAL
 // ============================================================
 const AlbumView = () => {
@@ -113,6 +240,7 @@ const AlbumView = () => {
 
   const [album, setAlbum] = useState<any>(null);
   const [photos, setPhotos] = useState<any[]>([]);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [editingPhoto, setEditingPhoto] = useState<any>(null);
   const [infoPhoto, setInfoPhoto] = useState<any>(null);
@@ -415,6 +543,12 @@ const AlbumView = () => {
                       <input type="file" multiple className="hidden" onChange={handleFileSelect} />
                     </label>
                   )}
+                  <button
+                    onClick={() => setShowEmbedModal(true)}
+                    className="bg-blue-500/50 hover:bg-blue-600/80 text-white px-4 py-2 rounded-full text-center text-sm transition border border-blue-400/30"
+                  >
+                    🔌 Intégrer
+                  </button>
                 </div>
               )}
 
@@ -591,6 +725,7 @@ const AlbumView = () => {
         {infoPhoto && <PhotoInfoModal photo={infoPhoto} onClose={() => setInfoPhoto(null)} />}
         {lightboxIndex !== null && <Lightbox photos={sortedPhotos} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />}
         {commentPhoto && <CommentModal photo={commentPhoto} onClose={() => setCommentPhoto(null)} />}
+        {showEmbedModal && id && <EmbedModal albumId={id} isPublic={album?.isPublic} onClose={() => setShowEmbedModal(false)} />}
       </div>
     </div>
   );
