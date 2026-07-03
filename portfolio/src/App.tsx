@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
 
 // Configuration du nom d'utilisateur LuminaView
 const USERNAME = 'jac';
@@ -211,7 +212,7 @@ const App: React.FC = () => {
                   )}
                 </div>
                 <div className="home-text">
-                  <p>{profile?.bio || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</p>
+                  <ReactMarkdown>{profile?.bio || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</ReactMarkdown>
                 </div>
               </div>
             )}
@@ -318,7 +319,7 @@ const App: React.FC = () => {
                     <p style={{ fontSize: '1.2rem', fontWeight: 400, color: 'var(--color-accent)', marginBottom: '15px' }}>
                       {profile?.name || 'Jac'} — Photographies
                     </p>
-                    <p>{profile?.bio || "Bonjour à tous les amoureux de photographie et aux curieux qui passent par ici ! Bienvenue sur mon site, avec les photos que j'aime partager !"}</p>
+                    <ReactMarkdown>{profile?.bio || "Bonjour à tous les amoureux de photographie et aux curieux qui passent par ici ! Bienvenue sur mon site, avec les photos que j'aime partager !"}</ReactMarkdown>
                     <p>Découvrez mes clichés classés par séries thématiques à travers l'onglet Galeries.</p>
                   </div>
                 </div>
