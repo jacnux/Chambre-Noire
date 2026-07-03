@@ -212,7 +212,7 @@ const App: React.FC = () => {
                   )}
                 </div>
                 <div className="home-text">
-                  <ReactMarkdown>{profile?.bio || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</ReactMarkdown>
+                  <ReactMarkdown>{profile?.portfolioIntro || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</ReactMarkdown>
                 </div>
               </div>
             )}
