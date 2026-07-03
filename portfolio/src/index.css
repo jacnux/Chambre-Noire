@@ -953,3 +953,51 @@ body {
   background-color: rgba(243, 244, 246, 0.95);
   border-top-color: rgba(0, 0, 0, 0.08);
 }
+
+/* Styles pour le menu hiérarchique dynamique (Séries/Expositions) */
+.menu-section-title {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  color: var(--color-accent); /* Golden/bronze section label */
+  letter-spacing: 0.05em;
+  padding: 6px 0 4px 0;
+  margin-top: 10px;
+  font-weight: 400;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.submenu-nested {
+  list-style: none;
+  padding-left: 15px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.submenu-nested a {
+  font-size: 0.75rem !important;
+  color: #888888 !important;
+}
+
+.submenu-nested a:hover,
+.submenu-nested a.active {
+  color: var(--color-accent) !important;
+}
+
+@media (max-width: 1191px) {
+  .menu-section-title {
+    text-align: center;
+    margin-top: 15px;
+    border-bottom: none;
+  }
+  
+  .submenu-nested {
+    padding-left: 0;
+    align-items: center;
+    border-left: none;
+  }
+}

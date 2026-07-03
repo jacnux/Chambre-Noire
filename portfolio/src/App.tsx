@@ -78,6 +78,7 @@ interface Album {
   description?: string;
   coverImage?: string;
   isPublic: boolean;
+  photos?: Photo[];
 }
 
 interface Photo {
@@ -89,15 +90,42 @@ interface Photo {
   createdAt: string;
 }
 
+interface UserPageSection {
+  _id: string;
+  type: 'text' | 'gallery' | 'image' | 'split_text_gallery';
+  content?: string;
+  albumIds?: Album[];
+  imageUrl?: string;
+  summary?: boolean;
+}
+
+interface UserPage {
+  _id: string;
+  title: string;
+  slug: string;
+  coverImage?: string;
+  menuGroup: 'none' | 'series' | 'exhibitions' | 'blog' | 'about';
+  parentPageId?: string | { _id: string; title: string; slug: string };
+  menuOrder: number;
+  showInMenu: boolean;
+  sections?: UserPageSection[];
+  editorialSummary?: string;
+}
+
 const App: React.FC = () => {
   // Navigation par hash ou onglet
-  const [currentPage, setCurrentPage] = useState<'home' | 'galleries' | 'album' | 'about' | 'contact'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'galleries' | 'album' | 'about' | 'contact' | 'page'>('home');
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   
   // États de données
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [pages, setPages] = useState<UserPage[]>([]);
+  const [currentPageData, setCurrentPageData] = useState<UserPage | null>(null);
+  
+  // États UI
+  const [loadingPageDetail, setLoadingPageDetail] = useState(false);
   
   // États UI
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -131,14 +159,19 @@ const App: React.FC = () => {
   // Afficher/Masquer le commentaire (description) de la photo
   const [showDescription, setShowDescription] = useState(false);
 
-  // Charger le profil et les albums vedettes
+  // Charger le profil, les albums vedettes et les pages
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
         setLoadingProfile(true);
-        const res = await axios.get(`/api/albums/portfolio/${USERNAME}`);
-        setProfile(res.data.user);
-        setAlbums(res.data.albums || []);
+        const [profileRes, pagesRes] = await Promise.all([
+          axios.get(`/api/albums/portfolio/${USERNAME}`),
+          axios.get(`/api/user-pages/${USERNAME}`)
+        ]);
+        
+        setProfile(profileRes.data.user);
+        setAlbums(profileRes.data.albums || []);
+        setPages(pagesRes.data || []);
       } catch (err: any) {
         console.error("Erreur lors de la récupération du portfolio:", err);
         // Profil de secours si l'API n'est pas accessible
@@ -153,7 +186,7 @@ const App: React.FC = () => {
         setLoadingProfile(false);
       }
     };
-    fetchProfile();
+    fetchData();
   }, []);
 
   // Charger les photos quand un album est sélectionné
@@ -268,11 +301,26 @@ const App: React.FC = () => {
   }, []);
 
   // Gérer la navigation
-  const navigateTo = (page: 'home' | 'galleries' | 'album' | 'about' | 'contact', albumId: string | null = null) => {
+  const navigateTo = (page: 'home' | 'galleries' | 'album' | 'about' | 'contact' | 'page', albumId: string | null = null) => {
     setCurrentPage(page);
     setSelectedAlbumId(albumId);
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToPage = async (slug: string) => {
+    try {
+      setLoadingPageDetail(true);
+      setMenuOpen(false);
+      const res = await axios.get(`/api/user-pages/${USERNAME}/${slug}`);
+      setCurrentPageData(res.data);
+      setCurrentPage('page');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error("Erreur lors du chargement de la page:", err);
+    } finally {
+      setLoadingPageDetail(false);
+    }
   };
 
   // Trouver l'image d'accueil (bannière de l'utilisateur ou couverture du premier album)
@@ -311,29 +359,91 @@ const App: React.FC = () => {
                   Accueil
                 </a>
               </li>
+
+              {/* SECTION SÉRIES */}
+              {pages.filter(p => p.menuGroup === 'series' && !p.parentPageId && p.showInMenu).length > 0 && (
+                <li>
+                  <span className="menu-section-title">Séries</span>
+                  <ul className="submenu">
+                    {pages.filter(p => p.menuGroup === 'series' && !p.parentPageId && p.showInMenu).map((page) => {
+                      const children = pages.filter(p => typeof p.parentPageId === 'object' ? (p.parentPageId as any)?._id === page._id : p.parentPageId === page._id);
+                      return (
+                        <li key={page._id}>
+                          <a 
+                            href="#" 
+                            onClick={(e) => { e.preventDefault(); navigateToPage(page.slug); }}
+                            className={currentPage === 'page' && currentPageData?.slug === page.slug ? 'active' : ''}
+                          >
+                            {page.title}
+                          </a>
+                          {children.length > 0 && (
+                            <ul className="submenu-nested">
+                              {children.map(child => (
+                                <li key={child._id}>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); navigateToPage(child.slug); }}
+                                    className={currentPage === 'page' && currentPageData?.slug === child.slug ? 'active' : ''}
+                                  >
+                                    {child.title}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </li>
+              )}
+
+              {/* SECTION EXPOSITIONS */}
+              {pages.filter(p => p.menuGroup === 'exhibitions' && !p.parentPageId && p.showInMenu).length > 0 && (
+                <li>
+                  <span className="menu-section-title">Expositions</span>
+                  <ul className="submenu">
+                    {pages.filter(p => p.menuGroup === 'exhibitions' && !p.parentPageId && p.showInMenu).map((page) => {
+                      const children = pages.filter(p => typeof p.parentPageId === 'object' ? (p.parentPageId as any)?._id === page._id : p.parentPageId === page._id);
+                      return (
+                        <li key={page._id}>
+                          <a 
+                            href="#" 
+                            onClick={(e) => { e.preventDefault(); navigateToPage(page.slug); }}
+                            className={currentPage === 'page' && currentPageData?.slug === page.slug ? 'active' : ''}
+                          >
+                            {page.title}
+                          </a>
+                          {children.length > 0 && (
+                            <ul className="submenu-nested">
+                              {children.map(child => (
+                                <li key={child._id}>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); navigateToPage(child.slug); }}
+                                    className={currentPage === 'page' && currentPageData?.slug === child.slug ? 'active' : ''}
+                                  >
+                                    {child.title}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </li>
+              )}
+
               <li>
                 <a 
                   href="#" 
                   onClick={(e) => { e.preventDefault(); navigateTo('galleries'); }}
                   className={currentPage === 'galleries' || currentPage === 'album' ? 'active' : ''}
                 >
-                  Galeries
+                  Galeries (Toutes)
                 </a>
-                {albums.length > 0 && (
-                  <ul className="submenu">
-                    {albums.slice(0, 5).map((album) => (
-                      <li key={album._id}>
-                        <a 
-                          href="#" 
-                          onClick={(e) => { e.preventDefault(); navigateTo('album', album._id); }}
-                          className={currentPage === 'album' && selectedAlbumId === album._id ? 'active' : ''}
-                        >
-                          {album.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
               </li>
               
               <li>
@@ -342,7 +452,7 @@ const App: React.FC = () => {
                   onClick={(e) => { e.preventDefault(); navigateTo('about'); }}
                   className={currentPage === 'about' ? 'active' : ''}
                 >
-                  À propos de...
+                  À propos
                 </a>
               </li>
               <li>
@@ -505,6 +615,100 @@ const App: React.FC = () => {
                     ))}
                   </motion.div>
                 )}
+              </motion.div>
+            )}
+
+            {/* PAGE DE CONTENU DYNAMIQUE (SERIES / EXPOSITIONS) */}
+            {loadingPageDetail ? (
+              <div className="loader-container">
+                <div className="spinner"></div>
+                <p>Chargement de la page...</p>
+              </div>
+            ) : currentPage === 'page' && currentPageData && (
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                key={currentPageData.slug}
+              >
+                <h2 className="section-title">{currentPageData.title}</h2>
+                {currentPageData.editorialSummary && (
+                  <div className="home-text" style={{ padding: 0, marginBottom: '30px' }}>
+                    <ReactMarkdown>{currentPageData.editorialSummary}</ReactMarkdown>
+                  </div>
+                )}
+                
+                <div className="page-sections">
+                  {currentPageData.sections?.map((section) => {
+                    if (section.type === 'text' && section.content) {
+                      return (
+                        <div key={section._id} className="home-text" style={{ padding: 0, marginBottom: '30px' }}>
+                          <ReactMarkdown>{section.content}</ReactMarkdown>
+                        </div>
+                      );
+                    }
+                    
+                    if ((section.type === 'gallery' || section.type === 'split_text_gallery') && section.albumIds) {
+                      return (
+                        <div key={section._id} className="nested-album-sections" style={{ marginBottom: '40px' }}>
+                          {section.albumIds.map((album) => {
+                            const albumPhotos = album.photos || [];
+                            return (
+                              <div key={album._id} className="nested-album-gallery" style={{ marginBottom: '30px' }}>
+                                {album.title && <h3 style={{ fontFamily: 'var(--font-title)', color: 'var(--color-accent)', textTransform: 'uppercase', fontSize: '1.2rem', marginBottom: '10px' }}>{album.title}</h3>}
+                                {album.description && <p style={{ fontStyle: 'italic', color: '#666', marginBottom: '20px' }}>{album.description}</p>}
+                                
+                                {albumPhotos.length === 0 ? (
+                                  <p style={{ color: '#999', fontSize: '0.9rem' }}>Cette galerie ne contient pas de photos.</p>
+                                ) : (
+                                  <motion.div 
+                                    className="masonry-grid"
+                                    variants={containerVariants}
+                                    initial="hidden"
+                                    animate="show"
+                                  >
+                                    {albumPhotos.map((photo, idx) => (
+                                      <motion.div 
+                                        key={photo._id} 
+                                        className="masonry-item" 
+                                        onClick={() => {
+                                          setPhotos(albumPhotos);
+                                          setLightboxIndex(idx);
+                                        }}
+                                        variants={itemVariants}
+                                      >
+                                        <img 
+                                          src={`/uploads/${photo.filename}`} 
+                                          alt={photo.title} 
+                                          className="masonry-img" 
+                                          loading="lazy"
+                                        />
+                                        <div className="masonry-overlay">
+                                          <h4>{photo.title || 'Sans titre'}</h4>
+                                          {photo.description && <p>{photo.description}</p>}
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </motion.div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    
+                    if (section.type === 'image' && section.imageUrl) {
+                      return (
+                        <div key={section._id} className="section-block image-block" style={{ marginBottom: '30px' }}>
+                          <img src={`/uploads/${section.imageUrl}`} alt="" style={{ maxWidth: '100%', borderRadius: '4px' }} />
+                        </div>
+                      );
+                    }
+                    
+                    return null;
+                  })}
+                </div>
               </motion.div>
             )}
 
