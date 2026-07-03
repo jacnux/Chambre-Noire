@@ -323,6 +323,16 @@ const App: React.FC = () => {
     }
   };
 
+  const isParentOrChildActive = (parentPage: UserPage) => {
+    if (currentPage !== 'page' || !currentPageData) return false;
+    if (currentPageData.slug === parentPage.slug) return true;
+    const parentIdStr = parentPage._id;
+    const currentParentId = typeof currentPageData.parentPageId === 'object'
+      ? (currentPageData.parentPageId as any)?._id
+      : currentPageData.parentPageId;
+    return currentParentId === parentIdStr;
+  };
+
   // Trouver l'image d'accueil (bannière de l'utilisateur ou couverture du premier album)
   const getHomeImage = () => {
     if (profile?.bannerImage) return `/uploads/${profile.bannerImage}`;
@@ -376,7 +386,7 @@ const App: React.FC = () => {
                           >
                             {page.title}
                           </a>
-                          {children.length > 0 && (
+                          {children.length > 0 && isParentOrChildActive(page) && (
                             <ul className="submenu-nested">
                               {children.map(child => (
                                 <li key={child._id}>
@@ -414,7 +424,7 @@ const App: React.FC = () => {
                           >
                             {page.title}
                           </a>
-                          {children.length > 0 && (
+                          {children.length > 0 && isParentOrChildActive(page) && (
                             <ul className="submenu-nested">
                               {children.map(child => (
                                 <li key={child._id}>
