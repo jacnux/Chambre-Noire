@@ -2,8 +2,25 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 
-// Configuration du nom d'utilisateur LuminaView
-const USERNAME = 'jac';
+// Détection dynamique de l'utilisateur pour le multi-hébergement (multi-tenant)
+const getUsernameFromEnvironment = (): string => {
+  // 1. Détection via paramètre de requête (ex: http://localhost:8090/?u=anita)
+  const params = new URLSearchParams(window.location.search);
+  const queryUser = params.get('u') || params.get('user');
+  if (queryUser) return queryUser.trim();
+
+  // 2. Détection via sous-domaine (ex: anita.luminaview.local)
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
+  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'localhost') {
+    return parts[0].trim();
+  }
+
+  // 3. Utilisateur par défaut
+  return 'jac';
+};
+
+const USERNAME = getUsernameFromEnvironment();
 
 interface UserProfile {
   name: string;
