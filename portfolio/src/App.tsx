@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ReactMarkdown from 'react-markdown';
+import MarkdownRenderer from './components/MarkdownRenderer';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const pageVariants = {
@@ -523,7 +523,7 @@ const App: React.FC = () => {
                   )}
                 </div>
                 <div className="home-text">
-                  <ReactMarkdown>{profile?.portfolioIntro || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</ReactMarkdown>
+                  <MarkdownRenderer>{profile?.portfolioIntro || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</MarkdownRenderer>
                 </div>
 
                 {/* SECTION NOUVEAUTÉS - LES GALERIES DU PHOTOGRAPHE */}
@@ -691,7 +691,7 @@ const App: React.FC = () => {
                 <h2 className="section-title">{currentPageData.title}</h2>
                 {currentPageData.editorialSummary && (
                   <div className="home-text" style={{ padding: 0, marginBottom: '30px' }}>
-                    <ReactMarkdown>{currentPageData.editorialSummary}</ReactMarkdown>
+                    <MarkdownRenderer>{currentPageData.editorialSummary}</MarkdownRenderer>
                   </div>
                 )}
                 
@@ -700,7 +700,7 @@ const App: React.FC = () => {
                     if (section.type === 'text' && section.content) {
                       return (
                         <div key={section._id} className="home-text" style={{ padding: 0, marginBottom: '30px' }}>
-                          <ReactMarkdown>{section.content}</ReactMarkdown>
+                          <MarkdownRenderer>{section.content}</MarkdownRenderer>
                         </div>
                       );
                     }
@@ -790,7 +790,9 @@ const App: React.FC = () => {
                     <p style={{ fontSize: '1.2rem', fontWeight: 400, color: 'var(--color-accent)', marginBottom: '15px' }}>
                       {formatName(profile?.name)} — Photographies
                     </p>
-                    <ReactMarkdown>{profile?.bio || "Bonjour à tous les amoureux de photographie et aux curieux qui passent par ici ! Bienvenue sur mon site, avec les photos que j'aime partager !"}</ReactMarkdown>
+                    <div className="about-bio">
+                      <MarkdownRenderer>{profile?.bio || "Bonjour à tous les amoureux de photographie et aux curieux qui passent par ici ! Bienvenue sur mon site, avec les photos que j'aime partager !"}</MarkdownRenderer>
+                    </div>
                     <p>Découvrez mes clichés classés par séries thématiques à travers l'onglet Galeries.</p>
                   </div>
                 </div>
