@@ -188,11 +188,22 @@ body {
 .home-text {
   text-align: left;
   font-style: italic;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   color: var(--color-text-gray);
-  max-width: 750px;
-  margin: 0 0 30px 0;
-  line-height: 1.7;
+  max-width: 800px;
+  margin: 0 0 35px 0;
+  line-height: 1.8;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 30px 40px;
+  box-shadow: -12px 16px 28px rgba(0, 0, 0, 0.05), -4px 6px 10px rgba(0, 0, 0, 0.02);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.home-text:hover {
+  transform: translateY(-3px);
+  box-shadow: -18px 24px 38px rgba(0, 0, 0, 0.07), -6px 8px 12px rgba(0, 0, 0, 0.03);
 }
 
 /* --- SECTION / GRILLE GALERIE --- */
