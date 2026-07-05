@@ -21,7 +21,7 @@ app.use(express.json());
 // ============================================================
 
 // Base blog (posts, commentaires, abonnés)
-mongoose.connect(process.env.MONGO_URI || 'mongodb://mongo:27017/helioscope_blogs')
+mongoose.connect(process.env.MONGO_URI_BLOG || 'mongodb://mongo:27017/helioscope_blogs')
   .then(() => console.log('✅ Blog MongoDB connecté'))
   .catch(err => console.error('❌ Blog MongoDB erreur:', err));
 
