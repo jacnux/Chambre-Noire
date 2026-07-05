@@ -39,7 +39,6 @@ const AboutView: React.FC<AboutViewProps> = ({ profile }) => {
           <div className="about-bio">
             <MarkdownRenderer>{profile?.bio || "Bonjour à tous les amoureux de photographie et aux curieux qui passent par ici ! Bienvenue sur mon site, avec les photos que j'aime partager !"}</MarkdownRenderer>
           </div>
-          <p>Découvrez mes clichés classés par séries thématiques à travers l'onglet Galeries.</p>
         </div>
       </div>
     </motion.div>
