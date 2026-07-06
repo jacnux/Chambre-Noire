@@ -174,6 +174,17 @@ const EditProfile = () => {
             </div>
 
             <div className={`border-t pt-6 ${sectionBorderClass}`}>
+              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Phrase choc (Slogan)</label>
+              <input
+                type="text"
+                value={tagline}
+                onChange={e => setTagline(e.target.value)}
+                className={inputClass}
+                placeholder="Une phrase d'accroche pour marquer les esprits..."
+              />
+            </div>
+
+            <div className={`border-t pt-6 ${sectionBorderClass}`}>
               <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Introduction Portfolio</label>
               <textarea
                 value={portfolioIntro}

@@ -6,7 +6,7 @@
 // ===========================================
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useTheme } from '../context/ThemeContext';
 
@@ -26,7 +26,7 @@ const UserPagesManager = () => {
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pageSortAZ, setPageSortAZ] = useState<PageSortMode>(null);
-  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
   const { theme } = useTheme();
 
   const userStorage = localStorage.getItem('user');
@@ -65,13 +65,20 @@ const UserPagesManager = () => {
     });
   };
 
-  const sortedPages = useMemo(() => {
-    if (!pageSortAZ) return pages;
-    const copy = [...pages];
+  const filteredAndSortedPages = useMemo(() => {
+    let result = pages;
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(page =>
+        (page.title || '').toLowerCase().includes(term)
+      );
+    }
+    if (!pageSortAZ) return result;
+    const copy = [...result];
     return pageSortAZ === 'az'
       ? copy.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'fr', { sensitivity: 'base' }))
       : copy.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'fr', { sensitivity: 'base' }));
-  }, [pages, pageSortAZ]);
+  }, [pages, searchTerm, pageSortAZ]);
 
   const shellTextClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
   const mutedTextClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
@@ -134,11 +141,57 @@ const UserPagesManager = () => {
           </div>
         </div>
 
-        {sortedPages.length === 0 ? (
+        {/* Barre de recherche */}
+        {pages.length > 0 && (
+          <div className="mb-6">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Rechercher une page par son nom..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-10 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500/50 ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-yellow-500'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-yellow-500'
+                }`}
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className={`h-5 w-5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {pages.length === 0 ? (
           <p className={`text-center ${emptyTextClass}`}>Aucune page créée.</p>
+        ) : filteredAndSortedPages.length === 0 ? (
+          <p className={`text-center ${emptyTextClass}`}>Aucun résultat pour « {searchTerm} ».</p>
         ) : (
           <div className="space-y-4">
-            {sortedPages.map(page => (
+            {filteredAndSortedPages.map(page => (
               <div
                 key={page._id}
                 className={`p-4 rounded-lg flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 ${cardClass}`}

@@ -329,6 +329,7 @@ const Dashboard = () => {
   const [sharingAlbum, setSharingAlbum] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortAZ, setSortAZ] = useState<'az' | 'za' | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -346,6 +347,10 @@ const Dashboard = () => {
     }
     fetchAlbums();
   }, [user, loading, navigate, isGalleries]);
+
+  useEffect(() => {
+    setSearchQuery('');
+  }, [isGalleries]);
 
   useEffect(() => {
     if (!feedbackMessage && !errorMessage) return;
@@ -431,9 +436,12 @@ const Dashboard = () => {
     }
   };
 
-  const filteredAlbums = albums.filter(a =>
-    isGalleries ? a.isVirtual === true : a.isVirtual !== true
-  );
+  const filteredAlbums = albums.filter(a => {
+    const matchesTab = isGalleries ? a.isVirtual === true : a.isVirtual !== true;
+    if (!matchesTab) return false;
+    if (!searchQuery) return true;
+    return (a.title || '').toLowerCase().includes(searchQuery.toLowerCase().trim());
+  });
 
   const sortedAlbums = useMemo(() => {
     if (!sortAZ) return filteredAlbums;
@@ -484,8 +492,46 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div className="flex justify-end mb-4">
-            <div className="bg-white/10 backdrop-blur rounded-full p-1 flex gap-1 border border-white/10">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6">
+            {/* Barre de recherche */}
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={isGalleries ? "Rechercher une galerie..." : "Rechercher un album..."}
+                className="w-full bg-white/10 backdrop-blur text-white text-sm rounded-full pl-11 pr-10 py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition placeholder-gray-400"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white"
+                  type="button"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Tri et Affichage */}
+            <div className="bg-white/10 backdrop-blur rounded-full p-1 flex gap-1 border border-white/10 self-end sm:self-auto">
               <button
                 onClick={() => setViewMode('grid')}
                 title="Vue Grille"
@@ -551,10 +597,19 @@ const Dashboard = () => {
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}
             >
-              <p className="text-xl mb-2">
-                Aucun {isGalleries ? 'galerie' : 'album'} pour le moment.
-              </p>
-              <p>Commencez par créer votre première galerie !</p>
+              {searchQuery ? (
+                <>
+                  <p className="text-xl mb-2">Aucun résultat pour "{searchQuery}"</p>
+                  <p>Essayez avec d'autres mots-clés.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xl mb-2">
+                    Aucun {isGalleries ? 'galerie' : 'album'} pour le moment.
+                  </p>
+                  <p>Commencez par créer votre première galerie !</p>
+                </>
+              )}
             </div>
           )}
 

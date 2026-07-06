@@ -239,37 +239,38 @@ const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => 
 };
 
 const PortfolioHero = ({ user, authUser, onContact }: any) => {
-  const tagline = user.bio ? stripMarkdownAndHtml(user.bio).split('.')[0] + '.' : 'Photographe & Créateur Visuel';
+  const tagline = user.tagline || (user.bio ? stripMarkdownAndHtml(user.bio).split('.')[0] + '.' : 'Photographe & Créateur Visuel');
   const isOwner = authUser && String((authUser as any)?.id) === String(user._id);
 
   return (
     <header className="relative w-full bg-black border-b border-white/10 overflow-hidden">
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_38%)]" />
+      <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_38%)]" />
 
-      <div className="relative h-[22rem] md:h-[30rem] w-full overflow-hidden">
+      <div className="relative h-[14rem] md:h-[22rem] w-full overflow-hidden">
         {user.bannerImage ? (
           <>
-            <img src={`/uploads/${user.bannerImage}`} className="w-full h-full object-cover opacity-58" alt="Bannière" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/20" />
+            <img src={`/uploads/${user.bannerImage}`} className="w-full h-full object-cover opacity-65" alt="Bannière" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,transparent_20%,rgba(0,0,0,0.8)_100%)]" />
           </>
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-900 via-[#101010] to-black" />
         )}
       </div>
 
-      <div className="relative -mt-14 md:-mt-20 max-w-7xl mx-auto px-4 md:px-6 pb-10">
-        <div className="bg-black/65 backdrop-blur-md border border-white/10 rounded-[1.6rem] shadow-[0_24px_70px_rgba(0,0,0,0.45)] p-5 md:p-8">
+      <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 max-w-7xl mx-auto z-20">
+        <div className="bg-gradient-to-br from-gray-950/50 to-black/85 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-[1.6rem] shadow-[0_24px_70px_rgba(0,0,0,0.45)] p-4 md:p-6 transition-all duration-300">
           <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-8">
             <div className="flex items-end gap-4 md:gap-6 min-w-0 flex-1">
               <div className="shrink-0">
                 {user.avatar ? (
                   <img
                     src={`/uploads/${user.avatar}`}
-                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-black shadow-2xl object-cover bg-gray-800"
+                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-black ring-2 ring-white/10 shadow-2xl object-cover bg-gray-800"
                     alt="Avatar"
                   />
                 ) : (
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-black shadow-2xl bg-gray-800 flex items-center justify-center text-4xl">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-black ring-2 ring-white/10 shadow-2xl bg-gray-800 flex items-center justify-center text-4xl">
                     👤
                   </div>
                 )}
@@ -280,23 +281,11 @@ const PortfolioHero = ({ user, authUser, onContact }: any) => {
                 <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
                   {user.name}
                 </h1>
-                <p className="text-sm md:text-base text-gray-300 mt-2 italic max-w-2xl">
-                  {tagline}
-                </p>
+                <div className="text-sm md:text-base text-gray-300 mt-2 italic max-w-2xl [&_p]:m-0">
+                  <ReactMarkdown>{tagline}</ReactMarkdown>
+                </div>
               </div>
             </div>
-           {/*
-            {!isOwner && (
-              <div className="md:pb-1">
-                <button
-                  type="button"
-                  onClick={onContact}
-                  className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-white hover:bg-white/10 transition"
-                >
-                  Contacter
-                </button>
-              </div>
-            )}  */}
           </div>
         </div>
       </div>
@@ -400,7 +389,7 @@ const PortfolioMenu = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 mb-12" ref={menuRef}>
+    <div className="max-w-7xl mx-auto px-4 md:px-6 mb-12 relative z-30" ref={menuRef}>
       <div className="rounded-[1.25rem] border border-white/10 bg-black/35 backdrop-blur-sm px-3 py-3 md:px-4">
         <div className="flex justify-center gap-2 md:gap-3 flex-wrap">
           <button
@@ -533,7 +522,7 @@ const AlbumGrid = ({ albums, username, emptyText }: AlbumGridProps) => {
           }}
           className="group block"
         >
-          <article className="h-full overflow-hidden rounded-[1.2rem] border border-white/10 bg-black shadow-[0_18px_60px_rgba(0,0,0,0.34)] transition duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+          <article className="h-full overflow-hidden rounded-[1.2rem] border border-white/10 hover:border-yellow-500/20 bg-black shadow-[0_12px_45px_rgba(0,0,0,0.45)] transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_20px_50px_rgba(234,179,8,0.1)]">
             <div className="relative aspect-[4/3] overflow-hidden bg-black">
               {album.coverImage ? (
                 <>
@@ -621,7 +610,7 @@ const PageGrid = ({ pages, username, title, intro, emptyText }: PageGridProps) =
               className="group block h-full"
             >
               <article
-                className={`h-full overflow-hidden rounded-[1.2rem] bg-black border ${placeholder.cardBorder} shadow-[0_18px_60px_rgba(0,0,0,0.34)] transition duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(0,0,0,0.45)]`}
+                className={`h-full overflow-hidden rounded-[1.2rem] bg-black border ${placeholder.cardBorder} hover:border-yellow-500/20 shadow-[0_12px_45px_rgba(0,0,0,0.45)] transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_20px_50px_rgba(234,179,8,0.1)]`}
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-black">
                   {cover ? (

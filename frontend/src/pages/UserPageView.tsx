@@ -132,6 +132,40 @@ const UserPageView = () => {
   const [lightboxData, setLightboxData] = useState<{ photos: any[]; index: number } | null>(null);
   const [showChildMenu, setShowChildMenu] = useState(true);
 
+  // --- ÉTATS POUR LE GLISSEMENT DE LA CARTOUCHE DE TITRE ---
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const handleDragStart = (e: React.MouseEvent) => {
+    if (e.button !== 0) return; // Uniquement clic gauche
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setDragOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart]);
+
   const host = window.location.hostname;
   const hostParts = host.split('.');
   const isSubdomainMode =
@@ -256,19 +290,20 @@ const UserPageView = () => {
     : null;
 
   const renderPhoto = (photo: any, photos: any[], i: number) => (
-    <div key={photo._id || i} className="relative group">
+    <div key={photo._id || i} className="relative group overflow-hidden rounded-xl border border-white/5 bg-gray-900 shadow-md hover:border-white/10 shadow-black/30 hover:shadow-black/60 transition-all duration-300">
       <img
         src={`/uploads/${photo.filename}`}
-        className="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80 transition"
+        className="w-full aspect-square object-cover cursor-pointer transition-transform duration-500 ease-out group-hover:scale-[1.03]"
         alt={photo.title || ''}
         onClick={() => openLightbox(photos, i)}
       />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <button
         onClick={e => {
           e.stopPropagation();
           setCommentPhoto(photo);
         }}
-        className="absolute bottom-2 right-2 w-8 h-8 bg-blue-600/80 backdrop-blur rounded-full shadow-lg text-white hover:bg-blue-600 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition z-10"
+        className="absolute bottom-3 right-3 w-9 h-9 bg-blue-600/90 hover:bg-blue-500 backdrop-blur-md rounded-full shadow-lg text-white hover:scale-110 active:scale-95 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
         title="Commenter"
       >
         💬
@@ -282,46 +317,65 @@ const UserPageView = () => {
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_40%)]" />
 
         {heroImage ? (
-          <div className="relative h-[42vh] min-h-[320px] max-h-[560px] overflow-hidden">
+          <div className="relative h-[25vh] md:h-[35vh] min-h-[180px] md:min-h-[280px] max-h-[460px] overflow-hidden">
             <img
               src={`/uploads/${heroImage}`}
               alt={page.title || 'Page'}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-black/45 to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-black/50 to-black/20" />
           </div>
         ) : (
-          <div className="h-40 md:h-56 bg-[linear-gradient(135deg,#111111_0%,#1b1b1b_45%,#050505_100%)]" />
+          <div className="h-28 md:h-44 bg-[linear-gradient(135deg,#111111_0%,#1b1b1b_45%,#050505_100%)]" />
         )}
 
-        <div className="relative max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-12 -mt-8 md:-mt-14">
-          <div className="bg-black/55 backdrop-blur-sm border border-white/10 rounded-2xl shadow-2xl px-6 py-6 md:px-8 md:py-8">
-            <div className="text-[11px] uppercase tracking-[0.28em] text-gray-400 mb-3">{pageLabel}</div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight max-w-4xl">
+        <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 max-w-5xl mx-auto z-20">
+          <div
+            style={{
+              transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
+              resize: 'both',
+              overflow: 'auto',
+            }}
+            className="bg-gradient-to-br from-gray-950/50 to-black/85 backdrop-blur-md border border-white/10 hover:border-white/20 rounded-2xl shadow-2xl px-5 py-4 md:px-6 md:py-4 transition-colors duration-300 min-w-[280px] min-h-[90px] max-w-full"
+          >
+            {/* Ligne d'en-tête regroupant la catégorie, le retour et le bouton de déplacement */}
+            <div
+              onMouseDown={handleDragStart}
+              className="flex flex-wrap items-center justify-between gap-3 mb-2 pb-2 border-b border-white/5 cursor-move select-none"
+              title="Restez cliqué ici pour déplacer la boîte"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500 font-bold text-xs">⋮⋮</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-gray-400">{pageLabel}</span>
+              </div>
+              {parentPage && parentPageHref ? (
+                <Link
+                  to={parentPageHref}
+                  onMouseDown={e => e.stopPropagation()} // Évite de déplacer lors du clic sur le lien
+                  className="inline-flex items-center text-xs text-yellow-500 hover:text-yellow-400 font-semibold transition"
+                >
+                  ← Retour à {parentPage.title}
+                </Link>
+              ) : !isSubdomainMode && username ? (
+                <Link
+                  to={`/portfolio/${username}`}
+                  onMouseDown={e => e.stopPropagation()} // Évite de déplacer lors du clic sur le lien
+                  className="inline-flex items-center text-xs text-yellow-500 hover:text-yellow-400 font-semibold transition"
+                >
+                  ← Retour au portfolio
+                </Link>
+              ) : (
+                <span className="text-[10px] text-gray-500 font-semibold">Portfolio public</span>
+              )}
+            </div>
+
+            <h1 className="text-xl md:text-3xl font-extrabold text-white tracking-tight leading-tight max-w-4xl select-none">
               {page.title || 'Page'}
             </h1>
 
-            {parentPage && parentPageHref ? (
-              <Link
-                to={parentPageHref}
-                className="inline-flex items-center text-sm text-gray-400 hover:text-white mt-4 transition"
-              >
-                ← Retour à {parentPage.title}
-              </Link>
-            ) : !isSubdomainMode && username ? (
-              <Link
-                to={`/portfolio/${username}`}
-                className="inline-flex items-center text-sm text-gray-400 hover:text-white mt-4 transition"
-              >
-                ← Retour au portfolio de {username}
-              </Link>
-            ) : (
-              <div className="text-sm text-gray-500 mt-4 inline-block">Portfolio public</div>
-            )}
-
             {editorialIntroExcerpt && (
-              <div className="mt-6 border-t border-white/10 pt-6 max-w-3xl">
-                <p className="text-base md:text-lg leading-8 text-gray-200">
+              <div className="mt-3 border-t border-white/5 pt-2.5 max-w-3xl">
+                <p className="text-xs md:text-sm leading-relaxed text-gray-300 select-text">
                   {editorialIntroExcerpt}
                 </p>
               </div>
@@ -332,70 +386,73 @@ const UserPageView = () => {
 
       <div className="max-w-6xl mx-auto py-10 px-4 md:px-6">
         {childPages.length > 0 && (
-          <div className="mb-10 max-w-2xl">
+          <div className="mb-12 max-w-4xl">
             <button
               type="button"
               onClick={() => setShowChildMenu(prev => !prev)}
-              className="w-full flex items-center justify-between rounded-xl border border-gray-700 bg-gray-900/80 hover:bg-gray-900 px-4 py-3 text-left transition"
+              className="w-full flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] px-5 py-4 text-left transition-all duration-300 shadow-md"
               aria-expanded={showChildMenu}
               aria-label="Afficher les sous-pages"
             >
               <div>
-                <div className="text-[11px] uppercase tracking-[0.25em] text-gray-400 mb-1">Navigation</div>
-                <div className="text-white font-medium">
-                  Pages associées {childPages.length > 0 ? `(${childPages.length})` : ''}
+                <div className="text-[10px] uppercase tracking-[0.25em] text-yellow-500/85 font-semibold mb-1">Navigation</div>
+                <div className="text-white font-semibold text-base md:text-lg flex items-center gap-2">
+                  <span>Pages associées</span>
+                  <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-gray-300 font-normal">
+                    {childPages.length}
+                  </span>
                 </div>
               </div>
-              <span className={`text-gray-400 transition-transform duration-200 ${showChildMenu ? 'rotate-180' : ''}`}>
-                ▾
+              <span className={`text-gray-400 bg-white/5 w-8 h-8 rounded-full flex items-center justify-center border border-white/10 transition-transform duration-300 ${showChildMenu ? 'rotate-180 text-white bg-white/10' : ''}`}>
+                ▼
               </span>
             </button>
 
             {showChildMenu && (
-              <div className="mt-3 rounded-2xl border border-gray-800 bg-gray-950/95 backdrop-blur overflow-hidden shadow-2xl">
-                <div className="divide-y divide-gray-800">
-                  {childPages.map((child: any) => {
-                    const childExcerpt = getExcerpt(child?.editorialSummary || '', 120);
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {childPages.map((child: any) => {
+                  const childExcerpt = getExcerpt(child?.editorialSummary || '', 100);
 
-                    return (
-                      <Link
-                        key={child._id}
-                        to={isSubdomainMode && !username ? `/${child.slug}` : `/portfolio/${username}/${child.slug}`}
-                        className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition"
-                      >
-                        <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
-                          {child.coverImage ? (
-                            <img
-                              src={`/uploads/${child.coverImage}`}
-                              alt={child.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center text-gray-500 text-[10px] uppercase tracking-[0.2em]">
-                              {child.menuGroup === 'exhibitions' ? 'Expo' : 'Série'}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 mb-1">
-                            {child.menuGroup === 'exhibitions' ? 'Exposition' : 'Série'}
+                  return (
+                    <Link
+                      key={child._id}
+                      to={isSubdomainMode && !username ? `/${child.slug}` : `/portfolio/${username}/${child.slug}`}
+                      className="group flex flex-col bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/20 rounded-2xl overflow-hidden shadow-lg hover:shadow-black/25 transition-all duration-300"
+                    >
+                      <div className="h-32 w-full overflow-hidden bg-gray-900 relative">
+                        {child.coverImage ? (
+                          <img
+                            src={`/uploads/${child.coverImage}`}
+                            alt={child.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center text-gray-500 text-[10px] uppercase tracking-[0.2em]">
+                            {child.menuGroup === 'exhibitions' ? 'Expo' : 'Série'}
                           </div>
-                          <div className="text-white text-sm md:text-base font-medium leading-tight truncate">
+                        )}
+                        <span className="absolute top-2 left-2 text-[9px] uppercase tracking-[0.2em] bg-black/40 text-white/80 px-2 py-0.5 rounded border border-white/10 backdrop-blur-sm">
+                          {child.menuGroup === 'exhibitions' ? 'Exposition' : 'Série'}
+                        </span>
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <h4 className="text-white font-semibold text-sm line-clamp-1 group-hover:text-yellow-400 transition-colors">
                             {child.title}
-                          </div>
+                          </h4>
                           {childExcerpt && (
-                            <p className="text-xs md:text-sm text-gray-400 leading-relaxed mt-1">
+                            <p className="text-xs text-gray-400 leading-relaxed mt-1.5 line-clamp-2">
                               {childExcerpt}
                             </p>
                           )}
                         </div>
-
-                        <div className="text-gray-500 text-lg">›</div>
-                      </Link>
-                    );
-                  })}
-                </div>
+                        <div className="text-[10px] text-yellow-500 font-medium mt-3 flex items-center gap-1">
+                          Voir la page <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -442,7 +499,7 @@ const UserPageView = () => {
                             <h3 className="text-xl md:text-2xl font-semibold text-white tracking-tight">{album.title}</h3>
                           </div>
                         )}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 lg:gap-5">
                           {album.photos &&
                             album.photos.map((photo: any, i: number) => renderPhoto(photo, album.photos, i))}
                         </div>
@@ -473,7 +530,7 @@ const UserPageView = () => {
                         if (!album) return null;
 
                         return (
-                          <div key={album._id || `split-album-${index}`} className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+                          <div key={album._id || `split-album-${index}`} className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 lg:gap-5">
                             {album.photos &&
                               album.photos.map((photo: any, i: number) => renderPhoto(photo, album.photos, i))}
                           </div>

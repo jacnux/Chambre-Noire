@@ -88,7 +88,6 @@ const App: React.FC = () => {
           }
           return;
         }
-
         setProfile(profileRes.data.user);
         setAlbums(profileRes.data.albums || []);
         setPages(pagesRes.data || []);
