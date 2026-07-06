@@ -239,7 +239,7 @@ const PhotoModal = ({ photo, onClose }: { photo: any; onClose: () => void }) => 
 };
 
 const PortfolioHero = ({ user, authUser, onContact }: any) => {
-  const tagline = user.bio ? stripMarkdownAndHtml(user.bio).split('.')[0] + '.' : 'Photographe & Créateur Visuel';
+  const tagline = user.tagline || (user.bio ? stripMarkdownAndHtml(user.bio).split('.')[0] + '.' : 'Photographe & Créateur Visuel');
   const isOwner = authUser && String((authUser as any)?.id) === String(user._id);
 
   return (
@@ -281,9 +281,9 @@ const PortfolioHero = ({ user, authUser, onContact }: any) => {
                 <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
                   {user.name}
                 </h1>
-                <p className="text-sm md:text-base text-gray-300 mt-2 italic max-w-2xl">
-                  {tagline}
-                </p>
+                <div className="text-sm md:text-base text-gray-300 mt-2 italic max-w-2xl [&_p]:m-0">
+                  <ReactMarkdown>{tagline}</ReactMarkdown>
+                </div>
               </div>
             </div>
           </div>

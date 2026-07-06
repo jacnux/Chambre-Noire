@@ -7,6 +7,7 @@ const EditProfile = () => {
   const [bio, setBio] = useState('');
   const [portfolioIntro, setPortfolioIntro] = useState('');
   const [servicesDescription, setServicesDescription] = useState('');
+  const [tagline, setTagline] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [currentAvatar, setCurrentAvatar] = useState<string>('');
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -23,6 +24,7 @@ const EditProfile = () => {
       setBio(profileRes.data.bio || '');
       setPortfolioIntro(profileRes.data.portfolioIntro || '');
       setServicesDescription(profileRes.data.servicesDescription || '');
+      setTagline(profileRes.data.tagline || '');
       setCurrentAvatar(profileRes.data.avatar || '');
       setCurrentBanner(profileRes.data.bannerImage || '');
     } catch (error) {
@@ -38,6 +40,7 @@ const EditProfile = () => {
       formData.append('bio', bio);
       formData.append('portfolioIntro', portfolioIntro);
       formData.append('servicesDescription', servicesDescription);
+      formData.append('tagline', tagline);
       if (avatarFile) formData.append('avatar', avatarFile);
       if (bannerFile) formData.append('banner', bannerFile);
 
@@ -141,6 +144,17 @@ const EditProfile = () => {
                 rows={4}
                 className={inputClass}
                 placeholder="Présentez-vous en quelques mots..."
+              />
+            </div>
+
+            <div className={`border-t pt-6 ${sectionBorderClass}`}>
+              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Phrase choc (Slogan)</label>
+              <input
+                type="text"
+                value={tagline}
+                onChange={e => setTagline(e.target.value)}
+                className={inputClass}
+                placeholder="Une phrase d'accroche pour marquer les esprits..."
               />
             </div>
 

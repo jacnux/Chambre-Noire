@@ -136,7 +136,7 @@ router.get('/portfolio/:username', async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({
       name: { $regex: new RegExp(`^${req.params.username}$`, 'i') }
-    }).select('name email avatar bio bannerImage portfolioIntro servicesDescription');
+    }).select('name email avatar bio bannerImage portfolioIntro servicesDescription tagline');
 
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 

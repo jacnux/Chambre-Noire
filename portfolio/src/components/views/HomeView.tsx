@@ -44,6 +44,13 @@ const HomeView: React.FC<HomeViewProps> = ({ profile, albums, navigateTo }) => {
           </div>
         )}
       </div>
+      {profile?.tagline && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div className="home-tagline-card">
+            <MarkdownRenderer>{profile.tagline}</MarkdownRenderer>
+          </div>
+        </div>
+      )}
       <div className="home-text">
         <MarkdownRenderer>{profile?.portfolioIntro || "Bienvenue sur mon site, avec les photos que j'aime partager !"}</MarkdownRenderer>
       </div>

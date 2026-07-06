@@ -5,6 +5,7 @@ export interface UserProfile {
   bio?: string;
   portfolioIntro?: string;
   bannerImage?: string;
+  tagline?: string;
 }
 
 export interface Album {

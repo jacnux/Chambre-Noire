@@ -25,11 +25,18 @@ const AboutView: React.FC<AboutViewProps> = ({ profile }) => {
     >
       <h2 className="section-title">À propos</h2>
       <div className="about-section">
-        <div className="about-avatar-container">
-          {profile?.avatar ? (
-            <img src={`/uploads/${profile.avatar}`} alt="Avatar" className="about-avatar" />
-          ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e5e7eb', color: '#9ca3af', fontSize: '2rem' }}>👤</div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', flexShrink: 0 }}>
+          <div className="about-avatar-container">
+            {profile?.avatar ? (
+              <img src={`/uploads/${profile.avatar}`} alt="Avatar" className="about-avatar" />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e5e7eb', color: '#9ca3af', fontSize: '2rem' }}>👤</div>
+            )}
+          </div>
+          {profile?.tagline && (
+            <div className="about-tagline-card">
+              <MarkdownRenderer>{profile.tagline}</MarkdownRenderer>
+            </div>
           )}
         </div>
         <div className="about-content">
