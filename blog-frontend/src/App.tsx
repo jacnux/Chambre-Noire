@@ -9,6 +9,7 @@ import PostDetail  from './pages/blog/PostDetail';
 import AboutPage   from './pages/blog/AboutPage';
 import GalleryPage from './pages/blog/GalleryPage';
 import ContactPage from './pages/blog/ContactPage';
+import NouveautesPage from './pages/blog/NouveautesPage';
 
 const AppContent: React.FC = () => (
   <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -18,6 +19,7 @@ const AppContent: React.FC = () => (
         <Route path="/"          element={<PostList />}    />
         <Route path="/post/:slug" element={<PostDetail />}  />
         <Route path="/about"     element={<AboutPage />}   />
+        <Route path="/nouveautes" element={<NouveautesPage />} />
         <Route path="/gallery"   element={<GalleryPage />} />
         <Route path="/contact"   element={<ContactPage />} />
       </Routes>

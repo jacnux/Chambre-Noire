@@ -27,6 +27,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center gap-1">
           <Link to={`/${s}`} className={getLinkClass('/')}>Articles</Link>
           <Link to={`/about${s}`} className={getLinkClass('/about')}>Bio</Link>
+          <Link to={`/nouveautes${s}`} className={getLinkClass('/nouveautes')}>Nouveautés</Link>
           <Link to={`/gallery${s}`} className={getLinkClass('/gallery')}>Galeries</Link>
           <a href={`${getMainAppUrl()}/portfolio/${blogName}`} target="_blank" rel="noopener noreferrer" className="nav-link px-3.5 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition duration-200">Portfolio</a>
           <Link to={`/contact${s}`} className={getLinkClass('/contact')}>Contact</Link>

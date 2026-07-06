@@ -40,6 +40,7 @@ const MainUser = mainConn.model('User', new mongoose.Schema({
   email:   String,
   avatar:  String,
   bio:     String,
+  servicesDescription: String,
   isAdmin: Boolean
 }, { collection: 'users' }));
 
@@ -133,10 +134,11 @@ app.get('/api/user/:slug', async (req: Request, res: Response) => {
     }).select('title slug coverImage');
 
     res.json({
-      name:           user.name,
-      avatar:         user.avatar,
-      bio:            user.bio,
-      showcaseAlbums: pages
+      name:                user.name,
+      avatar:              user.avatar,
+      bio:                 user.bio,
+      servicesDescription: user.servicesDescription,
+      showcaseAlbums:      pages
     });
   } catch (error) {
     console.error(error);
