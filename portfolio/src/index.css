@@ -9,10 +9,12 @@
   /* Palette de couleur tirée de jac.artfolio.com */
   --color-accent: #a5955c;
   --color-accent-hover: #8e7f4c;
+  --color-accent-menu: #76663c; /* Bronze/gold foncé pour une lisibilité optimale */
   --color-bg: #ffffff;
   --color-bg-alt: #f9f9f9;
   --color-text-dark: #222222;
   --color-text-gray: #666666;
+  --color-text-light: #555555; /* Gris foncé pour détacher du fond blanc */
   --color-border: #e8e8e8;
   
   --max-width: 1192px;
@@ -128,7 +130,7 @@ body {
 
 .menu a:hover,
 .menu a.active {
-  color: var(--color-accent);
+  color: var(--color-accent-menu);
 }
 
 /* Submenu layout for nested galleries */
@@ -148,6 +150,12 @@ body {
   color: var(--color-text-light);
   letter-spacing: 0.02em;
   padding: 2px 0;
+  transition: color 0.2s ease;
+}
+
+.submenu a:hover,
+.submenu a.active {
+  color: var(--color-accent-menu);
 }
 
 @media (max-width: 1191px) {
@@ -1007,12 +1015,12 @@ body {
   font-family: var(--font-title);
   font-size: 0.95rem;
   text-transform: uppercase;
-  color: var(--color-accent); /* Golden/bronze section label */
+  color: var(--color-accent-menu); /* Bronze/gold foncé pour une lisibilité optimale */
   letter-spacing: 0.05em;
   padding: 6px 0 4px 0;
   margin-top: 10px;
   font-weight: 400;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06); /* Ligne sombre subtile sur fond blanc */
 }
 
 .submenu-nested {
@@ -1022,17 +1030,17 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .submenu-nested a {
   font-size: 0.75rem !important;
-  color: #888888 !important;
+  color: var(--color-text-light) !important; /* Gris foncé lisible */
 }
 
 .submenu-nested a:hover,
 .submenu-nested a.active {
-  color: var(--color-accent) !important;
+  color: var(--color-accent-menu) !important;
 }
 
 @media (max-width: 1191px) {

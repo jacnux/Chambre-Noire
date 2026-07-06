@@ -383,6 +383,16 @@ body {
     background: none !important;
   }
   
+  .theme-portfolio nav .theme-toggle-container {
+    border-left: none !important;
+    border-top: 1px solid rgba(165, 149, 92, 0.15) !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    padding-top: 16px !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+
   .theme-portfolio main {
     margin-left: 280px !important;
     width: calc(100% - 280px) !important;

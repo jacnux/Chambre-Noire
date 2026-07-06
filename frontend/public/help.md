@@ -12,6 +12,7 @@ Une fois connecté, l’utilisateur accède à son tableau de bord principal.
 - **Mon Blog** : articles publiés dans la rubrique blog.
 - **Mon Profil** : avatar, bannière et informations publiques.
 - **Commentaires** : consultation et gestion des commentaires reçus sur les photos.
+- **Recherche Instantanée** : une barre de recherche en haut des listes d'albums, de galeries et de pages permet de filtrer instantanément vos contenus par nom ou partie de nom.
 
 ## 2. Gérer ses albums et galeries
 
@@ -41,7 +42,7 @@ Le portfolio public s’organise désormais autour d’un menu principal resserr
 - **Accueil**
 - **Séries**
 - **Expositions**
-- **Blog**
+- **Actualités** (précédemment appelé "Blog")
 - **À propos**
 
 Cette structure permet de mieux distinguer les contenus éditoriaux, les séries photographiques, les expositions et les pages de présentation.
@@ -146,14 +147,14 @@ Cela permet d’afficher :
 - le titre de la sous-page,
 - son lien public.
 
-## 8. Blog
+## 8. Blog (Mise à jour v2.8.1)
 
-La rubrique **Mon Blog** permet de rédiger et publier des articles.
+La rubrique **Mon Blog** permet de rédiger et publier des articles via un espace d'écriture premium :
 
-- saisir un titre,
-- rédiger le contenu,
-- ajouter une image de couverture,
-- publier l’article pour le rendre visible publiquement.
+- **Éditeur type Notebook** : un espace de rédaction épuré, sans cadre ni distraction, semblable à une feuille blanche avec le titre d'article en très grand directement éditable.
+- **Barre d'outils Markdown** : une barre d'outils flottante contenant des boutons d'insertion rapide de styles (Gras, Italique, Citation, Lien, Image, Code, Liste).
+- **Insertion intelligente** : si vous sélectionnez un mot et cliquez sur **Gras** ou **Italique**, l'éditeur l'entoure automatiquement avec la syntaxe Markdown correspondante et conserve le focus au bon endroit de saisie.
+- **Image de couverture & Publication** : ajoutez un visuel de couverture puis activez le bouton de publication pour diffuser l'article sur vos pages publiques.
 
 ## 9. Commentaires
 
@@ -283,3 +284,23 @@ En cas de doute, il est conseillé de vérifier :
 - la présence d’une image de couverture,
 - l’ordre des blocs dans la page,
 - et la publication effective de la page.
+
+## 14. Thèmes visuels, redirection et édition du Profil (v2.8.1)
+
+LuminaView intègre un moteur de thèmes visuels qui adapte la navigation de vos pages publiques :
+
+### Sélection du Thème
+Dans **Mon Profil**, vous pouvez choisir en un clic entre deux directions artistiques :
+- **Hélioscope (Classic)** : un thème clair et chaleureux avec menu horizontal supérieur ambré.
+- **Artfolio** : un thème sombre et luxueux avec menu vertical fixe sur la gauche.
+
+### Redirections et Passerelles
+Le système gère de façon transparente et automatique les redirections croisées pour vos visiteurs :
+- **Thème Classic** : l'adresse de votre portfolio est intégrée dans le site principal à l'adresse `helioscope.fr/portfolio/$(user)`. Le bouton "Actualités" du portfolio pointe vers le blog de LuminaView.
+- **Thème Artfolio** : votre portfolio s'affiche de manière autonome à l'adresse `$(user).helioscope.fr`. Le bouton "Actualités" redirige vers l'adresse correspondante.
+
+### Page Profil repensée
+L'écran **Mon Profil** est organisé en deux colonnes (40/60) sur grand écran pour un confort visuel optimal :
+1. **Colonne de gauche (40%)** : Regroupe l'identité visuelle (avatar et image de couverture) et le sélecteur graphique de thème. Cliquer directement sur l'emplacement de l'avatar ou sur l'image de couverture ouvre l'explorateur pour choisir un fichier.
+2. **Colonne de droite (60%)** : Regroupe les formulaires de saisie de texte avec des champs très hauts (biographie sur 8 lignes, introduction de portfolio sur 4 lignes, et description des prestations/services sur 12 lignes) facilitant l'écriture et le support Markdown.
+

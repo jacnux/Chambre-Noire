@@ -50,11 +50,9 @@ const Navbar: React.FC<NavbarProps> = ({ themeClass }) => {
           <Link to={`/gallery${s}`} className={getLinkClass('/gallery')}>Galeries</Link>
           <a href={getPortfolioUrl()} target="_blank" rel="noopener noreferrer" className="nav-link px-3.5 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition duration-200">Portfolio</a>
           <Link to={`/contact${s}`} className={getLinkClass('/contact')}>Contact</Link>
-          {!isPortfolio && (
-            <div className="ml-2 pl-2 border-l border-black/[0.08] dark:border-white/[0.08] flex items-center">
-              <DarkModeToggle />
-            </div>
-          )}
+          <div className="ml-2 pl-2 border-l border-black/[0.08] dark:border-white/[0.08] flex items-center theme-toggle-container">
+            <DarkModeToggle />
+          </div>
         </div>
       </div>
     </nav>

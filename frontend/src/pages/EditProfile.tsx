@@ -64,159 +64,225 @@ const EditProfile = () => {
   const mutedTextClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
   const subtleTextClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
   const panelClass = theme === 'dark'
-    ? 'bg-white/5 border border-white/10'
-    : 'bg-white/90 border border-gray-200 shadow-sm';
-  const sectionBorderClass = theme === 'dark' ? 'border-white/10' : 'border-gray-200';
+    ? 'bg-white/[0.02] border border-white/10 backdrop-blur-md shadow-2xl'
+    : 'bg-white border border-gray-100 shadow-xl shadow-gray-100/30';
+  const sectionBorderClass = theme === 'dark' ? 'border-white/5' : 'border-gray-100';
   const inputClass = theme === 'dark'
-    ? 'w-full bg-black/30 border border-white/10 p-3 rounded-lg text-white focus:ring-1 focus:ring-purple-500 outline-none'
-    : 'w-full bg-gray-50 border border-gray-300 p-3 rounded-lg text-gray-900 focus:ring-1 focus:ring-purple-500 outline-none';
-  const uploadInputClass = theme === 'dark'
-    ? 'text-sm w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-white cursor-pointer'
-    : 'text-sm w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-white cursor-pointer';
-  const bannerEmptyClass = theme === 'dark'
-    ? 'w-full h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-700'
-    : 'w-full h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-300 bg-gray-50';
-  const avatarFallbackClass = theme === 'dark'
-    ? 'w-24 h-24 rounded-full bg-purple-900 flex items-center justify-center text-3xl'
-    : 'w-24 h-24 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-3xl';
+    ? 'w-full bg-black/40 border border-white/10 p-3.5 rounded-xl text-white placeholder-gray-600 focus:ring-1 focus:ring-yellow-500/50 focus:border-yellow-500/50 outline-none transition duration-200'
+    : 'w-full bg-gray-50/50 border border-gray-200 p-3.5 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-1 focus:ring-yellow-500/50 focus:border-yellow-500/50 outline-none transition duration-200';
+  const labelClass = `block text-sm font-bold tracking-wide uppercase mb-2 ${mutedTextClass}`;
 
   return (
-    <div className={`w-full px-4 py-6 sm:px-6 sm:py-8 ${shellTextClass}`}>
-      <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-8 gap-4">
-          <h1 className="text-3xl font-bold text-yellow-500 drop-shadow-lg">Mon Profil</h1>
+    <div className={`w-full px-4 py-8 sm:px-8 sm:py-12 ${shellTextClass}`}>
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-end pb-4 border-b border-white/5">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Mon Profil</h1>
+            <p className="text-xs text-gray-500 mt-1">Personnalisez votre identité visuelle, vos textes de présentation et votre style.</p>
+          </div>
           <Link
             to="/dashboard"
-            className={`text-sm transition ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`px-4 py-2 text-xs font-semibold rounded-lg border transition ${
+              theme === 'dark'
+                ? 'border-white/10 text-gray-400 hover:text-white hover:bg-white/5'
+                : 'border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
           >
-            ← Retour
+            ← Dashboard
           </Link>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          <div className={`p-6 rounded-xl space-y-6 ${panelClass}`}>
-            <div className="space-y-2">
-              <label className={`block text-sm font-medium ${mutedTextClass}`}>Image de couverture (Portfolio)</label>
-              <div className={`w-full h-40 rounded-lg overflow-hidden relative group ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                {(bannerFile || currentBanner) ? (
-                  <img
-                    src={bannerFile ? URL.createObjectURL(bannerFile) : `/uploads/${currentBanner}`}
-                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition"
-                    alt="Bannière"
+          <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start">
+            {/* COLONNE GAUCHE (40%) : VISUELS & THEMES */}
+            <div className="lg:col-span-4 space-y-8">
+              {/* CARD 1 : VISUELS */}
+              <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                  <span className="text-yellow-500">✦</span> Identité Visuelle
+                </h3>
+
+                {/* Bannière de Couverture */}
+                <div className="space-y-3">
+                  <label className={labelClass}>Image de couverture (Bannière du Portfolio)</label>
+                  <div className="relative group rounded-xl overflow-hidden h-44 bg-black/40 border border-white/10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:border-yellow-500/40">
+                    {(bannerFile || currentBanner) ? (
+                      <>
+                        <img
+                          src={bannerFile ? URL.createObjectURL(bannerFile) : `/uploads/${currentBanner}`}
+                          className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition duration-300"
+                          alt="Bannière"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300">
+                          <span className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm">Changer l'image</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center p-4">
+                        <p className="text-sm text-gray-400 font-medium">Glisser ou cliquer pour ajouter une couverture</p>
+                        <p className="text-xs text-gray-600 mt-1">Recommandé : image large (ex. 1920x1080)</p>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setBannerFile(e.target.files ? e.target.files[0] : null)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Avatar */}
+                <div className={`flex flex-col sm:flex-row gap-6 items-center border-t pt-6 ${sectionBorderClass}`}>
+                  <div className="relative group w-24 h-24 rounded-full overflow-hidden border-2 border-purple-500 bg-black/40 flex items-center justify-center cursor-pointer hover:border-yellow-500 transition duration-300">
+                    {currentAvatar || avatarFile ? (
+                      <>
+                        <img
+                          src={avatarFile ? URL.createObjectURL(avatarFile) : `/uploads/${currentAvatar}`}
+                          className="absolute inset-0 w-full h-full object-cover group-hover:opacity-70 transition duration-300"
+                          alt="Avatar"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300">
+                          <span className="text-[10px] text-white bg-black/50 px-2 py-0.5 rounded-full">Modifier</span>
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-3xl text-gray-400">?</span>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setAvatarFile(e.target.files ? e.target.files[0] : null)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h4 className="font-bold text-base">Photo de profil</h4>
+                    <p className="text-xs text-gray-500 mt-0.5">Cliquez sur le cercle pour importer votre portrait.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 2 : STYLE & DESIGN */}
+              <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                  <span className="text-yellow-500">✦</span> Thème Visuel
+                </h3>
+                
+                <div className="space-y-4">
+                  <label className={labelClass}>Choix de la mise en page globale</label>
+                  <div className="grid grid-cols-1 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setBlogTheme('classic')}
+                      className={`flex flex-col items-start p-5 rounded-2xl border-2 text-left transition duration-300 ${
+                        blogTheme === 'classic'
+                          ? 'border-yellow-500 bg-yellow-500/[0.04]'
+                          : theme === 'dark' ? 'border-white/15 bg-black/20 hover:border-white/30' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex justify-between w-full items-center mb-2">
+                        <span className="font-bold text-sm">Hélioscope (Classic)</span>
+                        {blogTheme === 'classic' && <span className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></span>}
+                      </div>
+                      <p className="text-xs text-gray-500 leading-relaxed">Design clair et ambré, avec menu supérieur fluide. Idéal pour une galerie lumineuse, ouverte et épurée.</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setBlogTheme('portfolio')}
+                      className={`flex flex-col items-start p-5 rounded-2xl border-2 text-left transition duration-300 ${
+                        blogTheme === 'portfolio'
+                          ? 'border-yellow-500 bg-yellow-500/[0.04]'
+                          : theme === 'dark' ? 'border-white/15 bg-black/20 hover:border-white/30' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex justify-between w-full items-center mb-2">
+                        <span className="font-bold text-sm">Artfolio</span>
+                        {blogTheme === 'portfolio' && <span className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></span>}
+                      </div>
+                      <p className="text-xs text-gray-500 leading-relaxed">Design sombre et doré, avec menu latéral fixe. Idéal pour une présentation artistique immersive et contrastée.</p>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* COLONNE DROITE (60%) : FORMULAIRES TEXTES HAUTS */}
+            <div className="lg:col-span-6 space-y-8">
+              {/* CARD 3 : IDENTITÉ & TEXTES */}
+              <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                  <span className="text-yellow-500">✦</span> Informations & Textes de présentation
+                </h3>
+
+                <div>
+                  <label className={labelClass}>Phrase choc (Slogan)</label>
+                  <input
+                    type="text"
+                    value={tagline}
+                    onChange={e => setTagline(e.target.value)}
+                    className={inputClass}
+                    placeholder="Ex. Capturer l'essence de l'instant..."
                   />
-                ) : (
-                  <div className={bannerEmptyClass}>Cliquez pour ajouter une bannière</div>
-                )}
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => setBannerFile(e.target.files ? e.target.files[0] : null)}
-                className={`${uploadInputClass} file:bg-yellow-600 hover:file:bg-yellow-700`}
-              />
-            </div>
+                </div>
 
-            <div className={`flex flex-col sm:flex-row gap-6 items-center border-t pt-6 ${sectionBorderClass}`}>
-              <div className="flex-shrink-0">
-                {currentAvatar || avatarFile ? (
-                  <img
-                    src={avatarFile ? URL.createObjectURL(avatarFile) : `/uploads/${currentAvatar}`}
-                    className="w-24 h-24 rounded-full object-cover border-2 border-purple-500"
-                    alt="Avatar"
+                <div>
+                  <label className={labelClass}>Biographie (À propos) (8 lignes visibles)</label>
+                  <textarea
+                    value={bio}
+                    onChange={e => setBio(e.target.value)}
+                    rows={8}
+                    className={inputClass}
+                    placeholder="Racontez votre parcours, votre passion..."
                   />
-                ) : (
-                  <div className={avatarFallbackClass}>?</div>
-                )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Introduction du Portfolio (4 lignes visibles)</label>
+                  <textarea
+                    value={portfolioIntro}
+                    onChange={e => setPortfolioIntro(e.target.value)}
+                    rows={4}
+                    className={inputClass}
+                    placeholder="Un court message de bienvenue en haut de la page principale..."
+                  />
+                </div>
               </div>
-              <div className="flex-1 w-full">
-                <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Changer l'avatar</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => setAvatarFile(e.target.files ? e.target.files[0] : null)}
-                  className={`${uploadInputClass} file:bg-purple-600 hover:file:bg-purple-700`}
-                />
+
+              {/* CARD 4 : OFFRES & PRESTATIONS */}
+              <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                  <span className="text-yellow-500">✦</span> Projets & Services
+                </h3>
+
+                <div>
+                  <label className={labelClass}>Description des Prestations (Markdown supporté - 12 lignes visibles)</label>
+                  <textarea
+                    value={servicesDescription}
+                    onChange={e => setServicesDescription(e.target.value)}
+                    rows={12}
+                    className={inputClass}
+                    placeholder="Décrivez vos offres, tarifs, séances... Ce texte est affiché dans l'onglet Services du portfolio."
+                  />
+                </div>
               </div>
-            </div>
-
-            <div className={`border-t pt-6 ${sectionBorderClass}`}>
-              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Phrase choc (Slogan)</label>
-              <input
-                type="text"
-                value={tagline}
-                onChange={e => setTagline(e.target.value)}
-                className={inputClass}
-                placeholder="Une phrase d'accroche pour marquer les esprits..."
-              />
-            </div>
-
-            <div className={`border-t pt-6 ${sectionBorderClass}`}>
-              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Thème visuel du Blog</label>
-              <select
-                value={blogTheme}
-                onChange={e => setBlogTheme(e.target.value)}
-                className={`${inputClass} appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.75rem_center] bg-no-repeat`}
-              >
-                <option value="classic" className={theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>Classique Hélioscope (Clair / Ambré)</option>
-                <option value="portfolio" className={theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>Artfolio (Sombre / Doré)</option>
-              </select>
-            </div>
-
-            <div className={`border-t pt-6 ${sectionBorderClass}`}>
-              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Biographie</label>
-              <textarea
-                value={bio}
-                onChange={e => setBio(e.target.value)}
-                rows={4}
-                className={inputClass}
-                placeholder="Présentez-vous en quelques mots..."
-              />
-            </div>
-
-            <div className={`border-t pt-6 ${sectionBorderClass}`}>
-              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Phrase choc (Slogan)</label>
-              <input
-                type="text"
-                value={tagline}
-                onChange={e => setTagline(e.target.value)}
-                className={inputClass}
-                placeholder="Une phrase d'accroche pour marquer les esprits..."
-              />
-            </div>
-
-            <div className={`border-t pt-6 ${sectionBorderClass}`}>
-              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Introduction Portfolio</label>
-              <textarea
-                value={portfolioIntro}
-                onChange={e => setPortfolioIntro(e.target.value)}
-                rows={2}
-                className={inputClass}
-                placeholder="Court texte affiché en haut de votre portfolio..."
-              />
-            </div>
-
-            <div className={`border-t pt-6 ${sectionBorderClass}`}>
-              <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>Projets-Services</label>
-              <textarea
-                value={servicesDescription}
-                onChange={e => setServicesDescription(e.target.value)}
-                rows={6}
-                className={inputClass}
-                placeholder="Décrivez vos projets, tarifs, conditions... (Affiché dans l'onglet Services)"
-              />
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-green-500 to-teal-600 text-white py-4 rounded-full font-bold text-lg shadow-lg hover:scale-[1.02] transition"
-          >
-            Sauvegarder le profil
-          </button>
-
-          <p className={`text-sm ${subtleTextClass}`}>
-            La gestion des pages a été déplacée vers le menu « Mes Pages » du Dashboard.
-          </p>
+          {/* Submit Button */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-bold py-4 rounded-xl text-lg shadow-lg hover:scale-[1.01] hover:shadow-yellow-500/10 active:scale-[0.99] transition duration-200"
+            >
+              Enregistrer les modifications du Profil
+            </button>
+            <p className={`text-center text-xs mt-3 ${subtleTextClass}`}>
+              Vos modifications sont publiées instantanément sur vos pages publiques.
+            </p>
+          </div>
         </form>
       </div>
     </div>
