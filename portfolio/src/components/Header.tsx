@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile, UserPage } from '../types';
 
 interface HeaderProps {
@@ -37,6 +37,20 @@ const Header: React.FC<HeaderProps> = ({
   navigateTo,
   navigateToPage,
 }) => {
+  const [seriesExpanded, setSeriesExpanded] = useState(false);
+  const [exhibitionsExpanded, setExhibitionsExpanded] = useState(false);
+
+  // Auto-expand appropriate menu section when visiting an inner page
+  useEffect(() => {
+    if (currentPage === 'page' && currentPageData) {
+      if (currentPageData.menuGroup === 'series') {
+        setSeriesExpanded(true);
+      } else if (currentPageData.menuGroup === 'exhibitions') {
+        setExhibitionsExpanded(true);
+      }
+    }
+  }, [currentPage, currentPageData]);
+
   return (
     <header className="header">
       <div className="header-title">
@@ -68,76 +82,96 @@ const Header: React.FC<HeaderProps> = ({
             {/* SECTION SÉRIES */}
             {pages.filter(p => p.menuGroup === 'series' && !p.parentPageId && p.showInMenu).length > 0 && (
               <li>
-                <span className="menu-section-title">Séries</span>
-                <ul className="submenu">
-                  {pages.filter(p => p.menuGroup === 'series' && !p.parentPageId && p.showInMenu).map((page) => {
-                    const children = pages.filter(p => typeof p.parentPageId === 'object' ? (p.parentPageId as any)?._id === page._id : p.parentPageId === page._id);
-                    return (
-                      <li key={page._id}>
-                        <a 
-                          href="#" 
-                          onClick={(e) => { e.preventDefault(); navigateToPage(page.slug); }}
-                          className={currentPage === 'page' && currentPageData?.slug === page.slug ? 'active' : ''}
-                        >
-                          {page.title}
-                        </a>
-                        {children.length > 0 && (
-                          <ul className="submenu-nested">
-                            {children.map(child => (
-                              <li key={child._id}>
-                                <a
-                                  href="#"
-                                  onClick={(e) => { e.preventDefault(); navigateToPage(child.slug); }}
-                                  className={currentPage === 'page' && currentPageData?.slug === child.slug ? 'active' : ''}
-                                >
-                                  {child.title}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                <button
+                  type="button"
+                  onClick={() => setSeriesExpanded(!seriesExpanded)}
+                  className="menu-section-title-btn"
+                  aria-expanded={seriesExpanded}
+                >
+                  <span>Séries</span>
+                  <span className={`chevron-icon ${seriesExpanded ? 'expanded' : ''}`}>▾</span>
+                </button>
+                {seriesExpanded && (
+                  <ul className="submenu">
+                    {pages.filter(p => p.menuGroup === 'series' && !p.parentPageId && p.showInMenu).map((page) => {
+                      const children = pages.filter(p => typeof p.parentPageId === 'object' ? (p.parentPageId as any)?._id === page._id : p.parentPageId === page._id);
+                      return (
+                        <li key={page._id}>
+                          <a 
+                            href="#" 
+                            onClick={(e) => { e.preventDefault(); navigateToPage(page.slug); }}
+                            className={currentPage === 'page' && currentPageData?.slug === page.slug ? 'active' : ''}
+                          >
+                            {page.title}
+                          </a>
+                          {children.length > 0 && (
+                            <ul className="submenu-nested">
+                              {children.map(child => (
+                                <li key={child._id}>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); navigateToPage(child.slug); }}
+                                    className={currentPage === 'page' && currentPageData?.slug === child.slug ? 'active' : ''}
+                                  >
+                                    {child.title}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </li>
             )}
 
             {/* SECTION EXPOSITIONS */}
             {pages.filter(p => p.menuGroup === 'exhibitions' && !p.parentPageId && p.showInMenu).length > 0 && (
               <li>
-                <span className="menu-section-title">Expositions</span>
-                <ul className="submenu">
-                  {pages.filter(p => p.menuGroup === 'exhibitions' && !p.parentPageId && p.showInMenu).map((page) => {
-                    const children = pages.filter(p => typeof p.parentPageId === 'object' ? (p.parentPageId as any)?._id === page._id : p.parentPageId === page._id);
-                    return (
-                      <li key={page._id}>
-                        <a 
-                          href="#" 
-                          onClick={(e) => { e.preventDefault(); navigateToPage(page.slug); }}
-                          className={currentPage === 'page' && currentPageData?.slug === page.slug ? 'active' : ''}
-                        >
-                          {page.title}
-                        </a>
-                        {children.length > 0 && (
-                          <ul className="submenu-nested">
-                            {children.map(child => (
-                              <li key={child._id}>
-                                <a
-                                  href="#"
-                                  onClick={(e) => { e.preventDefault(); navigateToPage(child.slug); }}
-                                  className={currentPage === 'page' && currentPageData?.slug === child.slug ? 'active' : ''}
-                                >
-                                  {child.title}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                <button
+                  type="button"
+                  onClick={() => setExhibitionsExpanded(!exhibitionsExpanded)}
+                  className="menu-section-title-btn"
+                  aria-expanded={exhibitionsExpanded}
+                >
+                  <span>Expositions</span>
+                  <span className={`chevron-icon ${exhibitionsExpanded ? 'expanded' : ''}`}>▾</span>
+                </button>
+                {exhibitionsExpanded && (
+                  <ul className="submenu">
+                    {pages.filter(p => p.menuGroup === 'exhibitions' && !p.parentPageId && p.showInMenu).map((page) => {
+                      const children = pages.filter(p => typeof p.parentPageId === 'object' ? (p.parentPageId as any)?._id === page._id : p.parentPageId === page._id);
+                      return (
+                        <li key={page._id}>
+                          <a 
+                            href="#" 
+                            onClick={(e) => { e.preventDefault(); navigateToPage(page.slug); }}
+                            className={currentPage === 'page' && currentPageData?.slug === page.slug ? 'active' : ''}
+                          >
+                            {page.title}
+                          </a>
+                          {children.length > 0 && (
+                            <ul className="submenu-nested">
+                              {children.map(child => (
+                                <li key={child._id}>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); navigateToPage(child.slug); }}
+                                    className={currentPage === 'page' && currentPageData?.slug === child.slug ? 'active' : ''}
+                                  >
+                                    {child.title}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </li>
             )}
 

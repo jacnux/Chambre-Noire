@@ -1010,7 +1010,8 @@ body {
 }
 
 /* Styles pour le menu hiérarchique dynamique (Séries/Expositions) */
-.menu-section-title {
+.menu-section-title,
+.menu-section-title-btn {
   display: block;
   font-family: var(--font-title);
   font-size: 0.95rem;
@@ -1021,6 +1022,31 @@ body {
   margin-top: 10px;
   font-weight: 400;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06); /* Ligne sombre subtile sur fond blanc */
+}
+
+.menu-section-title-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-section-title-btn:hover {
+  color: var(--color-accent);
+}
+
+.menu-section-title-btn .chevron-icon {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.menu-section-title-btn .chevron-icon.expanded {
+  transform: rotate(180deg);
 }
 
 .submenu-nested {
@@ -1044,10 +1070,16 @@ body {
 }
 
 @media (max-width: 1191px) {
-  .menu-section-title {
+  .menu-section-title,
+  .menu-section-title-btn {
     text-align: center;
     margin-top: 15px;
     border-bottom: none;
+  }
+  
+  .menu-section-title-btn {
+    justify-content: center;
+    gap: 8px;
   }
   
   .submenu-nested {
