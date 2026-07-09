@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
+import EditPhotoModal from '../components/EditPhotoModal';
 
-type TabType = 'projects' | 'gear' | 'films';
+type TabType = 'projects' | 'photos' | 'gear' | 'films';
 
 const CarnetRoutesManager: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('projects');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +24,7 @@ const CarnetRoutesManager: React.FC = () => {
   const [showAddFilm, setShowAddFilm] = useState(false);
 
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingPhoto, setEditingPhoto] = useState<any | null>(null);
   const [selectedFilmRoll, setSelectedFilmRoll] = useState<any | null>(null); // Pour afficher la planche-contact
   const [showPhotoPickerForSlot, setShowPhotoPickerForSlot] = useState<number | null>(null); // Slot en attente d'association
 
@@ -61,6 +65,8 @@ const CarnetRoutesManager: React.FC = () => {
 
   // Rechercher/Filtrer dans le picker de photo
   const [pickerSearch, setPickerSearch] = useState('');
+  const [searchPhotoQuery, setSearchPhotoQuery] = useState('');
+  const [searchFilmQuery, setSearchFilmQuery] = useState('');
   const [filterByCameraTag, setFilterByCameraTag] = useState(true);
 
   // Pellicule - Développement
@@ -309,6 +315,31 @@ const CarnetRoutesManager: React.FC = () => {
     }
   };
 
+  const handleDuplicateFilm = async (film: any) => {
+    const newName = window.prompt("Nom de la copie de la pellicule / châssis :", `${film.name} (Copie)`);
+    if (!newName || !newName.trim()) return;
+    try {
+      await api.post('/films', {
+        name: newName.trim(),
+        brand: film.brand,
+        filmType: film.filmType,
+        iso: film.iso,
+        isoUsed: film.isoUsed,
+        format: film.format,
+        maxViews: film.maxViews,
+        type: film.type,
+        gearCameraId: film.gearCameraId?._id || film.gearCameraId || null,
+        gearLensId: film.gearLensId?._id || film.gearLensId || null,
+        defaultExposureSettings: film.defaultExposureSettings,
+        developmentSettings: film.developmentSettings,
+        notes: film.notes
+      });
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Erreur lors de la duplication de la pellicule.");
+    }
+  };
+
   // --- Gestion Planche-Contact ---
   const handleLinkPhotoToSlot = async (photoId: string) => {
     if (!selectedFilmRoll || showPhotoPickerForSlot === null) return;
@@ -336,6 +367,55 @@ const CarnetRoutesManager: React.FC = () => {
     } catch (err) {
       alert('Erreur de modification.');
     }
+  };
+
+  const handleToggleProjectPublish = async (project: any) => {
+    try {
+      await api.put(`/projects/${project._id}`, { isPublished: !project.isPublished });
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Erreur lors de la mise à jour du projet.");
+    }
+  };
+
+  const handleTogglePhotoShowOnBlog = async (photo: any) => {
+    try {
+      await api.put(`/photos/${photo._id}`, { showOnBlog: !photo.showOnBlog });
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Erreur lors de la mise à jour du statut de la photo.");
+    }
+  };
+
+  const handleSavePhoto = async (updatedData: any) => {
+    if (!editingPhoto) return;
+    try {
+      await api.put(`/photos/${editingPhoto._id}`, updatedData);
+      setEditingPhoto(null);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Erreur lors de la sauvegarde de la photo.");
+    }
+  };
+
+  const handleDeletePhoto = async (photoId: string) => {
+    if (!window.confirm("Supprimer définitivement cette photo ?")) return;
+    try {
+      await api.delete(`/photos/${photoId}`);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Erreur lors de la suppression de la photo.");
+    }
+  };
+
+  const getProjectPublicUrl = (project: any) => {
+    const slug = (user?.name || 'unknown').toLowerCase();
+    const previewQuery = project.isPublished ? '' : '&preview=true';
+    if (window.location.hostname === 'localhost') {
+      return `http://localhost:8080/carnet-de-routes/project/${project.slug}?user=${slug}${previewQuery}`;
+    }
+    const domainQuery = project.isPublished ? '' : '?preview=true';
+    return `https://${slug}-blog.helioscope.fr/carnet-de-routes/project/${project.slug}${domainQuery}`;
   };
 
   const resetForm = () => {
@@ -417,6 +497,16 @@ const CarnetRoutesManager: React.FC = () => {
           }`}
         >
           📂 Projets
+        </button>
+        <button
+          onClick={() => { setActiveTab('photos'); resetForm(); setSelectedFilmRoll(null); }}
+          className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all ${
+            activeTab === 'photos' && !selectedFilmRoll
+              ? 'border-yellow-500 text-yellow-500 font-bold'
+              : 'border-transparent text-gray-400 hover:text-white'
+          }`}
+        >
+          🖼️ Photos
         </button>
         <button
           onClick={() => { setActiveTab('gear'); resetForm(); setSelectedFilmRoll(null); }}
@@ -820,28 +910,58 @@ const CarnetRoutesManager: React.FC = () => {
                       <div>
                         <div className="flex justify-between items-start gap-2 mb-2">
                           <h3 className="font-bold text-lg text-white truncate">{p.name}</h3>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.isPublished ? 'bg-green-600/30 text-green-300' : 'bg-gray-600/30 text-gray-400'}`}>
-                            {p.isPublished ? 'Public' : 'Brouillon'}
-                          </span>
+                          <button
+                            onClick={() => handleToggleProjectPublish(p)}
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition ${
+                              p.isPublished
+                                ? 'bg-green-600/30 text-green-300 hover:bg-green-600/50'
+                                : 'bg-gray-600/30 text-gray-400 hover:bg-gray-600/50'
+                            }`}
+                            title="Cliquer pour basculer le statut"
+                          >
+                            {p.isPublished ? '✓ Blog' : '✕ Masqué'}
+                          </button>
                         </div>
                         <p className="text-xs text-gray-400 line-clamp-3 mb-4">{p.description || 'Aucune description.'}</p>
                         <div className="text-[11px] text-gray-500 font-mono mb-4">
                           Slug : {p.slug}
                         </div>
                       </div>
-                      <div className="flex justify-end gap-2 pt-3 border-t border-white/5">
-                        <button
-                          onClick={() => handleEditProject(p)}
-                          className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 px-3 py-1.5 rounded-lg transition"
-                        >
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProject(p._id)}
-                          className="text-xs font-semibold text-red-400 hover:text-red-300 bg-red-500/10 px-3 py-1.5 rounded-lg transition"
-                        >
-                          Supprimer
-                        </button>
+                      <div className="flex justify-between items-center pt-3 border-t border-white/5">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleToggleProjectPublish(p)}
+                            className={`text-xs px-2 py-1 rounded transition font-bold ${
+                              p.isPublished
+                                ? 'bg-green-700/80 hover:bg-green-600 text-white'
+                                : 'bg-gray-700/80 hover:bg-gray-600 text-gray-300'
+                            }`}
+                          >
+                            {p.isPublished ? 'En Ligne' : 'Hors Ligne'}
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <a
+                            href={getProjectPublicUrl(p)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-semibold text-blue-400 hover:text-blue-300 bg-blue-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Voir
+                          </a>
+                          <button
+                            onClick={() => handleEditProject(p)}
+                            className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProject(p._id)}
+                            className="text-xs font-semibold text-red-400 hover:text-red-300 bg-red-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Suppr.
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -849,6 +969,124 @@ const CarnetRoutesManager: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* ========================================================================= */}
+          {/* TAB: PHOTOS */}
+          {/* ========================================================================= */}
+          {activeTab === 'photos' && (() => {
+            const filteredPhotos = myPhotos.filter(p =>
+              (p.title || 'Sans titre').toLowerCase().includes(searchPhotoQuery.toLowerCase()) ||
+              (p.filename || '').toLowerCase().includes(searchPhotoQuery.toLowerCase())
+            );
+            return (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <h2 className="text-xl font-bold">Mes Photos</h2>
+                  <div className="w-full sm:w-64">
+                    <input
+                      type="text"
+                      value={searchPhotoQuery}
+                      onChange={e => setSearchPhotoQuery(e.target.value)}
+                      className="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-1.5 text-white text-sm"
+                      placeholder="Rechercher par nom..."
+                    />
+                  </div>
+                </div>
+
+                {myPhotos.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
+                    Aucune photo importée.
+                  </div>
+                ) : filteredPhotos.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
+                    Aucune photo ne correspond à votre recherche.
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredPhotos.map(p => (
+                      <div key={p._id} className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:bg-white/10 transition">
+                        <div className="space-y-4">
+                          <div className="aspect-[4/3] w-full bg-black/40 rounded-xl overflow-hidden relative">
+                          <img
+                            src={`/uploads/${p.filename}`}
+                            alt={p.title || 'Sans titre'}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => handleTogglePhotoShowOnBlog(p)}
+                            className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full transition ${
+                              p.showOnBlog
+                                ? 'bg-green-600/80 text-green-100 hover:bg-green-600'
+                                : 'bg-gray-600/80 text-gray-300 hover:bg-gray-600'
+                            }`}
+                            title="Cliquer pour basculer la visibilité blog"
+                          >
+                            {p.showOnBlog ? '✓ Blog' : '✕ Masqué'}
+                          </button>
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg text-white truncate">{p.title || 'Sans titre'}</h3>
+                          <p className="text-xs text-gray-400 line-clamp-2 mt-1">{p.description || 'Aucune description.'}</p>
+                          {p.location && (
+                            <p className="text-[10px] text-gray-500 mt-1">📍 {p.location}</p>
+                          )}
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {p.gearCameraId && (
+                              <span className="text-[10px] bg-white/5 border border-white/10 px-2 py-0.5 rounded font-mono text-gray-400">
+                                📷 {p.gearCameraId.brand} {p.gearCameraId.model}
+                              </span>
+                            )}
+                            {p.isAnalog && p.filmId && (
+                              <span className="text-[10px] bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded font-mono text-yellow-400">
+                                🧪 {p.filmId.brand} {p.filmId.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center pt-3 border-t border-white/5 mt-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleTogglePhotoShowOnBlog(p)}
+                            className={`text-xs px-2 py-1 rounded transition font-bold ${
+                              p.showOnBlog
+                                ? 'bg-green-700/80 hover:bg-green-600 text-white'
+                                : 'bg-gray-700/80 hover:bg-gray-600 text-gray-300'
+                            }`}
+                          >
+                            {p.showOnBlog ? 'Visible Blog' : 'Masqué Blog'}
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <a
+                            href={`/uploads/${p.filename}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-semibold text-blue-400 hover:text-blue-300 bg-blue-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Voir
+                          </a>
+                          <button
+                            onClick={() => setEditingPhoto(p)}
+                            className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 bg-yellow-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDeletePhoto(p._id)}
+                            className="text-xs font-semibold text-red-400 hover:text-red-300 bg-red-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Suppr.
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            );
+          })()}
 
           {/* ========================================================================= */}
           {/* TAB: GEAR */}
@@ -1015,16 +1253,25 @@ const CarnetRoutesManager: React.FC = () => {
           {/* ========================================================================= */}
           {activeTab === 'films' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-xl font-bold">Mes Pellicules (Rouleaux & Châssis)</h2>
-                {!showAddFilm && (
-                  <button
-                    onClick={() => { resetForm(); setShowAddFilm(true); }}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-xl text-sm font-bold transition shadow-lg shadow-yellow-950/20"
-                  >
-                    + Enregistrer une Pellicule (Rouleau/Châssis)
-                  </button>
-                )}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                  <input
+                    type="text"
+                    value={searchFilmQuery}
+                    onChange={e => setSearchFilmQuery(e.target.value)}
+                    className="bg-white/10 border border-white/10 rounded-xl px-3 py-1.5 text-white text-sm w-full sm:w-64"
+                    placeholder="Rechercher par nom / marque..."
+                  />
+                  {!showAddFilm && (
+                    <button
+                      onClick={() => { resetForm(); setShowAddFilm(true); }}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-xl text-sm font-bold transition shadow-lg shadow-yellow-950/20 whitespace-nowrap"
+                    >
+                      + Enregistrer une Pellicule (Rouleau/Châssis)
+                    </button>
+                  )}
+                </div>
               </div>
 
               {showAddFilm && (
@@ -1475,21 +1722,31 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
                 </form>
               )}
 
-              {films.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
-                  Aucune pellicule (rouleau/châssis) enregistrée.
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {films.map(f => (
-                    <div
-                      key={f._id}
-                      className="bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col justify-between hover:bg-white/10 transition"
-                    >
-                      <div>
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <h3 className="font-bold text-white text-sm truncate">{f.name}</h3>
+              {(() => {
+                const filteredFilms = films.filter(f =>
+                  (f.name || '').toLowerCase().includes(searchFilmQuery.toLowerCase()) ||
+                  (f.brand || '').toLowerCase().includes(searchFilmQuery.toLowerCase()) ||
+                  (f.filmType || '').toLowerCase().includes(searchFilmQuery.toLowerCase())
+                );
+                return films.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
+                    Aucune pellicule (rouleau/châssis) enregistrée.
+                  </div>
+                ) : filteredFilms.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white/5 rounded-2xl border border-white/5">
+                    Aucune pellicule ne correspond à votre recherche.
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredFilms.map(f => (
+                      <div
+                        key={f._id}
+                        className="bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col justify-between hover:bg-white/10 transition"
+                      >
+                        <div>
+                          <div className="flex justify-between items-start gap-2">
+                            <div>
+                              <h3 className="font-bold text-white text-sm truncate">{f.name}</h3>
                             <p className="text-xs text-gray-400">
                               {f.brand} {f.filmType} (ISO {f.iso})
                             </p>
@@ -1557,12 +1814,18 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
                         >
                           👁️ Voir la Planche-Contact
                         </button>
-                        <div className="flex gap-2">
+                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEditFilm(f)}
                             className="flex-1 text-center text-xs font-semibold text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20 py-1.5 rounded-lg transition"
                           >
                             Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDuplicateFilm(f)}
+                            className="flex-1 text-center text-xs font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 py-1.5 rounded-lg transition"
+                          >
+                            Dupliquer
                           </button>
                           <button
                             onClick={() => handleDeleteFilm(f._id)}
@@ -1575,10 +1838,18 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
                     </div>
                   ))}
                 </div>
-              )}
+                );
+              })()}
             </div>
           )}
         </div>
+      )}
+      {editingPhoto && (
+        <EditPhotoModal
+          photo={editingPhoto}
+          onClose={() => setEditingPhoto(null)}
+          onSave={handleSavePhoto}
+        />
       )}
     </div>
   );

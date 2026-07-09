@@ -11,7 +11,13 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ themeClass }) => {
   const location = useLocation();
   const blogName = getBlogSlug(location.search);
-  const s = location.search; // raccourci pour les query strings
+  const getCleanQueryString = () => {
+    const params = new URLSearchParams(location.search);
+    params.delete('preview');
+    const paramStr = params.toString();
+    return paramStr ? `?${paramStr}` : '';
+  };
+  const s = getCleanQueryString(); // raccourci pour les query strings sans preview
   const isPortfolio = themeClass === 'theme-portfolio';
 
   const getLinkClass = (path: string) => {

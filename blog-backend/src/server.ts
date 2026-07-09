@@ -262,10 +262,10 @@ app.get('/api/projects', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/projects/:slug — Détail d'un projet et ses photos avec fiche technique
+// GET /api/projects/:slug — Détail d'un projet et ses photos (avec support preview=true)
 app.get('/api/projects/:slug', async (req: Request, res: Response) => {
   try {
-    const { blog } = req.query;
+    const { blog, preview } = req.query;
     if (!blog) return res.status(400).json({ error: 'Paramètre blog (slug utilisateur) manquant' });
 
     const user = await MainUser.findOne({
@@ -273,17 +273,23 @@ app.get('/api/projects/:slug', async (req: Request, res: Response) => {
     });
     if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
 
-    const project = await MainProject.findOne({
+    const query: any = {
       userId: user._id,
-      slug: req.params.slug,
-      isPublished: true
-    });
-    if (!project) return res.status(404).json({ error: 'Projet introuvable ou non publié' });
+      slug: req.params.slug
+    };
+    if (preview !== 'true') {
+      query.isPublished = true;
+    }
 
-    const photos = await MainPhoto.find({
-      projectId: project._id,
-      showOnBlog: true
-    })
+    const project = await MainProject.findOne(query);
+    if (!project) return res.status(404).json({ error: 'Projet introuvable' });
+
+    const photoQuery: any = { projectId: project._id };
+    if (preview !== 'true') {
+      photoQuery.showOnBlog = true;
+    }
+
+    const photos = await MainPhoto.find(photoQuery)
       .populate('gearCameraId')
       .populate('gearLensId')
       .populate('filmId')

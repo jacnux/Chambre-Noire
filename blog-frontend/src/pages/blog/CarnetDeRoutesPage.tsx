@@ -19,9 +19,14 @@ const CarnetDeRoutesPage: React.FC = () => {
   useEffect(() => {
     if (!blogSlug) return;
     setLoading(true);
+
+    const params = new URLSearchParams(location.search);
+    const preview = params.get('preview');
+    const previewParam = preview ? `&preview=${preview}` : '';
+
     Promise.all([
-      fetch(`${API_PREFIX}/projects?blog=${blogSlug}`).then(r => r.json()),
-      fetch(`${API_PREFIX}/photos?blog=${blogSlug}`).then(r => r.json()),
+      fetch(`${API_PREFIX}/projects?blog=${blogSlug}${previewParam}`).then(r => r.json()),
+      fetch(`${API_PREFIX}/photos?blog=${blogSlug}${previewParam}`).then(r => r.json()),
       fetch(`${API_PREFIX}/user/${blogSlug}`).then(r => r.json()).catch(() => null),
     ])
       .then(([projData, photoData, userData]) => {

@@ -19,7 +19,12 @@ const ProjectDetailPage: React.FC = () => {
     if (!slug || !blogSlug) return;
     setLoading(true);
     setError(null);
-    fetch(`${API_PREFIX}/projects/${slug}?blog=${blogSlug}`)
+
+    const params = new URLSearchParams(location.search);
+    const preview = params.get('preview');
+    const previewParam = preview ? `&preview=${preview}` : '';
+
+    fetch(`${API_PREFIX}/projects/${slug}?blog=${blogSlug}${previewParam}`)
       .then(res => {
         if (!res.ok) throw new Error('Projet introuvable ou non publié');
         return res.json();
