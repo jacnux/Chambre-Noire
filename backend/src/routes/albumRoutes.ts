@@ -103,7 +103,7 @@ router.get('/photos/:id', async (req: Request, res: Response) => {
     }
 
     let photos;
-    const fieldsToSelect = 'filename title description createdAt index tags';
+    const fieldsToSelect = 'filename title description createdAt index tags exposureSettings developmentSettings shootingIntent location captureDate projectId gearCameraId gearLensId filmId filmFrameNumber showOnBlog isAnalog makingOf';
 
     if (album.virtualFilter === 'tag' && album.filterValue) {
       const rawTags = album.filterValue.split(',').map(t => t.trim()).filter(t => t);

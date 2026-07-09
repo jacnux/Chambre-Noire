@@ -6,6 +6,7 @@ import api from '../utils/api';
 const EditProfile = () => {
   const [bio, setBio] = useState('');
   const [portfolioIntro, setPortfolioIntro] = useState('');
+  const [carnetIntro, setCarnetIntro] = useState('');
   const [servicesDescription, setServicesDescription] = useState('');
   const [tagline, setTagline] = useState('');
   const [blogTheme, setBlogTheme] = useState('classic');
@@ -24,6 +25,7 @@ const EditProfile = () => {
       const profileRes = await api.get('/users/me');
       setBio(profileRes.data.bio || '');
       setPortfolioIntro(profileRes.data.portfolioIntro || '');
+      setCarnetIntro(profileRes.data.carnetIntro || '');
       setServicesDescription(profileRes.data.servicesDescription || '');
       setTagline(profileRes.data.tagline || '');
       setBlogTheme(profileRes.data.blogTheme || 'classic');
@@ -41,6 +43,7 @@ const EditProfile = () => {
       const formData = new FormData();
       formData.append('bio', bio);
       formData.append('portfolioIntro', portfolioIntro);
+      formData.append('carnetIntro', carnetIntro);
       formData.append('servicesDescription', servicesDescription);
       formData.append('tagline', tagline);
       formData.append('blogTheme', blogTheme);
@@ -247,6 +250,17 @@ const EditProfile = () => {
                     rows={4}
                     className={inputClass}
                     placeholder="Un court message de bienvenue en haut de la page principale..."
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Introduction du Carnet de Routes (4 lignes visibles)</label>
+                  <textarea
+                    value={carnetIntro}
+                    onChange={e => setCarnetIntro(e.target.value)}
+                    rows={4}
+                    className={inputClass}
+                    placeholder="Un message décrivant le carnet de routes..."
                   />
                 </div>
               </div>

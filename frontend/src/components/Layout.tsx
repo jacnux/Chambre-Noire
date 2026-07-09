@@ -23,6 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     '/galleries',
     '/comments',
     '/manage-blog',
+    '/dashboard/carnet-routes',
     '/dashboard/pages',
     '/dashboard/about',
     '/dashboard/help',
@@ -165,6 +166,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     }`}
                   >
                     <span>📝</span> Mon Blog
+                  </Link>
+
+                  <Link
+                    to="/dashboard/carnet-routes"
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1 ${
+                      location.pathname === '/dashboard/carnet-routes'
+                        ? 'bg-amber-600 text-white shadow-[0_4px_12px_rgba(217,119,6,0.3)]'
+                        : theme === 'dark'
+                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
+                    }`}
+                  >
+                    <span>📓</span> Carnet de route
                   </Link>
 
                   <Link

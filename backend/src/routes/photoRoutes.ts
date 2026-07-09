@@ -13,6 +13,8 @@ import mongoose from 'mongoose';
 import Photo from '../models/Photo';
 import Album from '../models/Album';
 import User from '../models/User';
+import Gear from '../models/Gear';
+import Film from '../models/Film';
 import { authenticateToken } from '../middleware/auth';
 import exifr from 'exifr';
 
@@ -165,12 +167,23 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
         let exifTitle = '';
         let exifDescription = '';
 
+        let exposureSettings: any = {
+          aperture: '',
+          shutterSpeed: '',
+          iso: null,
+          focalLength: '',
+          light: ''
+        };
+        let captureDate: Date | null = null;
+        let gearCameraId: string | null = null;
+        let gearLensId: string | null = null;
+
         try {
           const exif = await exifr.parse(inputPath, {
             iptc: true,
             xmp: true,
-            tiff: false,
-            icc: false,
+            tiff: true,
+            exif: true,
           });
 
           if (exif) {
@@ -184,6 +197,85 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
             exifDescription = normalizeStringField(
               (exif as any).Caption ?? (exif as any).Description ?? ''
             );
+
+            // Extraction des paramètres d'exposition
+            const aperture = exif.FNumber ? `f/${exif.FNumber}` : '';
+            
+            let shutterSpeed = '';
+            if (exif.ExposureTime) {
+              const expTime = Number(exif.ExposureTime);
+              if (expTime > 0) {
+                if (expTime < 1) {
+                  shutterSpeed = `1/${Math.round(1 / expTime)}s`;
+                } else {
+                  shutterSpeed = `${expTime}s`;
+                }
+              }
+            }
+
+            const iso = exif.ISO ?? exif.ISOSpeedRatings ?? null;
+            const focalLength = exif.FocalLength ? `${exif.FocalLength}mm` : '';
+
+            exposureSettings = {
+              aperture,
+              shutterSpeed,
+              iso,
+              focalLength,
+              light: ''
+            };
+
+            if (exif.DateTimeOriginal || exif.CreateDate) {
+              captureDate = new Date(exif.DateTimeOriginal || exif.CreateDate);
+            }
+
+            // Auto-enregistrement / Liaison du Matériel (Gear)
+            let extractedCameraName = '';
+            if (exif.Make || exif.Model) {
+              extractedCameraName = `${exif.Make || ''} ${exif.Model || ''}`.trim();
+            }
+
+            if (extractedCameraName) {
+              let cameraGear = await Gear.findOne({
+                userId: req.user.userId,
+                type: 'camera',
+                model: { $regex: new RegExp(extractedCameraName, 'i') }
+              });
+              if (!cameraGear) {
+                cameraGear = new Gear({
+                  userId: req.user.userId,
+                  type: 'camera',
+                  brand: exif.Make || 'Inconnu',
+                  model: extractedCameraName,
+                  format: 'Plein format' // format par défaut
+                });
+                await cameraGear.save();
+              }
+              gearCameraId = cameraGear._id.toString();
+            }
+
+            let extractedLensName = '';
+            if (exif.LensModel) {
+              extractedLensName = String(exif.LensModel).trim();
+            }
+
+            if (extractedLensName) {
+              let lensGear = await Gear.findOne({
+                userId: req.user.userId,
+                type: 'lens',
+                model: { $regex: new RegExp(extractedLensName, 'i') }
+              });
+              if (!lensGear) {
+                lensGear = new Gear({
+                  userId: req.user.userId,
+                  type: 'lens',
+                  brand: extractedLensName.split(' ')[0] || 'Inconnu',
+                  model: extractedLensName,
+                  format: 'Plein format'
+                });
+                await lensGear.save();
+              }
+              gearLensId = lensGear._id.toString();
+            }
           }
         } catch (e) {
           console.error('Erreur lecture EXIF:', e);
@@ -257,7 +349,17 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
           title: normalizeStringField(data.title || exifTitle || file.originalname),
           description: normalizeStringField(data.description || exifDescription || ''),
           tags: tagsArray,
-          size: file.size
+          size: file.size,
+          exposureSettings,
+          captureDate,
+          gearCameraId: gearCameraId || null,
+          gearLensId: gearLensId || null,
+          isAnalog: data.isAnalog ?? false,
+          projectId: data.projectId || null,
+          filmId: data.filmId || null,
+          filmFrameNumber: data.filmFrameNumber || null,
+          showOnBlog: data.showOnBlog ?? false,
+          developmentSettings: data.developmentSettings || {}
         };
       })
     );
@@ -338,17 +440,52 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Interdit' });
     }
 
-    const { index, title, description, tags } = req.body;
+    const {
+      index,
+      title,
+      description,
+      tags,
+      projectId,
+      isAnalog,
+      gearCameraId,
+      gearLensId,
+      filmId,
+      filmFrameNumber,
+      showOnBlog,
+      exposureSettings,
+      developmentSettings,
+      shootingIntent,
+      location,
+      captureDate,
+      makingOf
+    } = req.body;
+
     const normalizedTags = tags !== undefined ? normalizeTags(tags) : undefined;
+
+    const updateFields: any = {};
+    if (index !== undefined) updateFields.index = index;
+    if (title !== undefined) updateFields.title = normalizeStringField(title);
+    if (description !== undefined) updateFields.description = normalizeStringField(description);
+    if (normalizedTags !== undefined) updateFields.tags = normalizedTags;
+    
+    // Nouveaux attributs du Carnet de route
+    if (projectId !== undefined) updateFields.projectId = projectId || null;
+    if (isAnalog !== undefined) updateFields.isAnalog = isAnalog;
+    if (gearCameraId !== undefined) updateFields.gearCameraId = gearCameraId || null;
+    if (gearLensId !== undefined) updateFields.gearLensId = gearLensId || null;
+    if (filmId !== undefined) updateFields.filmId = filmId || null;
+    if (filmFrameNumber !== undefined) updateFields.filmFrameNumber = filmFrameNumber || null;
+    if (showOnBlog !== undefined) updateFields.showOnBlog = showOnBlog;
+    if (exposureSettings !== undefined) updateFields.exposureSettings = exposureSettings;
+    if (developmentSettings !== undefined) updateFields.developmentSettings = developmentSettings;
+    if (shootingIntent !== undefined) updateFields.shootingIntent = normalizeStringField(shootingIntent);
+    if (location !== undefined) updateFields.location = normalizeStringField(location);
+    if (captureDate !== undefined) updateFields.captureDate = captureDate ? new Date(captureDate) : null;
+    if (makingOf !== undefined) updateFields.makingOf = makingOf;
 
     const updatedPhoto = await Photo.findByIdAndUpdate(
       req.params.id,
-      {
-        index,
-        title: title !== undefined ? normalizeStringField(title) : photo.title,
-        description: description !== undefined ? normalizeStringField(description) : photo.description,
-        tags: normalizedTags
-      },
+      { $set: updateFields },
       { new: true }
     );
 
@@ -386,6 +523,30 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
     res.json({ message: 'Photo supprimée' });
   } catch (error) {
     res.status(500).json({ error: 'Erreur suppression' });
+  }
+});
+
+// 7. UPLOAD IMAGE "SECRET DE FABRICATION" (making-of)
+const makingOfStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../uploads/making-of');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname));
+  }
+});
+const makingOfUpload = multer({ storage: makingOfStorage, fileFilter, limits: { fileSize: maxFileSize } });
+
+router.post('/making-of/upload', authenticateToken, makingOfUpload.single('image'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Aucune image reçue' });
+    const relativePath = `making-of/${req.file.filename}`;
+    res.json({ filename: relativePath, url: `/uploads/${relativePath}` });
+  } catch (error) {
+    console.error('Erreur upload making-of:', error);
+    res.status(500).json({ error: 'Erreur upload' });
   }
 });
 

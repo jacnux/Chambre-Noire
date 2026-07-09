@@ -43,6 +43,7 @@ const MainUser = mainConn.model('User', new mongoose.Schema({
   servicesDescription: String,
   tagline: String,
   blogTheme: String,
+  carnetIntro: String,
   isAdmin: Boolean
 }, { collection: 'users' }));
 
@@ -55,6 +56,88 @@ const MainUserPage = mainConn.model('UserPage', new mongoose.Schema({
   showOnBlog:  Boolean
   // 'sections' volontairement omis pour alléger les requêtes liste
 }, { collection: 'userpages' }));
+
+const MainGear = mainConn.model('Gear', new mongoose.Schema({
+  type: String,
+  brand: String,
+  model: String,
+  format: String
+}, { collection: 'gears' }));
+
+const MainFilm = mainConn.model('Film', new mongoose.Schema({
+  name: String,
+  brand: String,
+  filmType: String,
+  iso: Number,
+  format: String,
+  maxViews: Number,
+  type: String,
+  gearCameraId: { type: mongoose.Schema.Types.ObjectId, ref: 'Gear' },
+  gearLensId: { type: mongoose.Schema.Types.ObjectId, ref: 'Gear' },
+  defaultExposureSettings: {
+    aperture: String,
+    shutterSpeed: String,
+    filter: String,
+    ndFilter: String,
+    lensHood: Boolean
+  },
+  developmentSettings: {
+    developer: String,
+    dilution: String,
+    time: String,
+    temperature: String,
+    agitation: String,
+    pushPull: String
+  }
+}, { collection: 'films' }));
+
+const MainProject = mainConn.model('Project', new mongoose.Schema({
+  userId: mongoose.Schema.Types.ObjectId,
+  name: String,
+  description: String,
+  slug: String,
+  isPublished: Boolean,
+  coverImage: String,
+  createdAt: Date
+}, { collection: 'projects' }));
+
+const MainPhoto = mainConn.model('Photo', new mongoose.Schema({
+  userId: mongoose.Schema.Types.ObjectId,
+  projectId: mongoose.Schema.Types.ObjectId,
+  filename: String,
+  index: Number,
+  title: String,
+  description: String,
+  tags: [String],
+  isAnalog: Boolean,
+  gearCameraId: { type: mongoose.Schema.Types.ObjectId, ref: 'Gear' },
+  gearLensId: { type: mongoose.Schema.Types.ObjectId, ref: 'Gear' },
+  filmId: { type: mongoose.Schema.Types.ObjectId, ref: 'Film' },
+  filmFrameNumber: Number,
+  showOnBlog: Boolean,
+  exposureSettings: {
+    aperture: String,
+    shutterSpeed: String,
+    iso: Number,
+    focalLength: String,
+    light: String,
+    filter: String,
+    ndFilter: String,
+    lensHood: Boolean
+  },
+  developmentSettings: {
+    developer: String,
+    dilution: String,
+    time: String,
+    temperature: String,
+    agitation: String,
+    pushPull: String
+  },
+  shootingIntent: String,
+  location: String,
+  captureDate: Date,
+  createdAt: Date
+}, { collection: 'photos' }));
 
 
 // ============================================================
@@ -142,8 +225,99 @@ app.get('/api/user/:slug', async (req: Request, res: Response) => {
       servicesDescription: user.servicesDescription,
       tagline:             user.tagline,
       blogTheme:           user.blogTheme || 'classic',
+      carnetIntro:         (user as any).carnetIntro,
       showcaseAlbums:      pages
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// ============================================================
+// ROUTES — Carnet de routes (Projets & Photos associés)
+// ============================================================
+
+// GET /api/projects — Liste des projets publiés d'un utilisateur
+app.get('/api/projects', async (req: Request, res: Response) => {
+  try {
+    const { blog } = req.query;
+    if (!blog) return res.status(400).json({ error: 'Paramètre blog (slug utilisateur) manquant' });
+
+    const user = await MainUser.findOne({
+      name: { $regex: new RegExp(`^${blog}$`, 'i') }
+    });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    const projects = await MainProject.find({
+      userId: user._id,
+      isPublished: true
+    }).sort({ createdAt: -1 });
+
+    res.json(projects);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /api/projects/:slug — Détail d'un projet et ses photos avec fiche technique
+app.get('/api/projects/:slug', async (req: Request, res: Response) => {
+  try {
+    const { blog } = req.query;
+    if (!blog) return res.status(400).json({ error: 'Paramètre blog (slug utilisateur) manquant' });
+
+    const user = await MainUser.findOne({
+      name: { $regex: new RegExp(`^${blog}$`, 'i') }
+    });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    const project = await MainProject.findOne({
+      userId: user._id,
+      slug: req.params.slug,
+      isPublished: true
+    });
+    if (!project) return res.status(404).json({ error: 'Projet introuvable ou non publié' });
+
+    const photos = await MainPhoto.find({
+      projectId: project._id,
+      showOnBlog: true
+    })
+      .populate('gearCameraId')
+      .populate('gearLensId')
+      .populate('filmId')
+      .sort({ index: 1, createdAt: 1 });
+
+    res.json({ project, photos });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /api/photos?blog=slug — Photos seules (showOnBlog=true, sans projet) pour la grille du carnet
+app.get('/api/photos', async (req: Request, res: Response) => {
+  try {
+    const { blog } = req.query;
+    if (!blog) return res.status(400).json({ error: 'Paramètre blog manquant' });
+
+    const user = await MainUser.findOne({
+      name: { $regex: new RegExp(`^${blog}$`, 'i') }
+    });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    const photos = await MainPhoto.find({
+      userId: user._id,
+      showOnBlog: true,
+      $or: [{ projectId: null }, { projectId: { $exists: false } }]
+    })
+      .populate('gearCameraId')
+      .populate('gearLensId')
+      .populate('filmId')
+      .sort({ captureDate: -1, createdAt: -1 });
+
+    res.json(photos);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erreur serveur' });

@@ -62,7 +62,7 @@ const getPublicChildPages = async (pageId: string, userId: string) => {
 
 
 const getAlbumPhotos = async (album: any, ownerUserId: string) => {
-  const fieldsToSelect = 'filename title description createdAt index tags';
+  const fieldsToSelect = 'filename title description createdAt index tags exposureSettings developmentSettings shootingIntent location captureDate projectId gearCameraId gearLensId filmId filmFrameNumber showOnBlog isAnalog makingOf';
 
   if (!album) return [];
 

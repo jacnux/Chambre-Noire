@@ -13,7 +13,6 @@ import { CommentsProvider } from './context/CommentsContext';
 import Layout from './components/Layout';
 
 // ── Pages publiques ─────────────────────────────────────────
-import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
@@ -31,6 +30,7 @@ import EditProfile from './pages/EditProfile';
 import BlogManager from './pages/BlogManager';
 import UserPagesManager from './pages/UserPagesManager';
 import UserPageEditor from './pages/UserPageEditor';
+import CarnetRoutesManager from './pages/CarnetRoutesManager';
 import Tools from './pages/Tools';
 import DashboardAbout from './pages/DashboardAbout';
 import DashboardHelp from './pages/DashboardHelp';
@@ -64,7 +64,7 @@ const MainRoutes: React.FC = () => {
     <Layout>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
@@ -82,6 +82,7 @@ const MainRoutes: React.FC = () => {
         <Route path="/create-album" element={<RequireAuth><CreateAlbum /></RequireAuth>} />
         <Route path="/edit-profile" element={<RequireAuth><EditProfile /></RequireAuth>} />
         <Route path="/manage-blog" element={<RequireAuth><BlogManager /></RequireAuth>} />
+        <Route path="/dashboard/carnet-routes" element={<RequireAuth><CarnetRoutesManager /></RequireAuth>} />
         <Route path="/dashboard/pages" element={<RequireAuth><UserPagesManager /></RequireAuth>} />
         <Route path="/dashboard/pages/new" element={<RequireAuth><UserPageEditor /></RequireAuth>} />
         <Route path="/dashboard/pages/edit/:id" element={<RequireAuth><UserPageEditor /></RequireAuth>} />

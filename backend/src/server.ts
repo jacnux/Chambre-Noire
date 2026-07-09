@@ -19,6 +19,9 @@ import userRoutes      from './routes/userRoutes';
 import reportRoutes    from './routes/reportRoutes';
 import userPagesRoutes from './routes/userPagesRoutes';
 import commentRoutes from './routes/commentRoutes';
+import gearRoutes from './routes/gearRoutes';
+import filmRoutes from './routes/filmRoutes';
+import projectRoutes from './routes/projectRoutes';
 
 
 
@@ -63,6 +66,9 @@ app.use('/api/users',      apiLimiter);
 app.use('/api/reports',    apiLimiter);
 app.use('/api/user-pages', apiLimiter);
 app.use('/api/comments', apiLimiter);
+app.use('/api/gear', apiLimiter);
+app.use('/api/films', apiLimiter);
+app.use('/api/projects', apiLimiter);
 
 
 // ============================================================
@@ -98,6 +104,9 @@ app.use('/api/users',      userRoutes);
 app.use('/api/reports',    reportRoutes);
 app.use('/api/user-pages', userPagesRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/gear', gearRoutes);
+app.use('/api/films', filmRoutes);
+app.use('/api/projects', projectRoutes);
 
 
 // ============================================================
