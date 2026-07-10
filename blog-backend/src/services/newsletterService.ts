@@ -2,9 +2,9 @@ import nodemailer from 'nodemailer';
 
 // Configuration du transporteur
 const transporter = nodemailer.createTransport({
-  // En local: process.env.SMTP_HOST est vide, donc on prend 'luminaview-mailhog'
+  // En local: process.env.SMTP_HOST est vide, donc on prend 'chambrenoire-mailhog'
   // En prod: process.env.SMTP_HOST vaut 'smtp-relay.brevo.com'
-  host: process.env.SMTP_HOST || 'luminaview-mailhog',
+  host: process.env.SMTP_HOST || 'chambrenoire-mailhog',
   port: parseInt(process.env.SMTP_PORT || '1025'), // 1025 pour Mailhog, 587 pour Brevo
   secure: false,
 

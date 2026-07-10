@@ -25,9 +25,9 @@ mongoose.connect(process.env.MONGO_URI_BLOG || 'mongodb://mongo:27017/helioscope
   .then(() => console.log('✅ Blog MongoDB connecté'))
   .catch(err => console.error('❌ Blog MongoDB erreur:', err));
 
-// Base principale Luminaview (lecture seule — users, pages)
+// Base principale Chambre Noire (lecture seule — users, pages)
 const mainConn = mongoose.createConnection(
-  process.env.MAIN_MONGO_URI || 'mongodb://mongo:27017/luminaview'
+  process.env.MAIN_MONGO_URI || 'mongodb://mongo:27017/chambrenoire'
 );
 
 

@@ -4,27 +4,21 @@ services:
   # --- BASE DE DONNÉES (PARTAGÉE) ---
   mongo:
     image: mongo:4.4
-    container_name: luminaview-db
+    container_name: chambrenoire-db
     expose:
       - "27017"
     volumes:
       - ./data/mongo:/data/db
     restart: always
     networks:
-      - lumina-network
+      - chambrenoire-network
 
-  # --- BACKEND API (Luminaview) ---
+  # --- BACKEND API (Chambre Noire) ---
   backend:
     build: ./backend
-    container_name: luminaview-app
-    # ...
-    # REMPLACE CECI :
+    container_name: chambrenoire-app
     expose:
       - "3000"
-
-    # PAR CECI :
-    #ports:
-    #  - "3000:3000"
     depends_on:
       - mongo
     environment:
@@ -46,37 +40,37 @@ services:
     command: npm run dev
     restart: always
     networks:
-      - lumina-network
+      - chambrenoire-network
 
-  # --- FRONTEND REACT (Luminaview) ---
+  # --- FRONTEND REACT (Chambre Noire Admin) ---
   frontend:
     build:
       context: ./frontend
       args:
         - REACT_APP_API_URL=${REACT_APP_API_URL}
-    container_name: luminaview-ui
+    container_name: chambrenoire-ui
     expose:
       - "80"
     depends_on:
       - backend
     restart: always
     networks:
-      - lumina-network
+      - chambrenoire-network
 
   # --- MAILHOG ---
   mailhog:
     image: mailhog/mailhog
-    container_name: luminaview-mailhog
+    container_name: chambrenoire-mailhog
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
-      - lumina-network
+      - chambrenoire-network
 
-  # --- NGINX PROXY (Luminaview) ---
+  # --- NGINX PROXY ---
   nginx-proxy:
     image: nginx:alpine
-    container_name: luminaview-nginx
+    container_name: chambrenoire-nginx
     ports:
       - "${NGINX_PORT}:80"
     volumes:
@@ -86,25 +80,20 @@ services:
       - backend
     restart: always
     networks:
-      - lumina-network
+      - chambrenoire-network
 
-  # ==========================================
-  # --- NOUVEAU : BLOG ENGINE ---
-  # ==========================================
-
+  # --- CARNET DE ROUTE / BLOG BACKEND ---
   blog-backend:
     build: ./blog-backend
-    container_name: helioscope-blog-app
+    container_name: chambrenoire-blog-app
     expose:
       - "3001"
-    restart: always  # <--- AJOUTER CECI
+    restart: always
     environment:
-      # On se connecte au même Mongo, mais on change le nom de la DB
-      - MONGO_URI=mongodb://mongo:27017/helioscope_blogs
-      - MAIN_MONGO_URI=mongodb://mongo:27017/luminaview
+      - MONGO_URI=mongodb://mongo:27017/chambrenoire_blogs
+      - MAIN_MONGO_URI=mongodb://mongo:27017/chambrenoire
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET}
-       # --- AJOUTER LES VARIABLES SMTP ---
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
@@ -115,34 +104,22 @@ services:
     volumes:
       - ./blog-backend/src:/app/src
     networks:
-      - lumina-network
+      - chambrenoire-network
 
+  # --- CARNET DE ROUTE / BLOG FRONTEND ---
   blog-frontend:
     build: ./blog-frontend
-    container_name: helioscope-blog-ui
+    container_name: chambrenoire-blog-ui
     restart: always
     ports:
       - "8080:80"
     environment:
-      # L'API du blog est sur le réseau interne
       - REACT_APP_API_URL=http://blog-backend:3001
     depends_on:
       - blog-backend
     networks:
-      - lumina-network
-
-  portfolio:
-    build:
-      context: ./portfolio
-    container_name: luminaview-portfolio
-    restart: always
-    ports:
-      - "8090:80"
-    depends_on:
-      - backend
-    networks:
-      - lumina-network
+      - chambrenoire-network
 
 networks:
-  lumina-network:
+  chambrenoire-network:
     driver: bridge
