@@ -38,20 +38,24 @@ const CarnetDeRoutesPage: React.FC = () => {
 
   const totalItems = projects.length + standalonePhotos.length;
 
+  const isEmbedded = window.location.pathname.startsWith('/embed/');
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
       {/* Intro Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-4">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-950 dark:text-white sm:text-5xl">
-          📓 Carnet de Routes
-        </h1>
-        <div className="text-gray-600 dark:text-gray-300 font-light leading-relaxed prose dark:prose-invert max-w-none text-center">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {userProfile?.carnetIntro || "Découvrez la mémoire artistique et technique de mes sorties photo. Pour chaque projet, retrouvez l'intention initiale, les boîtiers, objectifs et pellicules utilisés, ainsi que les paramètres de prise de vue et de développement."}
-          </ReactMarkdown>
+      {!isEmbedded && (
+        <div className="text-center max-w-2xl mx-auto space-y-4">
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-950 dark:text-white sm:text-5xl">
+            📓 Carnet de Routes
+          </h1>
+          <div className="text-gray-600 dark:text-gray-300 font-light leading-relaxed prose dark:prose-invert max-w-none text-center">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {userProfile?.carnetIntro || "Découvrez la mémoire artistique et technique de mes sorties photo. Pour chaque projet, retrouvez l'intention initiale, les boîtiers, objectifs et pellicules utilisés, ainsi que les paramètres de prise de vue et de développement."}
+            </ReactMarkdown>
+          </div>
+          <div className="w-16 h-1 bg-amber-500 mx-auto rounded-full mt-4" />
         </div>
-        <div className="w-16 h-1 bg-amber-500 mx-auto rounded-full mt-4" />
-      </div>
+      )}
 
       {totalItems === 0 ? (
         <div className="text-center py-20 bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] rounded-3xl">

@@ -51,14 +51,18 @@ const ProjectDetailPage: React.FC = () => {
     );
   }
 
+  const isEmbedded = window.location.pathname.startsWith('/embed/');
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 space-y-16">
       {/* Back link */}
-      <div>
-        <Link to="/" className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-amber-500 transition-colors">
-          &larr; Retour au carnet de routes
-        </Link>
-      </div>
+      {!isEmbedded && (
+        <div>
+          <Link to="/" className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-amber-500 transition-colors">
+            &larr; Retour au carnet de routes
+          </Link>
+        </div>
+      )}
 
       {/* Project Header */}
       <div className="space-y-6">
