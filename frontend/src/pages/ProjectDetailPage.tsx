@@ -159,10 +159,12 @@ const ProjectDetailPage: React.FC = () => {
                           <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.exposureSettings.shutterSpeed}</td>
                         </tr>
                       )}
-                      {photo.exposureSettings?.iso && (
+                      {(photo.exposureSettings?.iso || photo.filmId?.isoUsed || photo.filmId?.iso) && (
                         <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                           <td className="py-1.5 font-light">Sensibilité</td>
-                          <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.exposureSettings.iso} ISO</td>
+                          <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                            {photo.exposureSettings?.iso || photo.filmId?.isoUsed || photo.filmId?.iso} ISO
+                          </td>
                         </tr>
                       )}
                       {photo.exposureSettings?.focalLength && (
@@ -185,7 +187,13 @@ const ProjectDetailPage: React.FC = () => {
                           <>
                             <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                               <td className="py-1.5 font-light">Pellicule</td>
-                              <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.filmId.brand} {photo.filmId.filmType} (Nominale : {photo.filmId.iso} ISO)</td>
+                              <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                                {(() => {
+                                  const brand = photo.filmId.brand || '';
+                                  const type = photo.filmId.filmType || '';
+                                  return type.toLowerCase().startsWith(brand.toLowerCase()) ? type : `${brand} ${type}`;
+                                })()} (Nominale : {photo.filmId.iso} ISO)
+                              </td>
                             </tr>
                             <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                               <td className="py-1.5 font-light">Type / Format</td>
@@ -195,58 +203,77 @@ const ProjectDetailPage: React.FC = () => {
                             </tr>
                           </>
                         )}
-                        {photo.developmentSettings?.developer && (
+                        {(photo.developmentSettings?.developer || photo.filmId?.developmentSettings?.developer) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Révélateur</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.developer}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.developer || photo.filmId?.developmentSettings?.developer}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.dilution && (
+                        {(photo.developmentSettings?.dilution || photo.filmId?.developmentSettings?.dilution) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Dilution</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.dilution}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.dilution || photo.filmId?.developmentSettings?.dilution}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.time && (
+                        {(photo.developmentSettings?.time || photo.filmId?.developmentSettings?.time) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Temps dév.</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.time}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.time || photo.filmId?.developmentSettings?.time}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.temperature && (
+                        {(photo.developmentSettings?.temperature || photo.filmId?.developmentSettings?.temperature) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Température</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.temperature}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.temperature || photo.filmId?.developmentSettings?.temperature}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.agitation && (
+                        {(photo.developmentSettings?.agitation || photo.filmId?.developmentSettings?.agitation) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Agitation</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.agitation}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.agitation || photo.filmId?.developmentSettings?.agitation}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.pushPull && photo.developmentSettings.pushPull !== 'Aucun' && (
+                        {(photo.developmentSettings?.pushPull || photo.filmId?.developmentSettings?.pushPull) && 
+                         (photo.developmentSettings?.pushPull !== 'Aucun' && photo.filmId?.developmentSettings?.pushPull !== 'Aucun') && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Push/Pull</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.pushPull}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.pushPull || photo.filmId?.developmentSettings?.pushPull}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.fixerBrand && (
+                        {(photo.developmentSettings?.fixerBrand || photo.filmId?.developmentSettings?.fixerBrand) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Fixateur</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.fixerBrand}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.fixerBrand || photo.filmId?.developmentSettings?.fixerBrand}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.fixerDilution && (
+                        {(photo.developmentSettings?.fixerDilution || photo.filmId?.developmentSettings?.fixerDilution) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Dilution fixateur</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.fixerDilution}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.fixerDilution || photo.filmId?.developmentSettings?.fixerDilution}
+                            </td>
                           </tr>
                         )}
-                        {photo.developmentSettings?.fixerTime && (
+                        {(photo.developmentSettings?.fixerTime || photo.filmId?.developmentSettings?.fixerTime) && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Temps fixage</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.fixerTime}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                              {photo.developmentSettings?.fixerTime || photo.filmId?.developmentSettings?.fixerTime}
+                            </td>
                           </tr>
                         )}
                       </tbody>

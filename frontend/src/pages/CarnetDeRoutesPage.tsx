@@ -225,10 +225,12 @@ const CarnetDeRoutesPage: React.FC = () => {
                       <span className="font-medium text-gray-200">{lightboxPhoto.exposureSettings.shutterSpeed}</span>
                     </div>
                   )}
-                  {lightboxPhoto.exposureSettings?.iso && (
+                  {(lightboxPhoto.exposureSettings?.iso || lightboxPhoto.filmId?.isoUsed || lightboxPhoto.filmId?.iso) && (
                     <div>
                       <span className="text-xs text-gray-500 block">Sensibilité</span>
-                      <span className="font-medium text-gray-200">{lightboxPhoto.exposureSettings.iso} ISO</span>
+                      <span className="font-medium text-gray-200">
+                        {lightboxPhoto.exposureSettings?.iso || lightboxPhoto.filmId?.isoUsed || lightboxPhoto.filmId?.iso} ISO
+                      </span>
                     </div>
                   )}
                   {lightboxPhoto.exposureSettings?.focalLength && (
@@ -249,59 +251,80 @@ const CarnetDeRoutesPage: React.FC = () => {
                       <div className="col-span-2">
                         <span className="text-xs text-gray-500 block">Pellicule</span>
                         <span className="font-medium text-gray-200">
-                          {lightboxPhoto.filmId.brand} {lightboxPhoto.filmId.filmType} (Nominale : {lightboxPhoto.filmId.iso} ISO)
+                          {(() => {
+                            const brand = lightboxPhoto.filmId.brand || '';
+                            const type = lightboxPhoto.filmId.filmType || '';
+                            return type.toLowerCase().startsWith(brand.toLowerCase()) ? type : `${brand} ${type}`;
+                          })()} (Nominale : {lightboxPhoto.filmId.iso} ISO)
                           <span className="text-xs text-gray-400 block mt-0.5">
                             Type : {lightboxPhoto.filmId.type === 'BW' ? 'Noir & Blanc' : lightboxPhoto.filmId.type === 'color' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format : {lightboxPhoto.filmId.format}
                           </span>
                         </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.developer && (
+                    {(lightboxPhoto.developmentSettings?.developer || lightboxPhoto.filmId?.developmentSettings?.developer) && (
                       <div>
                         <span className="text-xs text-gray-500 block">Révélateur</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.developer}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.developer || lightboxPhoto.filmId?.developmentSettings?.developer}
+                        </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.dilution && (
+                    {(lightboxPhoto.developmentSettings?.dilution || lightboxPhoto.filmId?.developmentSettings?.dilution) && (
                       <div>
                         <span className="text-xs text-gray-500 block">Dilution</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.dilution}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.dilution || lightboxPhoto.filmId?.developmentSettings?.dilution}
+                        </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.time && (
+                    {(lightboxPhoto.developmentSettings?.time || lightboxPhoto.filmId?.developmentSettings?.time) && (
                       <div>
                         <span className="text-xs text-gray-500 block">Temps dév.</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.time}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.time || lightboxPhoto.filmId?.developmentSettings?.time}
+                        </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.temperature && (
+                    {(lightboxPhoto.developmentSettings?.temperature || lightboxPhoto.filmId?.developmentSettings?.temperature) && (
                       <div>
                         <span className="text-xs text-gray-500 block">Température</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.temperature}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.temperature || lightboxPhoto.filmId?.developmentSettings?.temperature}
+                        </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.pushPull && lightboxPhoto.developmentSettings.pushPull !== 'Aucun' && (
+                    {(lightboxPhoto.developmentSettings?.pushPull || lightboxPhoto.filmId?.developmentSettings?.pushPull) && 
+                     (lightboxPhoto.developmentSettings?.pushPull !== 'Aucun' && lightboxPhoto.filmId?.developmentSettings?.pushPull !== 'Aucun') && (
                       <div>
                         <span className="text-xs text-gray-500 block">Push/Pull</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.pushPull}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.pushPull || lightboxPhoto.filmId?.developmentSettings?.pushPull}
+                        </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.fixerBrand && (
+                    {(lightboxPhoto.developmentSettings?.fixerBrand || lightboxPhoto.filmId?.developmentSettings?.fixerBrand) && (
                       <div>
                         <span className="text-xs text-gray-500 block">Fixateur</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.fixerBrand}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.fixerBrand || lightboxPhoto.filmId?.developmentSettings?.fixerBrand}
+                        </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.fixerDilution && (
+                    {(lightboxPhoto.developmentSettings?.fixerDilution || lightboxPhoto.filmId?.developmentSettings?.fixerDilution) && (
                       <div>
                         <span className="text-xs text-gray-500 block">Dilution fixateur</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.fixerDilution}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.fixerDilution || lightboxPhoto.filmId?.developmentSettings?.fixerDilution}
+                        </span>
                       </div>
                     )}
-                    {lightboxPhoto.developmentSettings?.fixerTime && (
+                    {(lightboxPhoto.developmentSettings?.fixerTime || lightboxPhoto.filmId?.developmentSettings?.fixerTime) && (
                       <div>
                         <span className="text-xs text-gray-500 block">Temps fixage</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.fixerTime}</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.developmentSettings?.fixerTime || lightboxPhoto.filmId?.developmentSettings?.fixerTime}
+                        </span>
                       </div>
                     )}
                   </div>
