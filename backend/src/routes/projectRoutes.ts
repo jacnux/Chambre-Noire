@@ -5,6 +5,36 @@ import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 
+// --- Routes publiques (sans authentification) ---
+
+// Lister tous les projets publics
+router.get('/public/all', async (req: Request, res: Response) => {
+  try {
+    const projects = await Project.find({ isPublished: true }).sort({ createdAt: -1 });
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la récupération des projets publics' });
+  }
+});
+
+// Détail d'un projet public avec ses photos (jointures matériels/pellicules)
+router.get('/public/project/:slug', async (req: Request, res: Response) => {
+  try {
+    const project = await Project.findOne({ slug: req.params.slug, isPublished: true });
+    if (!project) return res.status(404).json({ error: 'Projet introuvable ou privé' });
+
+    const photos = await Photo.find({ projectId: project._id })
+      .populate('gearCameraId')
+      .populate('gearLensId')
+      .populate('filmId')
+      .sort({ index: 1, createdAt: 1 });
+
+    res.json({ project, photos });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la récupération du détail du projet public' });
+  }
+});
+
 // Helper to generate a slug
 const generateSlug = (name: string): string => {
   return name

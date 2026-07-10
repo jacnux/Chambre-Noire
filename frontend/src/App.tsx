@@ -18,6 +18,8 @@ import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import AlbumView from './pages/AlbumView';
 import EmbedAlbumView from './pages/EmbedAlbumView';
+import CarnetDeRoutesPage from './pages/CarnetDeRoutesPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
 import PortfolioPage from './pages/PortfolioPage';
 import UserPageView from './pages/UserPageView';
 import LegalPage from './pages/LegalPage';
@@ -63,16 +65,15 @@ const MainRoutes: React.FC = () => {
   return (
     <Layout>
       <Routes>
-        {/* Public */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Public Chambre Noire */}
+        <Route path="/" element={<CarnetDeRoutesPage />} />
+        <Route path="/project/:slug" element={<ProjectDetailPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/legal" element={<LegalPage />} />
         <Route path="/album/:id" element={<AlbumView />} />
         <Route path="/embed/album/:id" element={<EmbedAlbumView />} />
-        <Route path="/portfolio/:username" element={<PortfolioPage />} />
-        <Route path="/portfolio/:username/:slug" element={<UserPageView />} />
 
         {/* Privé */}
         <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
@@ -124,14 +125,12 @@ const SubdomainRoutes: React.FC = () => {
 // ============================================================
 
 const App: React.FC = () => {
-  const subdomain = getSubdomain();
-
   return (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
           <CommentsProvider>
-            {subdomain ? <SubdomainRoutes /> : <MainRoutes />}
+            <MainRoutes />
           </CommentsProvider>
         </AuthProvider>
       </ThemeProvider>

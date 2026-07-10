@@ -31,6 +31,22 @@ const upload = multer({ storage });
 
 // --- ROUTES ---
 
+// 0. GET Public Profile (No authentication required)
+router.get('/public/profile', async (req: Request, res: Response) => {
+  try {
+    let user = await User.findOne({ isAdmin: true }).select('name avatar bio carnetIntro tagline servicesDescription');
+    if (!user) {
+      user = await User.findOne().select('name avatar bio carnetIntro tagline servicesDescription');
+    }
+    if (!user) {
+      return res.status(404).json({ error: 'Aucun utilisateur trouvé' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la récupération du profil public' });
+  }
+});
+
 // 1. GET : Lister tous les utilisateurs (ADMIN)
 router.get('/', authenticateToken, async (req: Request, res: Response) => {
   try {

@@ -380,6 +380,20 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
   }
 });
 
+// 1.5. LISTER LES PHOTOS PUBLIQUES HORS PROJETS
+router.get('/public/standalone', async (req: Request, res: Response) => {
+  try {
+    const photos = await Photo.find({ showOnBlog: true, projectId: null })
+      .populate('gearCameraId')
+      .populate('gearLensId')
+      .populate('filmId')
+      .sort({ createdAt: -1 });
+    res.json(photos);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur récupération photos publiques' });
+  }
+});
+
 // 2. LISTER MES PHOTOS
 router.get('/my/photos', authenticateToken, async (req: Request, res: Response) => {
   try {

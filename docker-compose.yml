@@ -82,44 +82,6 @@ services:
     networks:
       - chambrenoire-network
 
-  # --- CARNET DE ROUTE / BLOG BACKEND ---
-  blog-backend:
-    build: ./blog-backend
-    container_name: chambrenoire-blog-app
-    expose:
-      - "3001"
-    restart: always
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/chambrenoire_blogs
-      - MAIN_MONGO_URI=mongodb://mongo:27017/chambrenoire
-      - PORT=3001
-      - JWT_SECRET=${JWT_SECRET}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
-      - SMTP_FROM=${SMTP_FROM}
-    depends_on:
-      - mongo
-    volumes:
-      - ./blog-backend/src:/app/src
-    networks:
-      - chambrenoire-network
-
-  # --- CARNET DE ROUTE / BLOG FRONTEND ---
-  blog-frontend:
-    build: ./blog-frontend
-    container_name: chambrenoire-blog-ui
-    restart: always
-    ports:
-      - "${BLOG_PORT:-8082}:80"
-    environment:
-      - REACT_APP_API_URL=http://blog-backend:3001
-    depends_on:
-      - blog-backend
-    networks:
-      - chambrenoire-network
-
 networks:
   chambrenoire-network:
     driver: bridge

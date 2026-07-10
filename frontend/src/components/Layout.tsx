@@ -80,10 +80,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           <div className="flex-shrink-0 flex flex-col justify-center">
             <Link
-              to="/dashboard"
+              to="/"
               className="text-xl sm:text-2xl font-extrabold text-yellow-500 tracking-wide hover:text-yellow-400 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 drop-shadow-[0_2px_8px_rgba(234,179,8,0.15)]"
             >
-              Hélioscope
+              Chambre Noire
             </Link>
             {user && (
               <span
@@ -155,18 +155,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     )}
                   </Link>
 
-                  <Link
-                    to="/manage-blog"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1 ${
-                      location.pathname === '/manage-blog'
-                        ? 'bg-orange-600 text-white shadow-[0_4px_12px_rgba(234,88,12,0.3)]'
-                        : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
-                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
-                    }`}
-                  >
-                    <span>📝</span> Mon Blog
-                  </Link>
+
 
                   <Link
                     to="/dashboard/carnet-routes"
