@@ -249,9 +249,9 @@ const CarnetDeRoutesPage: React.FC = () => {
                       <div className="col-span-2">
                         <span className="text-xs text-gray-500 block">Pellicule</span>
                         <span className="font-medium text-gray-200">
-                          {lightboxPhoto.filmId.brand} {lightboxPhoto.filmId.name} ({lightboxPhoto.filmId.iso} ISO)
+                          {lightboxPhoto.filmId.brand} {lightboxPhoto.filmId.filmType} (Nominale : {lightboxPhoto.filmId.iso} ISO)
                           <span className="text-xs text-gray-400 block mt-0.5">
-                            Type : {lightboxPhoto.filmId.type === 'BW' ? 'Noir & Blanc' : lightboxPhoto.filmId.type === 'color-negative' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format : {lightboxPhoto.filmId.format}
+                            Type : {lightboxPhoto.filmId.type === 'BW' ? 'Noir & Blanc' : lightboxPhoto.filmId.type === 'color' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format : {lightboxPhoto.filmId.format}
                           </span>
                         </span>
                       </div>

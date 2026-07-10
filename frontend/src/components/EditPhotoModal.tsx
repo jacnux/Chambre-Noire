@@ -120,6 +120,9 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
           setTemperature(roll.developmentSettings?.temperature || '');
           setAgitation(roll.developmentSettings?.agitation || '');
           setPushPull(roll.developmentSettings?.pushPull || '');
+          setFixerBrand(roll.developmentSettings?.fixerBrand || '');
+          setFixerDilution(roll.developmentSettings?.fixerDilution || '');
+          setFixerTime(roll.developmentSettings?.fixerTime || '');
         }
       }
     } else {

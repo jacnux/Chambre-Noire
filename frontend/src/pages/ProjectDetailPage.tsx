@@ -185,12 +185,12 @@ const ProjectDetailPage: React.FC = () => {
                           <>
                             <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                               <td className="py-1.5 font-light">Pellicule</td>
-                              <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.filmId.brand} {photo.filmId.name} ({photo.filmId.iso} ISO)</td>
+                              <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.filmId.brand} {photo.filmId.filmType} (Nominale : {photo.filmId.iso} ISO)</td>
                             </tr>
                             <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                               <td className="py-1.5 font-light">Type / Format</td>
                               <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
-                                {photo.filmId.type === 'BW' ? 'Noir & Blanc' : photo.filmId.type === 'color-negative' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format {photo.filmId.format}
+                                {photo.filmId.type === 'BW' ? 'Noir & Blanc' : photo.filmId.type === 'color' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format {photo.filmId.format}
                               </td>
                             </tr>
                           </>
