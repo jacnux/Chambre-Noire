@@ -66,6 +66,8 @@ const MainRoutes: React.FC = () => {
         <Route path="/legal" element={<LegalPage />} />
         <Route path="/album/:id" element={<AlbumView />} />
         <Route path="/embed/album/:id" element={<EmbedAlbumView />} />
+        <Route path="/embed/carnet-de-routes" element={<CarnetDeRoutesPage />} />
+        <Route path="/embed/project/:slug" element={<ProjectDetailPage />} />
 
         {/* Privé */}
         <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />

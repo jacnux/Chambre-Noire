@@ -33,7 +33,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isEmbedRoute = location.pathname.startsWith('/embed/');
 
   if (isEmbedRoute) {
-    return <>{children}</>;
+    return (
+      <div
+        className={`relative min-h-screen w-full overflow-hidden ${
+          theme === 'dark' ? 'bg-gray-950 text-white' : 'bg-gray-100 text-gray-900'
+        }`}
+      >
+        <main className="w-full relative z-10">{children}</main>
+      </div>
+    );
   }
 
   return (
