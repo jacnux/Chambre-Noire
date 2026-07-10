@@ -243,17 +243,22 @@ const CarnetDeRoutesPage: React.FC = () => {
               {/* Chemical block for analog */}
               {lightboxPhoto.isAnalog && (
                 <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-500 border-b border-white/10 pb-1">Bain de développement</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-500 border-b border-white/10 pb-1">Chimie & Labo</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     {lightboxPhoto.filmId && (
                       <div className="col-span-2">
                         <span className="text-xs text-gray-500 block">Pellicule</span>
-                        <span className="font-medium text-gray-200">{lightboxPhoto.filmId.brand} {lightboxPhoto.filmId.name} ({lightboxPhoto.filmId.iso} ISO)</span>
+                        <span className="font-medium text-gray-200">
+                          {lightboxPhoto.filmId.brand} {lightboxPhoto.filmId.name} ({lightboxPhoto.filmId.iso} ISO)
+                          <span className="text-xs text-gray-400 block mt-0.5">
+                            Type : {lightboxPhoto.filmId.type === 'BW' ? 'Noir & Blanc' : lightboxPhoto.filmId.type === 'color-negative' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format : {lightboxPhoto.filmId.format}
+                          </span>
+                        </span>
                       </div>
                     )}
                     {lightboxPhoto.developmentSettings?.developer && (
                       <div>
-                        <span className="text-xs text-gray-500 block">Chimie</span>
+                        <span className="text-xs text-gray-500 block">Révélateur</span>
                         <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.developer}</span>
                       </div>
                     )}
@@ -265,7 +270,7 @@ const CarnetDeRoutesPage: React.FC = () => {
                     )}
                     {lightboxPhoto.developmentSettings?.time && (
                       <div>
-                        <span className="text-xs text-gray-500 block">Durée</span>
+                        <span className="text-xs text-gray-500 block">Temps dév.</span>
                         <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.time}</span>
                       </div>
                     )}
@@ -273,6 +278,30 @@ const CarnetDeRoutesPage: React.FC = () => {
                       <div>
                         <span className="text-xs text-gray-500 block">Température</span>
                         <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.temperature}</span>
+                      </div>
+                    )}
+                    {lightboxPhoto.developmentSettings?.pushPull && lightboxPhoto.developmentSettings.pushPull !== 'Aucun' && (
+                      <div>
+                        <span className="text-xs text-gray-500 block">Push/Pull</span>
+                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.pushPull}</span>
+                      </div>
+                    )}
+                    {lightboxPhoto.developmentSettings?.fixerBrand && (
+                      <div>
+                        <span className="text-xs text-gray-500 block">Fixateur</span>
+                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.fixerBrand}</span>
+                      </div>
+                    )}
+                    {lightboxPhoto.developmentSettings?.fixerDilution && (
+                      <div>
+                        <span className="text-xs text-gray-500 block">Dilution fixateur</span>
+                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.fixerDilution}</span>
+                      </div>
+                    )}
+                    {lightboxPhoto.developmentSettings?.fixerTime && (
+                      <div>
+                        <span className="text-xs text-gray-500 block">Temps fixage</span>
+                        <span className="font-medium text-gray-200">{lightboxPhoto.developmentSettings.fixerTime}</span>
                       </div>
                     )}
                   </div>

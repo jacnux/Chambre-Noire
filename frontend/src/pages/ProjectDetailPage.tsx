@@ -182,10 +182,18 @@ const ProjectDetailPage: React.FC = () => {
                     <table className="w-full text-xs text-gray-600 dark:text-gray-400">
                       <tbody>
                         {photo.filmId && (
-                          <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
-                            <td className="py-1.5 font-light">Pellicule</td>
-                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.filmId.brand} {photo.filmId.name} ({photo.filmId.iso} ISO)</td>
-                          </tr>
+                          <>
+                            <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
+                              <td className="py-1.5 font-light">Pellicule</td>
+                              <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.filmId.brand} {photo.filmId.name} ({photo.filmId.iso} ISO)</td>
+                            </tr>
+                            <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
+                              <td className="py-1.5 font-light">Type / Format</td>
+                              <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">
+                                {photo.filmId.type === 'BW' ? 'Noir & Blanc' : photo.filmId.type === 'color-negative' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format {photo.filmId.format}
+                              </td>
+                            </tr>
+                          </>
                         )}
                         {photo.developmentSettings?.developer && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
@@ -201,7 +209,7 @@ const ProjectDetailPage: React.FC = () => {
                         )}
                         {photo.developmentSettings?.time && (
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
-                            <td className="py-1.5 font-light">Durée</td>
+                            <td className="py-1.5 font-light">Temps dév.</td>
                             <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.time}</td>
                           </tr>
                         )}
@@ -215,6 +223,30 @@ const ProjectDetailPage: React.FC = () => {
                           <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
                             <td className="py-1.5 font-light">Agitation</td>
                             <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.agitation}</td>
+                          </tr>
+                        )}
+                        {photo.developmentSettings?.pushPull && photo.developmentSettings.pushPull !== 'Aucun' && (
+                          <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
+                            <td className="py-1.5 font-light">Push/Pull</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.pushPull}</td>
+                          </tr>
+                        )}
+                        {photo.developmentSettings?.fixerBrand && (
+                          <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
+                            <td className="py-1.5 font-light">Fixateur</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.fixerBrand}</td>
+                          </tr>
+                        )}
+                        {photo.developmentSettings?.fixerDilution && (
+                          <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
+                            <td className="py-1.5 font-light">Dilution fixateur</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.fixerDilution}</td>
+                          </tr>
+                        )}
+                        {photo.developmentSettings?.fixerTime && (
+                          <tr className="border-b border-black/[0.04] dark:border-white/[0.04]">
+                            <td className="py-1.5 font-light">Temps fixage</td>
+                            <td className="py-1.5 text-right font-medium text-gray-950 dark:text-white">{photo.developmentSettings.fixerTime}</td>
                           </tr>
                         )}
                       </tbody>

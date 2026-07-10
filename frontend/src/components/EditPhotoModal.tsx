@@ -39,6 +39,9 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
   const [temperature, setTemperature] = useState('');
   const [agitation, setAgitation] = useState('');
   const [pushPull, setPushPull] = useState('');
+  const [fixerBrand, setFixerBrand] = useState('');
+  const [fixerDilution, setFixerDilution] = useState('');
+  const [fixerTime, setFixerTime] = useState('');
 
   // Artistique / Lieu / Date
   const [shootingIntent, setShootingIntent] = useState('');
@@ -158,6 +161,9 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
       setTemperature(photo.developmentSettings?.temperature || '');
       setAgitation(photo.developmentSettings?.agitation || '');
       setPushPull(photo.developmentSettings?.pushPull || '');
+      setFixerBrand(photo.developmentSettings?.fixerBrand || '');
+      setFixerDilution(photo.developmentSettings?.fixerDilution || '');
+      setFixerTime(photo.developmentSettings?.fixerTime || '');
 
       setShootingIntent(photo.shootingIntent || '');
       setLocation(photo.location || '');
@@ -179,7 +185,7 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
       .filter(t => t);
 
     // Vérifier si des surcharges de développement ont été saisies
-    const hasSurcharges = developer || dilution || time || temperature || agitation || pushPull;
+    const hasSurcharges = developer || dilution || time || temperature || agitation || pushPull || fixerBrand || fixerDilution || fixerTime;
 
     onSave({
       title,
@@ -210,7 +216,10 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
             time,
             temperature,
             agitation,
-            pushPull
+            pushPull,
+            fixerBrand,
+            fixerDilution,
+            fixerTime
           }
         : undefined,
       shootingIntent,
@@ -662,6 +671,42 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
                     placeholder="ex: N+1"
                     className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-xs text-center"
                   />
+                </div>
+              </div>
+
+              <div className="border-t border-white/5 pt-3 mt-1">
+                <span className="block text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wide">Fixateur</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-1">Nom / Produit</label>
+                    <input
+                      type="text"
+                      value={fixerBrand}
+                      onChange={e => setFixerBrand(e.target.value)}
+                      className="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-white text-sm"
+                      placeholder="ex: Ilford Rapid Fixer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-1">Dilution fixateur</label>
+                    <input
+                      type="text"
+                      value={fixerDilution}
+                      onChange={e => setFixerDilution(e.target.value)}
+                      className="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-white text-sm"
+                      placeholder="ex: 1+4"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-1">Temps de fixage</label>
+                    <input
+                      type="text"
+                      value={fixerTime}
+                      onChange={e => setFixerTime(e.target.value)}
+                      className="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-white text-sm"
+                      placeholder="ex: 5m"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
