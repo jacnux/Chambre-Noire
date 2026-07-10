@@ -4,12 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
 
 const EditProfile = () => {
-  const [bio, setBio] = useState('');
-  const [portfolioIntro, setPortfolioIntro] = useState('');
   const [carnetIntro, setCarnetIntro] = useState('');
-  const [servicesDescription, setServicesDescription] = useState('');
-  const [tagline, setTagline] = useState('');
-  const [blogTheme, setBlogTheme] = useState('classic');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [currentAvatar, setCurrentAvatar] = useState<string>('');
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -23,12 +18,7 @@ const EditProfile = () => {
   const fetchData = async () => {
     try {
       const profileRes = await api.get('/users/me');
-      setBio(profileRes.data.bio || '');
-      setPortfolioIntro(profileRes.data.portfolioIntro || '');
       setCarnetIntro(profileRes.data.carnetIntro || '');
-      setServicesDescription(profileRes.data.servicesDescription || '');
-      setTagline(profileRes.data.tagline || '');
-      setBlogTheme(profileRes.data.blogTheme || 'classic');
       setCurrentAvatar(profileRes.data.avatar || '');
       setCurrentBanner(profileRes.data.bannerImage || '');
     } catch (error) {
@@ -41,12 +31,7 @@ const EditProfile = () => {
     e.preventDefault();
     try {
       const formData = new FormData();
-      formData.append('bio', bio);
-      formData.append('portfolioIntro', portfolioIntro);
       formData.append('carnetIntro', carnetIntro);
-      formData.append('servicesDescription', servicesDescription);
-      formData.append('tagline', tagline);
-      formData.append('blogTheme', blogTheme);
       if (avatarFile) formData.append('avatar', avatarFile);
       if (bannerFile) formData.append('banner', bannerFile);
 
@@ -82,7 +67,7 @@ const EditProfile = () => {
         <div className="flex justify-between items-end pb-4 border-b border-white/5">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Mon Profil</h1>
-            <p className="text-xs text-gray-500 mt-1">Personnalisez votre identité visuelle, vos textes de présentation et votre style.</p>
+            <p className="text-xs text-gray-500 mt-1">Personnalisez votre identité visuelle et l'introduction de votre carnet de routes.</p>
           </div>
           <Link
             to="/dashboard"
@@ -98,7 +83,7 @@ const EditProfile = () => {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start">
-            {/* COLONNE GAUCHE (40%) : VISUELS & THEMES */}
+            {/* COLONNE GAUCHE (40%) : VISUELS */}
             <div className="lg:col-span-4 space-y-8">
               {/* CARD 1 : VISUELS */}
               <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
@@ -108,7 +93,7 @@ const EditProfile = () => {
 
                 {/* Bannière de Couverture */}
                 <div className="space-y-3">
-                  <label className={labelClass}>Image de couverture (Bannière du Portfolio)</label>
+                  <label className={labelClass}>Image de couverture (Bannière du Carnet)</label>
                   <div className="relative group rounded-xl overflow-hidden h-44 bg-black/40 border border-white/10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:border-yellow-500/40">
                     {(bannerFile || currentBanner) ? (
                       <>
@@ -166,119 +151,24 @@ const EditProfile = () => {
                   </div>
                 </div>
               </div>
-
-              {/* CARD 2 : STYLE & DESIGN */}
-              <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
-                <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                  <span className="text-yellow-500">✦</span> Thème Visuel
-                </h3>
-                
-                <div className="space-y-4">
-                  <label className={labelClass}>Choix de la mise en page globale</label>
-                  <div className="grid grid-cols-1 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setBlogTheme('classic')}
-                      className={`flex flex-col items-start p-5 rounded-2xl border-2 text-left transition duration-300 ${
-                        blogTheme === 'classic'
-                          ? 'border-yellow-500 bg-yellow-500/[0.04]'
-                          : theme === 'dark' ? 'border-white/15 bg-black/20 hover:border-white/30' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex justify-between w-full items-center mb-2">
-                        <span className="font-bold text-sm">Hélioscope (Classic)</span>
-                        {blogTheme === 'classic' && <span className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></span>}
-                      </div>
-                      <p className="text-xs text-gray-500 leading-relaxed">Design clair et ambré, avec menu supérieur fluide. Idéal pour une galerie lumineuse, ouverte et épurée.</p>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setBlogTheme('portfolio')}
-                      className={`flex flex-col items-start p-5 rounded-2xl border-2 text-left transition duration-300 ${
-                        blogTheme === 'portfolio'
-                          ? 'border-yellow-500 bg-yellow-500/[0.04]'
-                          : theme === 'dark' ? 'border-white/15 bg-black/20 hover:border-white/30' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex justify-between w-full items-center mb-2">
-                        <span className="font-bold text-sm">Artfolio</span>
-                        {blogTheme === 'portfolio' && <span className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></span>}
-                      </div>
-                      <p className="text-xs text-gray-500 leading-relaxed">Design sombre et doré, avec menu latéral fixe. Idéal pour une présentation artistique immersive et contrastée.</p>
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* COLONNE DROITE (60%) : FORMULAIRES TEXTES HAUTS */}
+            {/* COLONNE DROITE (60%) : INTRODUCTION DU CARNET DE ROUTE */}
             <div className="lg:col-span-6 space-y-8">
-              {/* CARD 3 : IDENTITÉ & TEXTES */}
+              {/* CARD 2 : IDENTITÉ & TEXTES */}
               <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
                 <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                  <span className="text-yellow-500">✦</span> Informations & Textes de présentation
+                  <span className="text-yellow-500">✦</span> Présentation du Carnet
                 </h3>
 
                 <div>
-                  <label className={labelClass}>Phrase choc (Slogan)</label>
-                  <input
-                    type="text"
-                    value={tagline}
-                    onChange={e => setTagline(e.target.value)}
-                    className={inputClass}
-                    placeholder="Ex. Capturer l'essence de l'instant..."
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>Biographie (À propos) (8 lignes visibles)</label>
-                  <textarea
-                    value={bio}
-                    onChange={e => setBio(e.target.value)}
-                    rows={8}
-                    className={inputClass}
-                    placeholder="Racontez votre parcours, votre passion..."
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>Introduction du Portfolio (4 lignes visibles)</label>
-                  <textarea
-                    value={portfolioIntro}
-                    onChange={e => setPortfolioIntro(e.target.value)}
-                    rows={4}
-                    className={inputClass}
-                    placeholder="Un court message de bienvenue en haut de la page principale..."
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>Introduction du Carnet de Routes (4 lignes visibles)</label>
+                  <label className={labelClass}>Introduction du Carnet de Routes (4 lignes visibles - Markdown supporté)</label>
                   <textarea
                     value={carnetIntro}
                     onChange={e => setCarnetIntro(e.target.value)}
-                    rows={4}
+                    rows={6}
                     className={inputClass}
-                    placeholder="Un message décrivant le carnet de routes..."
-                  />
-                </div>
-              </div>
-
-              {/* CARD 4 : OFFRES & PRESTATIONS */}
-              <div className={`p-6 sm:p-8 rounded-2xl space-y-6 ${panelClass}`}>
-                <h3 className="text-lg font-bold flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                  <span className="text-yellow-500">✦</span> Projets & Services
-                </h3>
-
-                <div>
-                  <label className={labelClass}>Description des Prestations (Markdown supporté - 12 lignes visibles)</label>
-                  <textarea
-                    value={servicesDescription}
-                    onChange={e => setServicesDescription(e.target.value)}
-                    rows={12}
-                    className={inputClass}
-                    placeholder="Décrivez vos offres, tarifs, séances... Ce texte est affiché dans l'onglet Services du portfolio."
+                    placeholder="Saisissez un message d'introduction pour les visiteurs de votre carnet de routes..."
                   />
                 </div>
               </div>
@@ -294,7 +184,7 @@ const EditProfile = () => {
               Enregistrer les modifications du Profil
             </button>
             <p className={`text-center text-xs mt-3 ${subtleTextClass}`}>
-              Vos modifications sont publiées instantanément sur vos pages publiques.
+              Vos modifications sont publiées instantanément sur votre carnet de routes public.
             </p>
           </div>
         </form>
