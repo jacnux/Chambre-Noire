@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useComments } from '../context/CommentsContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,18 +12,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { unreadCount } = useComments();
 
-  const isCommentsRoute = location.pathname === '/comments';
-
-  // Zone connectée large (albums, galeries, pages, blog, etc.)
+  // Zone connectée large (albums, galeries, carnet-routes, etc.)
   const isAuthenticatedArea = [
     '/dashboard',
     '/galleries',
-    '/comments',
-    '/manage-blog',
     '/dashboard/carnet-routes',
-    '/dashboard/pages',
     '/dashboard/about',
     '/dashboard/help',
     '/edit-profile',
@@ -137,27 +130,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </Link>
 
                   <Link
-                    to="/comments"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1.5 ${
-                      isCommentsRoute
-                        ? 'bg-blue-600 text-white shadow-[0_4px_12px_rgba(37,99,235,0.3)]'
-                        : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
-                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
-                    }`}
-                  >
-                    <span>💬</span>
-                    <span>Commentaires</span>
-                    {unreadCount > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
-                  </Link>
-
-
-
-                  <Link
                     to="/dashboard/carnet-routes"
                     className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1 ${
                       location.pathname === '/dashboard/carnet-routes'
@@ -168,19 +140,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     }`}
                   >
                     <span>📓</span> Carnet de route
-                  </Link>
-
-                  <Link
-                    to="/dashboard/pages"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1 ${
-                      location.pathname.startsWith('/dashboard/pages')
-                        ? 'bg-yellow-500 text-black shadow-[0_4px_12px_rgba(234,179,8,0.25)]'
-                        : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
-                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
-                    }`}
-                  >
-                    <span>📄</span> Mes Pages
                   </Link>
                 </div>
 
@@ -213,28 +172,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       🛡️
                     </button>
                   )}
-                  {isAdmin && (
-                    <button
-                      onClick={() => navigate('/admin/reports')}
-                      className="p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      title="Signalements"
-                    >
-                      🚩
-                    </button>
-                  )}
-                  {isAdmin && (
-                    <button
-                      onClick={() => navigate('/admin/comments')}
-                      className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 ${
-                        theme === 'dark'
-                          ? 'hover:bg-white/[0.06] text-gray-300 hover:text-white'
-                          : 'hover:bg-black/[0.06] text-gray-600 hover:text-black'
-                      }`}
-                      title="Commentaires"
-                    >
-                      💬
-                    </button>
-                  )}
+
 
                   <button
                     onClick={() => navigate('/tools')}
