@@ -253,7 +253,7 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
                   htmlFor="blog-toggle"
                   className="text-xs text-yellow-500 font-bold select-none cursor-pointer"
                 >
-                  🌐 Afficher sur le blog
+                  🌐 Public (Carnet)
                 </label>
               </div>
             </div>

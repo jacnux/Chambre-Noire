@@ -409,13 +409,7 @@ const CarnetRoutesManager: React.FC = () => {
   };
 
   const getProjectPublicUrl = (project: any) => {
-    const slug = (user?.name || 'unknown').toLowerCase();
-    const previewQuery = project.isPublished ? '' : '&preview=true';
-    if (window.location.hostname === 'localhost') {
-      return `http://localhost:8080/carnet-de-routes/project/${project.slug}?user=${slug}${previewQuery}`;
-    }
-    const domainQuery = project.isPublished ? '' : '?preview=true';
-    return `https://${slug}-blog.helioscope.fr/carnet-de-routes/project/${project.slug}${domainQuery}`;
+    return `/project/${project.slug}`;
   };
 
   const resetForm = () => {
@@ -877,7 +871,7 @@ const CarnetRoutesManager: React.FC = () => {
                         className="w-4 h-4 rounded text-yellow-500 focus:ring-0 bg-black/40 border-white/10 animate-none"
                       />
                       <label htmlFor="pub" className="text-sm text-gray-300 select-none cursor-pointer">
-                        Publier sur le blog (Visible dans le Carnet de routes)
+                        Publier (Visible dans le Carnet de routes)
                       </label>
                     </div>
                   </div>
@@ -919,7 +913,7 @@ const CarnetRoutesManager: React.FC = () => {
                             }`}
                             title="Cliquer pour basculer le statut"
                           >
-                            {p.isPublished ? '✓ Blog' : '✕ Masqué'}
+                            {p.isPublished ? '✓ Public' : '✕ Masqué'}
                           </button>
                         </div>
                         <p className="text-xs text-gray-400 line-clamp-3 mb-4">{p.description || 'Aucune description.'}</p>
@@ -1019,9 +1013,9 @@ const CarnetRoutesManager: React.FC = () => {
                                 ? 'bg-green-600/80 text-green-100 hover:bg-green-600'
                                 : 'bg-gray-600/80 text-gray-300 hover:bg-gray-600'
                             }`}
-                            title="Cliquer pour basculer la visibilité blog"
+                            title="Cliquer pour basculer la visibilité"
                           >
-                            {p.showOnBlog ? '✓ Blog' : '✕ Masqué'}
+                            {p.showOnBlog ? '✓ Public' : '✕ Masqué'}
                           </button>
                         </div>
                         <div>
@@ -1054,7 +1048,7 @@ const CarnetRoutesManager: React.FC = () => {
                                 : 'bg-gray-700/80 hover:bg-gray-600 text-gray-300'
                             }`}
                           >
-                            {p.showOnBlog ? 'Visible Blog' : 'Masqué Blog'}
+                            {p.showOnBlog ? '✓ Public' : '✕ Masqué'}
                           </button>
                         </div>
                         <div className="flex gap-2">
