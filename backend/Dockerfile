@@ -21,6 +21,11 @@ RUN npm install
 # Copie du reste du code source
 COPY . .
 
+# Compiler TypeScript en JavaScript
+RUN npm run build
+
+# Changer le propriétaire du dossier /app pour l'utilisateur node (UID 1000)
+RUN chown -R node:node /app
 
 # Exposition du port
 EXPOSE 3000

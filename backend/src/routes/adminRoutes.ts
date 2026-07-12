@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
 import Album from '../models/Album';
@@ -86,7 +87,7 @@ router.post('/users/:id/reset-password', async (req: Request, res: Response) => 
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-    const tempPassword = Math.random().toString(36).slice(-8);
+    const tempPassword = crypto.randomBytes(12).toString('hex');
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     user.password = hashedPassword;
@@ -104,7 +105,6 @@ router.post('/users/:id/reset-password', async (req: Request, res: Response) => 
 
     res.json({
       message: 'Mot de passe réinitialisé et email envoyé',
-      newPassword: tempPassword,
       user: user.email
     });
   } catch (error) {

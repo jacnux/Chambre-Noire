@@ -428,25 +428,7 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
                 >
                   <option value="">Sélectionner un objectif</option>
                   {gear
-                    .filter(g => {
-                      if (g.type !== 'lens') return false;
-                      if (gearCameraId) {
-                        const selectedCam = gear.find((c: any) => c._id === gearCameraId);
-                        if (selectedCam) {
-                          // Normalise formats for comparison:
-                          // Sinar F stores '4X5', large-format lenses store 'Plan-film 4x5'
-                          const normFmt = (f: string) => {
-                            const s = (f || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-                            if (s.includes('4x5') || s.includes('planfilm')) return '4x5';
-                            if (s.includes('120')) return '120';
-                            if (s.includes('35mm')) return '35mm';
-                            return s;
-                          };
-                          return normFmt(g.format) === normFmt(selectedCam.format);
-                        }
-                      }
-                      return true;
-                    })
+                    .filter(g => g.type === 'lens')
                     .map((g: any) => (
                       <option key={g._id} value={g._id}>
                         {g.brand} {g.model} ({g.format})
@@ -459,23 +441,29 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
               <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">Ouverture</label>
-                <input
-                  type="text"
+                <select
                   value={aperture}
                   onChange={e => setAperture(e.target.value)}
-                  placeholder="ex: f/8"
-                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-xs text-center"
-                />
+                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-[11px] text-center"
+                >
+                  <option value="">Sélectionner</option>
+                  {['f/1,4', 'f/1,7', 'f/1,8', 'f/2,8', 'f/3,5', 'f/4', 'f/5,6', 'f/6,3', 'f/8', 'f/11', 'f/16', 'f/22', 'f/32', 'f/45', 'f/64'].map(val => (
+                    <option key={val} value={val}>{val}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">Vitesse</label>
-                <input
-                  type="text"
+                <select
                   value={shutterSpeed}
                   onChange={e => setShutterSpeed(e.target.value)}
-                  placeholder="ex: 1/250s"
-                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-xs text-center"
-                />
+                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-[11px] text-center"
+                >
+                  <option value="">Sélectionner</option>
+                  {['B', '8s', '4s', '2s', '1s', '1/2s', '1/4s', '1/8s', '1/15s', '1/30s', '1/50s', '1/60s', '1/125s', '1/250s', '1/400s', '1/500s'].map(val => (
+                    <option key={val} value={val}>{val}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">ISO</label>

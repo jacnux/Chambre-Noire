@@ -1,5 +1,5 @@
 {
-  "name": "luminaview-client",
+  "name": "chambre-noire-client",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -21,7 +21,8 @@
     "autoprefixer": "^10.4.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@types/node": "^16.18.0"
+    "@types/node": "^16.18.0",
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",

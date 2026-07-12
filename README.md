@@ -28,6 +28,10 @@ graph TD
     BlogBack -->|Emails| Mailhog
 ```
 
+> **Note** : les services `blog-frontend` / `blog-backend` (§3, « Carnet de Routes »)
+> ne font pas partie de **ce dépôt** — ils sont hébergés dans un dépôt séparé et
+> se branchent sur la même base MongoDB et le même backend.
+
 ### 🖥️ 1. API & Backend Core (`backend`)
 * API Node.js/Express en TypeScript. Elle extrait automatiquement les métadonnées **EXIF** (modèle d'appareil photo, objectif, ouverture, ISO, temps d'exposition) des fichiers importés.
 * Intègre la gestion des modèles pour le matériel, les pellicules, les projets artistiques et les photos.

@@ -1,7 +1,7 @@
 {
-  "name": "luminaview-api",
+  "name": "chambre-noire-api",
   "version": "4.0.0",
-  "description": "API pour l'application de gestion de photos LuminaView",
+  "description": "API pour l'application de gestion de photos Chambre Noire",
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",

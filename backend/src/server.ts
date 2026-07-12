@@ -1,5 +1,5 @@
 // ============================================================
-// LUMINAVIEW API — server.ts
+// CHAMBRE NOIRE API — server.ts
 // v4.2 — Mai 2026
 // ============================================================
 
@@ -31,6 +31,12 @@ const PORT = 3000;
 
 app.set('trust proxy', 1);
 
+// ── Vérification de la configuration critique (JWT_SECRET) ──
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET non défini en production — arrêt du serveur.');
+  process.exit(1);
+}
+
 
 // ============================================================
 // SÉCURITÉ
@@ -39,6 +45,14 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(hpp());
 app.use(mongoSanitize());
+
+// ── HSTS (production uniquement) ──
+if (process.env.NODE_ENV === 'production') {
+  app.use((_req, res, next) => {
+    res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+    next();
+  });
+}
 
 // ── Rate limiter AUTH : anti brute-force login uniquement ──
 // 20 tentatives max par 15 minutes, indépendant du reste
@@ -69,10 +83,18 @@ app.use('/api/projects', apiLimiter);
 // MIDDLEWARE GÉNÉRAL
 // ============================================================
 
-app.use(cors());
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+// CORS : strict en production (origine configurée), permissif en dev
+const corsOptions = process.env.NODE_ENV === 'production'
+  ? { origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : false }
+  : { origin: true };
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+// Les fichiers uploadés sont servis en statique. Les noms sont non devinables
+// (Date.now()) et les SVG sont bloqués à l'upload (voir routes). Une protection
+// par authentification complète de /uploads nécessiterait une auth par cookie
+// (voir plan-correctifs §C8).
 app.use('/uploads', express.static('/app/uploads'));
 
 
@@ -99,11 +121,19 @@ app.use('/api/gear', gearRoutes);
 app.use('/api/films', filmRoutes);
 app.use('/api/projects', projectRoutes);
 
+// ============================================================
+// GESTION CENTRALISÉE DES ERREURS
+// ============================================================
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Erreur non gérée:', err);
+  res.status(500).json({ error: 'Erreur interne du serveur.' });
+});
+
 
 // ============================================================
 // DÉMARRAGE
 // ============================================================
 
 app.listen(PORT, '0.0.0.0', () =>
-  console.log(`🚀 LuminaView API running on port ${PORT}`)
+  console.log(`🚀 Chambre Noire API running on port ${PORT}`)
 );

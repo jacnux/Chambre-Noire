@@ -4,6 +4,21 @@ import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import EditPhotoModal from '../components/EditPhotoModal';
 
+const parseDevTime = (timeStr: string) => {
+  let min = 0;
+  let sec = 0;
+  if (timeStr) {
+    const minMatch = timeStr.match(/(\d+)\s*(m|min|mn)/i);
+    const secMatch = timeStr.match(/(\d+)\s*(s|sec)/i);
+    if (minMatch) min = parseInt(minMatch[1], 10);
+    if (secMatch) sec = parseInt(secMatch[1], 10);
+    if (!minMatch && !secMatch && /^\d+$/.test(timeStr.trim())) {
+      min = parseInt(timeStr.trim(), 10);
+    }
+  }
+  return { min, sec };
+};
+
 type TabType = 'projects' | 'photos' | 'gear' | 'films';
 
 const CarnetRoutesManager: React.FC = () => {
@@ -17,6 +32,7 @@ const CarnetRoutesManager: React.FC = () => {
   const [gear, setGear] = useState<any[]>([]);
   const [films, setFilms] = useState<any[]>([]);
   const [myPhotos, setMyPhotos] = useState<any[]>([]); // Toutes les photos de l'utilisateur pour association
+  const [userAlbums, setUserAlbums] = useState<any[]>([]);
 
   // --- Modals et Formulaires ---
   const [showAddProject, setShowAddProject] = useState(false);
@@ -27,6 +43,11 @@ const CarnetRoutesManager: React.FC = () => {
   const [editingPhoto, setEditingPhoto] = useState<any | null>(null);
   const [selectedFilmRoll, setSelectedFilmRoll] = useState<any | null>(null); // Pour afficher la planche-contact
   const [showPhotoPickerForSlot, setShowPhotoPickerForSlot] = useState<number | null>(null); // Slot en attente d'association
+  const [shareItem, setShareItem] = useState<{ type: 'project' | 'photo'; title: string; url: string; htmlCode: string } | null>(null);
+  const [pickerTab, setPickerTab] = useState<'gallery' | 'upload'>('gallery');
+  const [selectedUploadAlbumId, setSelectedUploadAlbumId] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // --- Form States ---
   // Projet
@@ -67,12 +88,13 @@ const CarnetRoutesManager: React.FC = () => {
   const [pickerSearch, setPickerSearch] = useState('');
   const [searchPhotoQuery, setSearchPhotoQuery] = useState('');
   const [searchFilmQuery, setSearchFilmQuery] = useState('');
-  const [filterByCameraTag, setFilterByCameraTag] = useState(true);
+  const [filterByCameraTag, setFilterByCameraTag] = useState(false);
 
   // Pellicule - Développement
   const [devDeveloper, setDevDeveloper] = useState('');
   const [devDilution, setDevDilution] = useState('');
-  const [devTime, setDevTime] = useState('');
+  const [devTimeMin, setDevTimeMin] = useState(0);
+  const [devTimeSec, setDevTimeSec] = useState(0);
   const [devTemperature, setDevTemperature] = useState('');
   const [devAgitation, setDevAgitation] = useState('');
   const [devPushPull, setDevPushPull] = useState('');
@@ -85,16 +107,21 @@ const CarnetRoutesManager: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const [projRes, gearRes, filmRes, photosRes] = await Promise.all([
+      const [projRes, gearRes, filmRes, photosRes, albumsRes] = await Promise.all([
         api.get('/projects'),
         api.get('/gear'),
         api.get('/films'),
-        api.get('/photos/my/photos')
+        api.get('/photos/my/photos'),
+        api.get('/albums/my/albums')
       ]);
       setProjects(projRes.data);
       setGear(gearRes.data);
       setFilms(filmRes.data);
       setMyPhotos(photosRes.data);
+      setUserAlbums(albumsRes.data);
+      if (albumsRes.data.length > 0 && !selectedUploadAlbumId) {
+        setSelectedUploadAlbumId(albumsRes.data[0]._id);
+      }
 
       // Si on visualise une planche-contact, rafraîchir son objet
       if (selectedFilmRoll) {
@@ -249,7 +276,7 @@ const CarnetRoutesManager: React.FC = () => {
         developmentSettings: {
           developer: devDeveloper,
           dilution: devDilution,
-          time: devTime,
+          time: devTimeMin || devTimeSec ? `${devTimeMin}mn ${devTimeSec}s` : '',
           temperature: devTemperature,
           agitation: devAgitation,
           pushPull: devPushPull,
@@ -294,7 +321,9 @@ const CarnetRoutesManager: React.FC = () => {
 
     setDevDeveloper(f.developmentSettings?.developer || '');
     setDevDilution(f.developmentSettings?.dilution || '');
-    setDevTime(f.developmentSettings?.time || '');
+    const parsedTime = parseDevTime(f.developmentSettings?.time || '');
+    setDevTimeMin(parsedTime.min);
+    setDevTimeSec(parsedTime.sec);
     setDevTemperature(f.developmentSettings?.temperature || '');
     setDevAgitation(f.developmentSettings?.agitation || '');
     setDevPushPull(f.developmentSettings?.pushPull || '');
@@ -341,6 +370,45 @@ const CarnetRoutesManager: React.FC = () => {
   };
 
   // --- Gestion Planche-Contact ---
+  const handleDirectUploadToSlot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFilmRoll || showPhotoPickerForSlot === null || !selectedUploadAlbumId || !uploadFile) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('photos', uploadFile);
+    formData.append('albumId', selectedUploadAlbumId);
+    
+    const meta = [{
+      index: 0,
+      title: uploadFile.name.split('.').slice(0, -1).join('.') || 'Sans titre',
+      description: `Importé via la pellicule ${selectedFilmRoll.name}`,
+      isCover: false,
+      originalName: uploadFile.name,
+      tag: '',
+      applyWatermark: false,
+      watermarkText: '',
+      filmId: selectedFilmRoll._id,
+      filmFrameNumber: showPhotoPickerForSlot,
+      isAnalog: true
+    }];
+    formData.append('metadata', JSON.stringify(meta));
+
+    try {
+      await api.post('/photos', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setUploadFile(null);
+      setShowPhotoPickerForSlot(null);
+      setPickerTab('gallery');
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      alert('Erreur lors du téléversement : ' + (err.response?.data?.error || err.message));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleLinkPhotoToSlot = async (photoId: string) => {
     if (!selectedFilmRoll || showPhotoPickerForSlot === null) return;
     try {
@@ -451,7 +519,8 @@ const CarnetRoutesManager: React.FC = () => {
     setFilmIsoUsed('');
     setDevDeveloper('');
     setDevDilution('');
-    setDevTime('');
+    setDevTimeMin(0);
+    setDevTimeSec(0);
     setDevTemperature('');
     setDevAgitation('');
     setDevPushPull('');
@@ -563,6 +632,24 @@ const CarnetRoutesManager: React.FC = () => {
             </div>
           </div>
 
+          {/* Guide d'aide rapide */}
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-xs text-gray-300 space-y-2">
+            <h4 className="font-bold text-yellow-500 flex items-center gap-1.5">
+              💡 Guide de saisie des photos argentiques
+            </h4>
+            <p>
+              Chaque case ci-dessous représente une vue (ou plan-film) de votre pellicule. 
+              Pour ajouter une image à une vue, cliquez sur <strong>"Associer"</strong>. Vous pourrez alors :
+            </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Choisir une photo existante depuis votre <strong>Galerie</strong>.</li>
+              <li>Ou utiliser l'onglet <strong>"Téléverser une image"</strong> pour importer une nouvelle photo directement pour cette case.</li>
+            </ul>
+            <p className="text-gray-400 italic">
+              Les paramètres par défaut de la pellicule (boîtier, objectifs, réglages d'exposition, etc.) seront automatiquement appliqués aux photos associées.
+            </p>
+          </div>
+
           {/* Grille planche-contact */}
           <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {Array.from({ length: selectedFilmRoll.maxViews }).map((_, idx) => {
@@ -632,7 +719,9 @@ const CarnetRoutesManager: React.FC = () => {
                   onClick={() => {
                     setShowPhotoPickerForSlot(null);
                     setPickerSearch('');
-                    setFilterByCameraTag(true);
+                    setFilterByCameraTag(false);
+                    setPickerTab('gallery');
+                    setUploadFile(null);
                   }}
                   className="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl"
                 >
@@ -644,95 +733,162 @@ const CarnetRoutesManager: React.FC = () => {
                     ? 'Plan-film'
                     : `Vue #${showPhotoPickerForSlot}`}
                 </h3>
-                <p className="text-xs text-gray-400 mb-4">Choisissez une photo de votre galerie pour la lier à cette vue.</p>
+                <p className="text-xs text-gray-400 mb-4">Choisissez une photo de votre galerie ou téléversez-la directement.</p>
 
-                {/* Filtre / Recherche */}
-                <div className="flex flex-col sm:flex-row gap-2 mb-4 bg-black/20 p-3 rounded-lg border border-white/5">
-                  <input
-                    type="text"
-                    placeholder="Filtrer par titre ou tag..."
-                    value={pickerSearch}
-                    onChange={e => setPickerSearch(e.target.value)}
-                    className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs"
-                  />
-                  <label className="flex items-center gap-1.5 text-xs text-gray-300 select-none cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filterByCameraTag}
-                      onChange={e => setFilterByCameraTag(e.target.checked)}
-                      className="w-3.5 h-3.5 text-yellow-500 rounded bg-transparent border-white/20 focus:ring-0 cursor-pointer"
-                    />
-                    Uniquement tag 'camera'
-                  </label>
+                <div className="flex border-b border-white/10 mb-4">
+                  <button
+                    onClick={() => setPickerTab('gallery')}
+                    className={`flex-1 text-center py-2 text-xs font-semibold transition ${
+                      pickerTab === 'gallery'
+                        ? 'text-yellow-500 border-b-2 border-yellow-500'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Choisir depuis la galerie
+                  </button>
+                  <button
+                    onClick={() => setPickerTab('upload')}
+                    className={`flex-1 text-center py-2 text-xs font-semibold transition ${
+                      pickerTab === 'upload'
+                        ? 'text-yellow-500 border-b-2 border-yellow-500'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Téléverser directement
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 overflow-y-auto pr-2 flex-1">
-                  {myPhotos
-                    .filter(p => {
-                      if (p.filmId) return false;
-                      if (pickerSearch) {
-                        const q = pickerSearch.toLowerCase();
-                        const matchTitle = p.title?.toLowerCase().includes(q);
-                        const matchTags = p.tags?.some((t: string) => t.toLowerCase().includes(q));
-                        if (!matchTitle && !matchTags) return false;
-                      }
-                      if (filterByCameraTag) {
-                        const hasCameraTag = p.tags?.some((t: string) => {
-                          const lt = t.toLowerCase();
-                          return lt === 'camera' || lt === 'camara';
-                        });
-                        if (!hasCameraTag) return false;
-                      }
-                      return true;
-                    })
-                    .map(p => (
-                      <div
-                        key={p._id}
-                        onClick={() => {
-                          handleLinkPhotoToSlot(p._id);
-                          setPickerSearch('');
-                          setFilterByCameraTag(true);
-                        }}
-                        className="bg-black/40 rounded-lg overflow-hidden aspect-square border border-white/5 hover:border-yellow-500 cursor-pointer relative group"
-                      >
-                        <img src={`/uploads/${p.filename}`} alt={p.title} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-1.5 transition duration-150">
-                          <p className="text-[9px] truncate w-full text-white font-medium">{p.title}</p>
-                          {p.tags && p.tags.length > 0 && (
-                            <p className="text-[7px] truncate w-full text-yellow-500">{p.tags.join(', ')}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                  {myPhotos.filter(p => !p.filmId).length === 0 ? (
-                    <div className="col-span-3 text-center py-12 text-gray-500 text-xs">
-                      Toutes vos photos importées ont déjà été assignées à un rouleau.
+                {pickerTab === 'gallery' && (
+                  <>
+                    {/* Filtre / Recherche */}
+                    <div className="flex flex-col sm:flex-row gap-2 mb-4 bg-black/20 p-3 rounded-lg border border-white/5">
+                      <input
+                        type="text"
+                        placeholder="Filtrer par titre ou tag..."
+                        value={pickerSearch}
+                        onChange={e => setPickerSearch(e.target.value)}
+                        className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs"
+                      />
+                      <label className="flex items-center gap-1.5 text-xs text-gray-300 select-none cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filterByCameraTag}
+                          onChange={e => setFilterByCameraTag(e.target.checked)}
+                          className="w-3.5 h-3.5 text-yellow-500 rounded bg-transparent border-white/20 focus:ring-0 cursor-pointer"
+                        />
+                        Uniquement tag 'camera'
+                      </label>
                     </div>
-                  ) : (
-                    myPhotos.filter(p => {
-                      if (p.filmId) return false;
-                      if (pickerSearch) {
-                        const q = pickerSearch.toLowerCase();
-                        const matchTitle = p.title?.toLowerCase().includes(q);
-                        const matchTags = p.tags?.some((t: string) => t.toLowerCase().includes(q));
-                        if (!matchTitle && !matchTags) return false;
-                      }
-                      if (filterByCameraTag) {
-                        const hasCameraTag = p.tags?.some((t: string) => {
-                          const lt = t.toLowerCase();
-                          return lt === 'camera' || lt === 'camara';
-                        });
-                        if (!hasCameraTag) return false;
-                      }
-                      return true;
-                    }).length === 0 && (
+                  </>
+                )}
+
+                {pickerTab === 'gallery' && (
+                  <div className="grid grid-cols-3 gap-2 overflow-y-auto pr-2 flex-1">
+                    {myPhotos
+                      .filter(p => {
+                        if (p.filmId) return false;
+                        if (pickerSearch) {
+                          const q = pickerSearch.toLowerCase();
+                          const matchTitle = p.title?.toLowerCase().includes(q);
+                          const matchTags = p.tags?.some((t: string) => t.toLowerCase().includes(q));
+                          if (!matchTitle && !matchTags) return false;
+                        }
+                        if (filterByCameraTag) {
+                          const hasCameraTag = p.tags?.some((t: string) => {
+                            const lt = t.toLowerCase();
+                            return lt === 'camera' || lt === 'camara';
+                          });
+                          if (!hasCameraTag) return false;
+                        }
+                        return true;
+                      })
+                      .map(p => (
+                        <div
+                          key={p._id}
+                          onClick={() => {
+                            handleLinkPhotoToSlot(p._id);
+                            setPickerSearch('');
+                            setFilterByCameraTag(false);
+                          }}
+                          className="bg-black/40 rounded-lg overflow-hidden aspect-square border border-white/5 hover:border-yellow-500 cursor-pointer relative group"
+                        >
+                          <img src={`/uploads/${p.filename}`} alt={p.title} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-1.5 transition duration-150">
+                            <p className="text-[9px] truncate w-full text-white font-medium">{p.title}</p>
+                            {p.tags && p.tags.length > 0 && (
+                              <p className="text-[7px] truncate w-full text-yellow-500">{p.tags.join(', ')}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                    {myPhotos.filter(p => !p.filmId).length === 0 ? (
                       <div className="col-span-3 text-center py-12 text-gray-500 text-xs">
-                        Aucune photo ne correspond aux filtres. Essayez de décocher "Uniquement tag 'camera'".
+                        Toutes vos photos importées ont déjà été assignées à un rouleau.
                       </div>
-                    )
-                  )}
-                </div>
+                    ) : (
+                      myPhotos.filter(p => {
+                        if (p.filmId) return false;
+                        if (pickerSearch) {
+                          const q = pickerSearch.toLowerCase();
+                          const matchTitle = p.title?.toLowerCase().includes(q);
+                          const matchTags = p.tags?.some((t: string) => t.toLowerCase().includes(q));
+                          if (!matchTitle && !matchTags) return false;
+                        }
+                        if (filterByCameraTag) {
+                          const hasCameraTag = p.tags?.some((t: string) => {
+                            const lt = t.toLowerCase();
+                            return lt === 'camera' || lt === 'camara';
+                          });
+                          if (!hasCameraTag) return false;
+                        }
+                        return true;
+                      }).length === 0 && (
+                        <div className="col-span-3 text-center py-12 text-gray-500 text-xs">
+                          Aucune photo ne correspond aux filtres.
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+
+                {pickerTab === 'upload' && (
+                  <form onSubmit={handleDirectUploadToSlot} className="space-y-4 flex-1 overflow-y-auto pr-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 mb-1">Album de destination *</label>
+                      <select
+                        value={selectedUploadAlbumId}
+                        onChange={e => setSelectedUploadAlbumId(e.target.value)}
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs"
+                        required
+                      >
+                        <option value="">Sélectionner un album</option>
+                        {userAlbums.map(a => (
+                          <option key={a._id} value={a._id}>{a.title}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 mb-1">Fichier image *</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setUploadFile(e.target.files?.[0] || null)}
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={uploading || !selectedUploadAlbumId || !uploadFile}
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 rounded-lg transition disabled:opacity-50 mt-4 text-xs uppercase tracking-wider"
+                    >
+                      {uploading ? '⏳ Téléversement en cours...' : 'Téléverser et associer'}
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           )}
@@ -935,6 +1091,20 @@ const CarnetRoutesManager: React.FC = () => {
                           </button>
                         </div>
                         <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const projectUrl = `${window.location.origin}/project/${p.slug}`;
+                              setShareItem({
+                                type: 'project',
+                                title: p.name,
+                                url: projectUrl,
+                                htmlCode: `<a href="${projectUrl}" target="_blank">${p.name}</a>`
+                              });
+                            }}
+                            className="text-xs font-semibold text-purple-400 hover:text-purple-300 bg-purple-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Partager
+                          </button>
                           <a
                             href={getProjectPublicUrl(p)}
                             target="_blank"
@@ -1052,6 +1222,20 @@ const CarnetRoutesManager: React.FC = () => {
                           </button>
                         </div>
                         <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const photoUrl = `${window.location.origin}/uploads/${p.filename}`;
+                              setShareItem({
+                                type: 'photo',
+                                title: p.title || 'Sans titre',
+                                url: photoUrl,
+                                htmlCode: `<img src="${photoUrl}" alt="${p.title || 'Photo'}" />`
+                              });
+                            }}
+                            className="text-xs font-semibold text-purple-400 hover:text-purple-300 bg-purple-500/10 px-3 py-1.5 rounded-lg transition"
+                          >
+                            Partager
+                          </button>
                           <a
                             href={`/uploads/${p.filename}`}
                             target="_blank"
@@ -1462,23 +1646,7 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
                       >
                         <option value="">Sélectionner l'objectif par défaut</option>
                         {gear
-                          .filter(g => {
-                            if (g.type !== 'lens') return false;
-                            if (filmGearCameraId) {
-                              const selectedCam = gear.find((c: any) => c._id === filmGearCameraId);
-                              if (selectedCam) {
-                                const normFmt = (f: string) => {
-                                  const s = (f || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-                                  if (s.includes('4x5') || s.includes('planfilm')) return '4x5';
-                                  if (s.includes('120')) return '120';
-                                  if (s.includes('35mm')) return '35mm';
-                                  return s;
-                                };
-                                return normFmt(g.format) === normFmt(selectedCam.format);
-                              }
-                            }
-                            return true;
-                          })
+                          .filter(g => g.type === 'lens')
                           .map(g => (
                             <option key={g._id} value={g._id}>
                               {g.brand} {g.model} ({g.format})
@@ -1495,23 +1663,29 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                         <div className="col-span-2 sm:col-span-1">
                           <label className="block text-[10px] text-gray-400 mb-1">Vitesse</label>
-                          <input
-                            type="text"
+                          <select
                             value={filmDefaultSpeed}
                             onChange={e => setFilmDefaultSpeed(e.target.value)}
-                            placeholder="ex: 1/125s"
                             className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs"
-                          />
+                          >
+                            <option value="">Sélectionner</option>
+                            {['B', '8s', '4s', '2s', '1s', '1/2s', '1/4s', '1/8s', '1/15s', '1/30s', '1/50s', '1/60s', '1/125s', '1/250s', '1/400s', '1/500s'].map(val => (
+                              <option key={val} value={val}>{val}</option>
+                            ))}
+                          </select>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
                           <label className="block text-[10px] text-gray-400 mb-1">Diaphragme</label>
-                          <input
-                            type="text"
+                          <select
                             value={filmDefaultAperture}
                             onChange={e => setFilmDefaultAperture(e.target.value)}
-                            placeholder="ex: f/8"
                             className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs"
-                          />
+                          >
+                            <option value="">Sélectionner</option>
+                            {['f/1,4', 'f/1,7', 'f/1,8', 'f/2,8', 'f/3,5', 'f/4', 'f/5,6', 'f/6,3', 'f/8', 'f/11', 'f/16', 'f/22', 'f/32', 'f/45', 'f/64'].map(val => (
+                              <option key={val} value={val}>{val}</option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-[10px] text-gray-400 mb-1">Filtre</label>
@@ -1598,23 +1772,39 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
                         </div>
                         <div>
                           <label className="block text-[10px] text-gray-400 mb-1">Dilution</label>
-                          <input
-                            type="text"
+                          <select
                             value={devDilution}
                             onChange={e => setDevDilution(e.target.value)}
-                            placeholder="ex: 1+1"
                             className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs"
-                          />
+                          >
+                            <option value="">Sélectionner</option>
+                            <option value="stock">stock</option>
+                            <option value="1+1">1+1</option>
+                            <option value="1+3">1+3</option>
+                          </select>
                         </div>
                         <div>
                           <label className="block text-[10px] text-gray-400 mb-1">Temps de dev</label>
-                          <input
-                            type="text"
-                            value={devTime}
-                            onChange={e => setDevTime(e.target.value)}
-                            placeholder="ex: 9m 30s"
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs"
-                          />
+                          <div className="flex gap-1 items-center">
+                            <select
+                              value={devTimeMin}
+                              onChange={e => setDevTimeMin(Number(e.target.value))}
+                              className="bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs w-1/2"
+                            >
+                              {Array.from({ length: 61 }, (_, i) => i).map(m => (
+                                <option key={m} value={m}>{m} min</option>
+                              ))}
+                            </select>
+                            <select
+                              value={devTimeSec}
+                              onChange={e => setDevTimeSec(Number(e.target.value))}
+                              className="bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs w-1/2"
+                            >
+                              {Array.from({ length: 60 }, (_, i) => i).map(s => (
+                                <option key={s} value={s}>{s} sec</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-[10px] text-gray-400 mb-1">Température</label>
@@ -1656,13 +1846,15 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
                       <div className="grid gap-3 sm:grid-cols-3">
                         <div>
                           <label className="block text-[10px] text-gray-400 mb-1">Nom du Fixateur</label>
-                          <input
-                            type="text"
+                          <select
                             value={devFixerBrand}
                             onChange={e => setDevFixerBrand(e.target.value)}
-                            placeholder="ex: Rapid Fixer"
                             className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs"
-                          />
+                          >
+                            <option value="">Sélectionner</option>
+                            <option value="Autre">Autre</option>
+                            <option value="Ilford Rapid Fixer">Ilford Rapid Fixer</option>
+                          </select>
                         </div>
                         <div>
                           <label className="block text-[10px] text-gray-400 mb-1">Dilution Fixateur</label>
@@ -1844,6 +2036,73 @@ onChange={e => setFilmTypeColor(e.target.value as any)}
           onClose={() => setEditingPhoto(null)}
           onSave={handleSavePhoto}
         />
+      )}
+      {shareItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-white/20 rounded-2xl shadow-2xl max-w-md w-full p-6 relative text-white">
+            <button
+              onClick={() => setShareItem(null)}
+              className="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-bold mb-2">Partager le {shareItem.type === 'project' ? 'projet' : 'média'}</h3>
+            <p className="text-xs text-gray-400 mb-4">{shareItem.title}</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] text-gray-400 mb-1">Lien de la page</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareItem.url}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs select-all focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareItem.url);
+                      alert('Lien copié dans le presse-papiers !');
+                    }}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-3 py-1.5 rounded-lg text-xs transition"
+                  >
+                    Copier
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-gray-400 mb-1">
+                  {shareItem.type === 'project' ? "Code d'intégration Iframe" : "Code d'intégration Image HTML"}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      shareItem.type === 'project'
+                        ? `<iframe src="${shareItem.url}" width="100%" height="600" frameborder="0"></iframe>`
+                        : `<img src="${shareItem.url}" alt="${shareItem.title}" />`
+                    }
+                    className="flex-1 bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs select-all focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      const embedCode = shareItem.type === 'project'
+                        ? `<iframe src="${shareItem.url}" width="100%" height="600" frameborder="0"></iframe>`
+                        : `<img src="${shareItem.url}" alt="${shareItem.title}" />`;
+                      navigator.clipboard.writeText(embedCode);
+                      alert("Code d'intégration copié !");
+                    }}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-3 py-1.5 rounded-lg text-xs transition"
+                  >
+                    Copier
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

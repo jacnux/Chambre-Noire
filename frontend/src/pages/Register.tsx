@@ -33,18 +33,18 @@ const Register = () => {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-xl p-8 text-center">
-          <div className="text-5xl mb-4">📧</div>
+          <div className="text-5xl mb-4">🎉</div>
           <h2 className="text-2xl font-bold text-green-400 mb-4">Inscription réussie !</h2>
           <p className="text-gray-300 mb-6">
-            Un email de validation a été envoyé à <strong className="text-white">{email}</strong>.
+            Votre compte administrateur a été créé et activé avec succès.
             <br /><br />
-            Veuillez consulter votre boîte de réception (et les spams) pour activer votre compte.
+            Vous pouvez maintenant vous connecter.
           </p>
           <Link
             to="/login"
             className="inline-block bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-2 rounded-full transition"
           >
-            Retour à la connexion
+            Se connecter
           </Link>
         </div>
       </div>

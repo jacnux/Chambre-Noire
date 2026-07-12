@@ -1,5 +1,5 @@
 // ============================================================
-// LUMINAVIEW API — userRoutes
+// CHAMBRE NOIRE API — userRoutes
 // v2.3.0 — Mai 2026
 // ============================================================
 
@@ -12,9 +12,39 @@ import path from 'path';
 import fs from 'fs';
 import nodemailer from 'nodemailer';
 
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const router = express.Router();
 
 // --- CONFIGURATION MULTER (Avatar + Banner) ---
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/tiff', 'image/gif'];
+
+function hasAllowedImageSignature(filePath: string): boolean {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buf = Buffer.alloc(12);
+    fs.readSync(fd, buf, 0, 12, 0);
+    fs.closeSync(fd);
+    if (buf.slice(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))) return true;
+    if (buf.slice(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47]))) return true;
+    if (buf.slice(0, 3).equals(Buffer.from([0x47, 0x49, 0x46]))) return true;
+    if ((buf.slice(0, 4).equals(Buffer.from([0x49, 0x49, 0x2a, 0x00])) ||
+         buf.slice(0, 4).equals(Buffer.from([0x4d, 0x4d, 0x00, 0x2a])))) return true;
+    if (buf.slice(0, 4).equals(Buffer.from([0x52, 0x49, 0x46, 0x46])) &&
+        buf.slice(8, 12).equals(Buffer.from([0x57, 0x45, 0x42, 0x50]))) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, '../../uploads');
@@ -27,7 +57,13 @@ const storage = multer.diskStorage({
     cb(null, prefix + Date.now() + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  fileFilter: (req: any, file: any, cb: any) => {
+    if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Type de fichier non autorisé (JPEG, PNG, WebP, TIFF, GIF).'), false);
+  }
+});
 
 // --- ROUTES ---
 
@@ -109,6 +145,16 @@ router.put('/me', authenticateToken, upload.fields([
     // Gestion des fichiers uploadés
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
+    // B2 — Validation du contenu réel des fichiers uploadés
+    const allUploaded = [...(files?.['avatar'] ?? []), ...(files?.['banner'] ?? [])];
+    const invalid = allUploaded.filter(
+      (f) => !hasAllowedImageSignature(path.join(__dirname, '../../uploads', f.filename))
+    );
+    if (invalid.length > 0) {
+      invalid.forEach((f) => { try { fs.unlinkSync(path.join(__dirname, '../../uploads', f.filename)); } catch { /* ignore */ } });
+      return res.status(400).json({ error: 'Un ou plusieurs fichiers ne sont pas des images valides.' });
+    }
+
     if (files && files['avatar']) {
       updates.avatar = files['avatar'][0].filename;
     }
@@ -160,11 +206,21 @@ const transporter = nodemailer.createTransport({
 
 // 6. POST CONTACT (Public — envoie un email au propriétaire du portfolio)
 router.post('/contact', async (req: Request, res: Response) => {
-  const { toUserId, fromName, fromEmail, message } = req.body;
+    const { toUserId, fromName, fromEmail, message } = req.body;
 
   if (!toUserId || !fromName || !fromEmail || !message) {
     return res.status(400).json({ error: 'Tous les champs sont obligatoires' });
   }
+
+  // B3 — Validation email + protection contre l'injection d'en-têtes / HTML
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(fromEmail) || /[\r\n]/.test(fromEmail) || /[\r\n]/.test(fromName)) {
+    return res.status(400).json({ error: 'Adresse email ou nom invalide.' });
+  }
+
+  const safeName = escapeHtml(fromName);
+  const safeEmail = escapeHtml(fromEmail);
+  const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
 
   try {
     const recipient = await User.findById(toUserId).select('email name');
@@ -177,11 +233,11 @@ router.post('/contact', async (req: Request, res: Response) => {
       subject: `📩 Message de ${fromName} via Hélioscope`,
       html: `
         <h3>Nouveau message depuis votre portfolio</h3>
-        <p><strong>De :</strong> ${fromName} &lt;${fromEmail}&gt;</p>
+        <p><strong>De :</strong> ${safeName} &lt;${safeEmail}&gt;</p>
         <p><strong>Message :</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${safeMessage}</p>
         <hr>
-        <p style="color:#999;font-size:12px">Répondez directement à cet email pour contacter ${fromName}.</p>
+        <p style="color:#999;font-size:12px">Répondez directement à cet email pour contacter ${safeName}.</p>
       `
     });
 

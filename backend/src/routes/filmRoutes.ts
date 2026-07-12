@@ -67,7 +67,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     film.brand = brand ?? film.brand;
     film.filmType = filmType ?? film.filmType;
     film.iso = iso !== undefined ? Number(iso) : film.iso;
-    film.isoUsed = isoUsed !== undefined ? (isoUsed !== null && isoUsed !== '' ? Number(isoUsed) : null) : film.isoUsed;
+    film.isoUsed = isoUsed !== undefined ? (isoUsed !== null && isoUsed !== '' ? Number(isoUsed) : undefined) : film.isoUsed;
     film.format = format ?? film.format;
     film.maxViews = maxViews !== undefined ? Number(maxViews) : film.maxViews;
     film.type = type ?? film.type;

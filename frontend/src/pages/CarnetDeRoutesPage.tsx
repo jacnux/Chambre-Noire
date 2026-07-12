@@ -9,6 +9,7 @@ const CarnetDeRoutesPage: React.FC = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [lightboxPhoto, setLightboxPhoto] = useState<any | null>(null);
+  const [shareItem, setShareItem] = useState<{ type: 'project' | 'photo'; title: string; url: string; embedUrl: string } | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -19,9 +20,21 @@ const CarnetDeRoutesPage: React.FC = () => {
       fetch('/api/users/public/profile').then(r => r.json()).catch(() => null),
     ])
       .then(([projData, photoData, userData]) => {
-        setProjects(Array.isArray(projData) ? projData : []);
-        setStandalonePhotos(Array.isArray(photoData) ? photoData : []);
+        const projs = Array.isArray(projData) ? projData : [];
+        const photos = Array.isArray(photoData) ? photoData : [];
+        setProjects(projs);
+        setStandalonePhotos(photos);
         setUserProfile(userData);
+
+        // Récupérer le paramètre photo si présent
+        const params = new URLSearchParams(window.location.search);
+        const photoId = params.get('photo');
+        if (photoId) {
+          const found = photos.find((p: any) => p._id === photoId);
+          if (found) {
+            setLightboxPhoto(found);
+          }
+        }
       })
       .catch(err => console.error('Error fetching carnet de routes:', err))
       .finally(() => setLoading(false));
@@ -39,6 +52,143 @@ const CarnetDeRoutesPage: React.FC = () => {
   const totalItems = projects.length + standalonePhotos.length;
 
   const isEmbedded = window.location.pathname.startsWith('/embed/');
+
+  if (isEmbedded && lightboxPhoto) {
+    return (
+      <div className="w-full min-h-screen bg-gray-950 text-white flex flex-col md:flex-row overflow-hidden">
+        {/* Gauche: Image */}
+        <div className="flex-1 bg-black flex items-center justify-center min-h-[250px] p-4 relative">
+          <img
+            src={`/uploads/${lightboxPhoto.filename}`}
+            alt={lightboxPhoto.title}
+            className="max-w-full max-h-[50vh] md:max-h-screen object-contain"
+          />
+        </div>
+
+        {/* Droite: Fiche technique */}
+        <div className="w-full md:w-80 p-6 overflow-y-auto space-y-6 border-t md:border-t-0 md:border-l border-white/10 text-white bg-gray-950">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
+              {lightboxPhoto.isAnalog ? '🎞️ Argentique' : '⚡ Numérique'}
+            </span>
+            <h2 className="text-xl font-bold mt-2">{lightboxPhoto.title}</h2>
+            <p className="text-xs text-gray-400 mt-1">
+              {lightboxPhoto.location && `📍 ${lightboxPhoto.location}`}
+              {lightboxPhoto.captureDate && ` • 📅 ${new Date(lightboxPhoto.captureDate).toLocaleDateString('fr-FR')}`}
+            </p>
+          </div>
+
+          {lightboxPhoto.shootingIntent && (
+            <div className="space-y-1">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-500">Intention</h4>
+              <p className="text-sm text-gray-300 leading-relaxed italic">"{lightboxPhoto.shootingIntent}"</p>
+            </div>
+          )}
+
+          {/* Prise de vue */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-500 border-b border-white/10 pb-1">Prise de vue</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {lightboxPhoto.gearCameraId && (
+                <div className="col-span-2">
+                  <span className="text-xs text-gray-500 block">Appareil</span>
+                  <span className="font-medium text-gray-200">{lightboxPhoto.gearCameraId.brand} {lightboxPhoto.gearCameraId.model}</span>
+                </div>
+              )}
+              {lightboxPhoto.gearLensId && (
+                <div className="col-span-2">
+                  <span className="text-xs text-gray-500 block">Objectif</span>
+                  <span className="font-medium text-gray-200">{lightboxPhoto.gearLensId.brand} {lightboxPhoto.gearLensId.model}</span>
+                </div>
+              )}
+              {lightboxPhoto.exposureSettings?.aperture && (
+                <div>
+                  <span className="text-xs text-gray-500 block">Ouverture</span>
+                  <span className="font-medium text-gray-200">{lightboxPhoto.exposureSettings.aperture}</span>
+                </div>
+              )}
+              {lightboxPhoto.exposureSettings?.shutterSpeed && (
+                <div>
+                  <span className="text-xs text-gray-500 block">Vitesse</span>
+                  <span className="font-medium text-gray-200">{lightboxPhoto.exposureSettings.shutterSpeed}</span>
+                </div>
+              )}
+              {(lightboxPhoto.exposureSettings?.iso || lightboxPhoto.filmId?.isoUsed || lightboxPhoto.filmId?.iso) && (
+                <div>
+                  <span className="text-xs text-gray-500 block">Sensibilité</span>
+                  <span className="font-medium text-gray-200">
+                    {lightboxPhoto.exposureSettings?.iso || lightboxPhoto.filmId?.isoUsed || lightboxPhoto.filmId?.iso} ISO
+                  </span>
+                </div>
+              )}
+              {lightboxPhoto.exposureSettings?.focalLength && (
+                <div>
+                  <span className="text-xs text-gray-500 block">Focale</span>
+                  <span className="font-medium text-gray-200">{lightboxPhoto.exposureSettings.focalLength}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Chimie si argentique */}
+          {lightboxPhoto.isAnalog && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-500 border-b border-white/10 pb-1">Chimie & Labo</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {lightboxPhoto.filmId && (
+                  <div className="col-span-2">
+                    <span className="text-xs text-gray-500 block">Pellicule</span>
+                    <span className="font-medium text-gray-200">
+                      {(() => {
+                        const brand = lightboxPhoto.filmId.brand || '';
+                        const type = lightboxPhoto.filmId.filmType || '';
+                        return type.toLowerCase().startsWith(brand.toLowerCase()) ? type : `${brand} ${type}`;
+                      })()} (Nominale : {lightboxPhoto.filmId.iso} ISO)
+                      <span className="text-xs text-gray-400 block mt-0.5">
+                        Type : {lightboxPhoto.filmId.type === 'BW' ? 'Noir & Blanc' : lightboxPhoto.filmId.type === 'color' ? 'Couleur Négatif' : 'Couleur Diapo'} • Format : {lightboxPhoto.filmId.format}
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {(lightboxPhoto.developmentSettings?.developer || lightboxPhoto.filmId?.developmentSettings?.developer) && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Révélateur</span>
+                    <span className="font-medium text-gray-200">
+                      {lightboxPhoto.developmentSettings?.developer || lightboxPhoto.filmId?.developmentSettings?.developer}
+                    </span>
+                  </div>
+                )}
+                {(lightboxPhoto.developmentSettings?.dilution || lightboxPhoto.filmId?.developmentSettings?.dilution) && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Dilution</span>
+                    <span className="font-medium text-gray-200">
+                      {lightboxPhoto.developmentSettings?.dilution || lightboxPhoto.filmId?.developmentSettings?.dilution}
+                    </span>
+                  </div>
+                )}
+                {(lightboxPhoto.developmentSettings?.time || lightboxPhoto.filmId?.developmentSettings?.time) && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Temps dév.</span>
+                    <span className="font-medium text-gray-200">
+                      {lightboxPhoto.developmentSettings?.time || lightboxPhoto.filmId?.developmentSettings?.time}
+                    </span>
+                  </div>
+                )}
+                {(lightboxPhoto.developmentSettings?.temperature || lightboxPhoto.filmId?.developmentSettings?.temperature) && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Température</span>
+                    <span className="font-medium text-gray-200">
+                      {lightboxPhoto.developmentSettings?.temperature || lightboxPhoto.filmId?.developmentSettings?.temperature}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
@@ -65,11 +215,14 @@ const CarnetDeRoutesPage: React.FC = () => {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {/* Project cards */}
           {projects.map(project => (
-            <Link
+            <div
               key={`proj-${project._id}`}
-              to={`/project/${project.slug}`}
-              className="group bg-white dark:bg-gray-900 border border-black/[0.06] dark:border-white/[0.06] rounded-2xl shadow-md hover:shadow-xl hover:border-amber-500/30 dark:hover:border-amber-500/30 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+              className="relative group bg-white dark:bg-gray-900 border border-black/[0.06] dark:border-white/[0.06] rounded-2xl shadow-md hover:shadow-xl hover:border-amber-500/30 dark:hover:border-amber-500/30 transition-all duration-300 overflow-hidden flex flex-col justify-between"
             >
+              <Link
+                to={`/project/${project.slug}`}
+                className="flex-1 flex flex-col justify-between"
+              >
               <div>
                 {/* Cover Image */}
                 <div className="aspect-[4/3] w-full bg-black/5 dark:bg-white/5 relative overflow-hidden">
@@ -112,7 +265,27 @@ const CarnetDeRoutesPage: React.FC = () => {
                   Ouvrir le carnet de route &rarr;
                 </span>
               </div>
-            </Link>
+              </Link>
+              {/* Bouton Partager */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const projectUrl = `${window.location.origin}/project/${project.slug}`;
+                  const embedUrl = `${window.location.origin}/embed/project/${project.slug}`;
+                  setShareItem({
+                    type: 'project',
+                    title: project.name,
+                    url: projectUrl,
+                    embedUrl: embedUrl
+                  });
+                }}
+                className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black text-white hover:text-amber-500 p-2 rounded-full transition text-xs"
+                title="Partager / Intégrer"
+              >
+                🔗
+              </button>
+            </div>
           ))}
 
           {/* Standalone Photos */}
@@ -120,7 +293,7 @@ const CarnetDeRoutesPage: React.FC = () => {
             <div
               key={`photo-${photo._id}`}
               onClick={() => setLightboxPhoto(photo)}
-              className="group bg-white dark:bg-gray-900 border border-black/[0.06] dark:border-white/[0.06] rounded-2xl shadow-md hover:shadow-xl hover:border-amber-500/30 dark:hover:border-amber-500/30 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col justify-between"
+              className="relative group bg-white dark:bg-gray-900 border border-black/[0.06] dark:border-white/[0.06] rounded-2xl shadow-md hover:shadow-xl hover:border-amber-500/30 dark:hover:border-amber-500/30 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col justify-between"
             >
               <div>
                 {/* Photo container */}
@@ -135,6 +308,25 @@ const CarnetDeRoutesPage: React.FC = () => {
                   <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white px-2 py-0.5 rounded-full">
                     {photo.isAnalog ? '🎞️ Argentique' : '⚡ Numérique'}
                   </span>
+                  {/* Bouton Partager */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const photoUrl = `${window.location.origin}/?photo=${photo._id}`;
+                      const embedUrl = `${window.location.origin}/embed/carnet-de-routes?photo=${photo._id}`;
+                      setShareItem({
+                        type: 'photo',
+                        title: photo.title || 'Sans titre',
+                        url: photoUrl,
+                        embedUrl: embedUrl
+                      });
+                    }}
+                    className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black text-white hover:text-amber-500 p-2 rounded-full transition text-xs"
+                    title="Partager / Intégrer"
+                  >
+                    🔗
+                  </button>
                 </div>
                 {/* Photo details */}
                 <div className="p-5 space-y-2">
@@ -334,6 +526,65 @@ const CarnetDeRoutesPage: React.FC = () => {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {shareItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-white/20 rounded-2xl shadow-2xl max-w-md w-full p-6 relative text-white">
+            <button
+              onClick={() => setShareItem(null)}
+              className="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-bold mb-2">Partager la fiche technique</h3>
+            <p className="text-xs text-gray-400 mb-4">{shareItem.title}</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] text-gray-400 mb-1">Lien de partage public</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareItem.url}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs select-all focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareItem.url);
+                      alert('Lien copié dans le presse-papiers !');
+                    }}
+                    className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-3 py-1.5 rounded-lg text-xs transition"
+                  >
+                    Copier
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-gray-400 mb-1">Code d'intégration HTML (Iframe)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`<iframe src="${shareItem.embedUrl}" width="100%" height="600" frameborder="0"></iframe>`}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-lg p-2 text-white text-xs select-all focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      const code = `<iframe src="${shareItem.embedUrl}" width="100%" height="600" frameborder="0"></iframe>`;
+                      navigator.clipboard.writeText(code);
+                      alert("Code d'intégration copié !");
+                    }}
+                    className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-3 py-1.5 rounded-lg text-xs transition"
+                  >
+                    Copier
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

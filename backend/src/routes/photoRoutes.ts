@@ -32,13 +32,37 @@ const storage = multer.diskStorage({
   }
 });
 
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg', 'image/png', 'image/webp', 'image/tiff', 'image/gif'
+];
+
 const fileFilter = (req: any, file: any, cb: any) => {
-  if (file.mimetype.startsWith('image/')) {
+  if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Seules les images sont autorisées !'), false);
+    cb(new Error('Type de fichier non autorisé. Formats acceptés : JPEG, PNG, WebP, TIFF, GIF.'), false);
   }
 };
+
+// Vérification du magic number (le mimetype client est contournable)
+function hasAllowedImageSignature(filePath: string): boolean {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buf = Buffer.alloc(12);
+    fs.readSync(fd, buf, 0, 12, 0);
+    fs.closeSync(fd);
+    if (buf.slice(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))) return true; // JPEG
+    if (buf.slice(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47]))) return true; // PNG
+    if (buf.slice(0, 3).equals(Buffer.from([0x47, 0x49, 0x46]))) return true; // GIF
+    if ((buf.slice(0, 4).equals(Buffer.from([0x49, 0x49, 0x2a, 0x00])) ||
+         buf.slice(0, 4).equals(Buffer.from([0x4d, 0x4d, 0x00, 0x2a])))) return true; // TIFF
+    if (buf.slice(0, 4).equals(Buffer.from([0x52, 0x49, 0x46, 0x46])) &&
+        buf.slice(8, 12).equals(Buffer.from([0x57, 0x45, 0x42, 0x50]))) return true; // WEBP
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 const maxFileSize = parseInt(process.env.MAX_FILE_SIZE_MB || '10', 10) * 1024 * 1024;
 const uploadMulter = multer({
@@ -128,6 +152,17 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
 
     const files = req.files as Express.Multer.File[];
     const meta = metadata ? JSON.parse(metadata) : [];
+
+    // B2 — Validation du contenu réel du fichier (magic number)
+    const invalidFiles = files.filter(
+      (f) => !hasAllowedImageSignature(path.join(__dirname, '../../uploads', f.filename))
+    );
+    if (invalidFiles.length > 0) {
+      invalidFiles.forEach((f) => {
+        try { fs.unlinkSync(path.join(__dirname, '../../uploads', f.filename)); } catch { /* ignore */ }
+      });
+      return res.status(400).json({ error: 'Un ou plusieurs fichiers ne sont pas des images valides.' });
+    }
 
     const album = await Album.findById(albumId);
     if (!album) return res.status(404).json({ error: 'Album introuvable' });

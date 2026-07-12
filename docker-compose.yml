@@ -35,9 +35,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
     user: "1000:1000"
     volumes:
-      - ./backend/src:/app/src
       - ./data/uploads:/app/uploads
-    command: npm run dev
+    command: sh -c "npm run build && npm start"
     restart: always
     networks:
       - chambrenoire-network
@@ -54,16 +53,6 @@ services:
     depends_on:
       - backend
     restart: always
-    networks:
-      - chambrenoire-network
-
-  # --- MAILHOG ---
-  mailhog:
-    image: mailhog/mailhog
-    container_name: chambrenoire-mailhog
-    ports:
-      - "1025:1025"
-      - "8025:8025"
     networks:
       - chambrenoire-network
 

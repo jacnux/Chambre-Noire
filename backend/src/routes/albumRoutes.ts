@@ -87,12 +87,13 @@ router.get('/photos/:id', async (req: Request, res: Response) => {
     if (!album) return res.status(404).json({ error: 'Album introuvable' });
 
     if (!album.isPublic) {
-      const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1];
-      if (!token) return res.status(401).json({ error: 'Accès non autorisé (token requis)' });
-      try {
-        const secret = process.env.JWT_SECRET || 'default_secret';
-        const decoded = jwt.verify(token, secret) as any;
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        if (!token) return res.status(401).json({ error: 'Accès non autorisé (token requis)' });
+        try {
+          const secret = process.env.JWT_SECRET;
+          if (!secret) return res.status(500).json({ error: 'Configuration du serveur incomplète (JWT_SECRET manquant).' });
+          const decoded = jwt.verify(token, secret) as any;
         const isAdmin = decoded.isAdmin === true;
         const isOwner = decoded.userId === album.userId.toString();
         if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Accès interdit' });
@@ -157,12 +158,13 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (!album) return res.status(404).json({ error: 'Album introuvable' });
 
     if (!album.isPublic) {
-      const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1];
-      if (!token) return res.status(401).json({ error: 'Accès non autorisé' });
-      try {
-        const secret = process.env.JWT_SECRET || 'default_secret';
-        const decoded = jwt.verify(token, secret) as any;
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        if (!token) return res.status(401).json({ error: 'Accès non autorisé' });
+        try {
+          const secret = process.env.JWT_SECRET;
+          if (!secret) return res.status(500).json({ error: 'Configuration du serveur incomplète (JWT_SECRET manquant).' });
+          const decoded = jwt.verify(token, secret) as any;
         const isAdmin = decoded.isAdmin === true;
         const isOwner = decoded.userId === album.userId.toString();
         if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Accès interdit' });

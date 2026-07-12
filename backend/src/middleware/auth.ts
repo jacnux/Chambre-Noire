@@ -18,8 +18,10 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   if (!token) return res.status(401).json({ error: 'Accès refusé. Token manquant.' });
 
   // 2. Vérifier le token
-  // IMPORTANT : Utiliser la meme clé secrète que dans authRoutes
-  const secret = process.env.JWT_SECRET || 'default_secret';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    return res.status(500).json({ error: 'Configuration du serveur incomplète (JWT_SECRET manquant).' });
+  }
 
   jwt.verify(token, secret, (err, user) => {
     if (err) {

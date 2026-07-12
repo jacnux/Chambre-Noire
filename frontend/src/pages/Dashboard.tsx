@@ -1,5 +1,5 @@
 // ============================================================
-// LUMINAVIEW — Dashboard.tsx
+// CHAMBRE NOIRE — Dashboard.tsx
 // Gestion des albums / galeries
 // version v2.3.8
 // tri alphabétique minimal A→Z / Z→A / défaut

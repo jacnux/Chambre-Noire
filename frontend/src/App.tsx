@@ -1,5 +1,5 @@
 //
-// LUMINAVIEW — App.tsx
+// CHAMBRE NOIRE — App.tsx
 // Point d'entrée du routing frontend
 // version v2.4.1
 //
