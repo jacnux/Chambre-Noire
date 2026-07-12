@@ -26,20 +26,20 @@ const Login = () => {
     };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-bg text-fg flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-8 text-yellow-400">Connexion</h1>
+        <h1 className="text-3xl font-bold text-center mb-8 text-accent">Connexion</h1>
 
         {error && <p className="bg-red-500/20 text-red-400 p-3 rounded mb-4 text-center text-sm">{error}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-4 bg-white/5 p-6 rounded-xl border border-white/10">
+        <form onSubmit={handleSubmit} className="space-y-4 bg-surface p-6 rounded-xl border border-line">
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-white"
+              className="w-full bg-surface-2 border border-line rounded-lg p-2 text-fg"
               required
             />
           </div>
@@ -51,27 +51,27 @@ const Login = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-black/30 border border-white/10 rounded-lg p-2 pr-10 text-white"
+                className="w-full bg-surface-2 border border-line rounded-lg p-2 pr-10 text-fg"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-fg"
               >
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 rounded-lg transition">
+          <button type="submit" className="w-full bg-accent hover:opacity-90 text-bg font-bold py-2 rounded-lg transition">
             Se connecter
           </button>
         </form>
 
-        <p className="text-center text-gray-400 text-sm mt-6">
+        <p className="text-center text-muted text-sm mt-6">
           Pas encore de compte ?{' '}
-          <Link to="/register" className="text-yellow-400 hover:underline">
+          <Link to="/register" className="text-accent hover:underline">
             S'inscrire
           </Link>
         </p>

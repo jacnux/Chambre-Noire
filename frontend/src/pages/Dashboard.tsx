@@ -98,8 +98,8 @@ const AlbumCardGrid = ({
   onToggleVisibility,
   onToggleFeatured,
 }: any) => (
-  <div className="bg-white/10 dark:bg-gray-800/60 backdrop-blur-lg border border-white/20 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden hover:bg-white/20 dark:hover:bg-gray-700/60 transition transform hover:-translate-y-1 flex flex-col">
-    <div className="aspect-square w-full bg-black/20 dark:bg-gray-900 flex items-center justify-center overflow-hidden">
+  <div className="bg-surface border border-line rounded-2xl overflow-hidden hover:bg-surface-2 transition transform hover:-translate-y-1 flex flex-col">
+    <div className="aspect-square w-full bg-surface-2 flex items-center justify-center overflow-hidden">
       {album.coverImage ? (
         <img
           src={`/uploads/${album.coverImage}`}
@@ -107,24 +107,24 @@ const AlbumCardGrid = ({
           className="w-full h-full object-cover"
         />
       ) : (
-        <span className="text-white/50 text-5xl">📷</span>
+        <span className="text-muted text-5xl">📷</span>
       )}
     </div>
 
     <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between">
       <div>
-        <h2 className="text-lg sm:text-xl font-bold mb-2 text-white truncate drop-shadow">
+        <h2 className="text-lg sm:text-xl font-bold mb-2 text-fg truncate">
           {album.title}
         </h2>
-        <p className="text-gray-300 text-xs sm:text-sm mb-4 line-clamp-2">
+        <p className="text-muted text-xs sm:text-sm mb-4 line-clamp-2">
           {album.description}
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t border-white/10 gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t border-line gap-2">
         <Link
           to={`/album/${album._id}`}
-          className="text-blue-300 font-semibold hover:text-blue-100 hover:underline text-sm drop-shadow"
+          className="text-accent font-semibold hover:opacity-90 text-sm"
         >
           Voir l'album
         </Link>
@@ -132,7 +132,7 @@ const AlbumCardGrid = ({
           <button
             onClick={() => onToggleVisibility(album._id, album.isPublic)}
             className={`text-xs font-bold uppercase tracking-wide transition ${
-              album.isPublic !== false ? 'text-green-300' : 'text-gray-500'
+              album.isPublic !== false ? 'text-green-300' : 'text-muted'
             }`}
           >
             {album.isPublic !== false ? '👁️ Public' : '🔒 Privé'}
@@ -145,28 +145,28 @@ const AlbumCardGrid = ({
                 : 'Mettre en avant sur le portfolio'
             }
             className={`text-xs font-bold uppercase tracking-wide transition ${
-              album.isFeatured ? 'text-yellow-400' : 'text-gray-500'
+              album.isFeatured ? 'text-accent' : 'text-muted'
             }`}
           >
             {album.isFeatured ? '⭐ Portfolio' : '☆ Portfolio'}
           </button>
           <button
             onClick={() => onEdit(album)}
-            className="text-indigo-300 hover:text-indigo-100 font-medium text-sm transition"
+            className="text-muted hover:text-fg font-medium text-sm transition"
           >
             Modifier
           </button>
           {album.isPublic !== false && (
             <button
               onClick={() => onShare(album)}
-              className="text-purple-300 hover:text-purple-100 text-xs font-bold uppercase tracking-wide transition"
+              className="text-muted hover:text-fg text-xs font-bold uppercase tracking-wide transition"
             >
               🔗 Partager
             </button>
           )}
           <button
             onClick={() => onDelete(album)}
-            className="text-red-300 hover:text-red-100 text-sm transition"
+            className="text-danger hover:opacity-80 text-sm transition"
           >
             Supprimer
           </button>
@@ -183,8 +183,8 @@ const AlbumCardList = ({
   onShare,
   onToggleFeatured,
 }: any) => (
-  <div className="bg-white/5 dark:bg-gray-800/40 backdrop-blur border border-white/10 dark:border-gray-700 rounded-xl p-4 flex items-center gap-4 hover:bg-white/10 transition group">
-    <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-black/20">
+  <div className="bg-surface border border-line rounded-xl p-4 flex items-center gap-4 hover:bg-surface-2 transition group">
+    <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-surface-2">
       {album.coverImage ? (
         <img
           src={`/uploads/${album.coverImage}`}
@@ -199,15 +199,15 @@ const AlbumCardList = ({
     </div>
 
     <div className="flex-1 min-w-0">
-      <h3 className="font-bold text-white truncate">{album.title}</h3>
-      <p className="text-xs text-gray-400 truncate">
+      <h3 className="font-bold text-fg truncate">{album.title}</h3>
+      <p className="text-xs text-muted truncate">
         {album.description || 'Aucune description'}
       </p>
       <span
         className={`mt-1 inline-block text-[10px] px-2 py-0.5 rounded ${
           album.isPublic !== false
             ? 'bg-green-500/20 text-green-300'
-            : 'bg-gray-500/20 text-gray-400'
+            : 'bg-surface-2 text-muted'
         }`}
       >
         {album.isPublic !== false ? 'Public' : 'Privé'}
@@ -217,20 +217,20 @@ const AlbumCardList = ({
     <div className="flex items-center gap-3 opacity-50 group-hover:opacity-100 transition">
       <Link
         to={`/album/${album._id}`}
-        className="text-blue-300 hover:text-blue-100 text-sm font-medium"
+        className="text-accent hover:opacity-90 text-sm font-medium"
       >
         Voir
       </Link>
       <button
         onClick={() => onEdit(album)}
-        className="text-indigo-300 hover:text-indigo-100 text-sm"
+        className="text-muted hover:text-fg text-sm"
       >
         Modif.
       </button>
       {album.isPublic !== false && (
         <button
           onClick={() => onShare(album)}
-          className="text-purple-300 hover:text-purple-100 text-sm"
+          className="text-muted hover:text-fg text-sm"
         >
           Part.
         </button>
@@ -239,14 +239,14 @@ const AlbumCardList = ({
         onClick={() => onToggleFeatured(album._id, album.isFeatured)}
         title={album.isFeatured ? 'Retirer du portfolio' : 'Mettre en avant'}
         className={`text-xs font-bold uppercase transition ${
-          album.isFeatured ? 'text-yellow-400' : 'text-gray-500'
+          album.isFeatured ? 'text-accent' : 'text-muted'
         }`}
       >
         {album.isFeatured ? '⭐' : '☆'}
       </button>
       <button
         onClick={() => onDelete(album)}
-        className="text-red-300 hover:text-red-100 text-sm"
+        className="text-danger hover:opacity-80 text-sm"
       >
         Suppr.
       </button>
@@ -261,58 +261,58 @@ const ShareModal = ({
   album: any;
   onClose: () => void;
 }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-    <div className="bg-white/10 dark:bg-gray-800 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div className="bg-surface border border-line rounded-2xl max-w-sm w-full p-6 relative">
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-gray-300 hover:text-white font-bold text-xl"
+        className="absolute top-4 right-4 text-muted hover:text-fg font-bold text-xl"
       >
         ✕
       </button>
-      <h3 className="text-xl font-bold mb-2 text-white text-center">
+      <h3 className="text-xl font-bold mb-2 text-fg text-center">
         Partager l'album
       </h3>
-      <p className="text-gray-300 text-sm mb-6 text-center">{album.title}</p>
+      <p className="text-muted text-sm mb-6 text-center">{album.title}</p>
 
       <div className="space-y-4">
-        <div className="bg-white/5 dark:bg-gray-900 p-4 rounded-lg border border-white/10">
-          <label className="block text-sm font-bold text-white mb-2">
+        <div className="bg-surface-2 p-4 rounded-lg border border-line">
+          <label className="block text-sm font-bold text-fg mb-2">
             Pour WordPress
           </label>
           <div className="flex gap-2">
             <input
               readOnly
               value={getWpShortcode(album._id)}
-              className="flex-1 bg-black/20 text-white text-xs p-2 rounded border border-white/10"
+              className="flex-1 bg-surface text-fg text-xs p-2 rounded border border-line"
             />
             <button
               onClick={() => {
                 copyToClipboard(getWpShortcode(album._id), 'Shortcode WP');
                 onClose();
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-xs font-bold transition"
+              className="bg-accent hover:opacity-90 text-bg px-3 py-2 rounded text-xs font-bold transition"
             >
               Copier
             </button>
           </div>
         </div>
 
-        <div className="bg-white/5 dark:bg-gray-900 p-4 rounded-lg border border-white/10">
-          <label className="block text-sm font-bold text-white mb-2">
+        <div className="bg-surface-2 p-4 rounded-lg border border-line">
+          <label className="block text-sm font-bold text-fg mb-2">
             Lien Public (Réseaux)
           </label>
           <div className="flex gap-2">
             <input
               readOnly
               value={getPublicLink(album._id)}
-              className="flex-1 bg-black/20 text-white text-xs p-2 rounded border border-white/10"
+              className="flex-1 bg-surface text-fg text-xs p-2 rounded border border-line"
             />
             <button
               onClick={() => {
                 copyToClipboard(getPublicLink(album._id), 'Lien Public');
                 onClose();
               }}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded text-xs font-bold transition"
+              className="bg-accent hover:opacity-90 text-bg px-3 py-2 rounded text-xs font-bold transition"
             >
               Copier
             </button>
@@ -461,11 +461,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${
-          theme === 'dark' ? 'text-white' : 'text-gray-900'
-        }`}
-      >
+      <div className="min-h-screen flex items-center justify-center text-fg">
         Chargement de la session...
       </div>
     );
@@ -480,12 +476,12 @@ const Dashboard = () => {
           {(feedbackMessage || errorMessage) && (
             <div className="mb-4 space-y-2">
               {feedbackMessage && (
-                <div className="rounded-xl border border-green-400/30 bg-green-500/10 text-green-100 px-4 py-3 text-sm shadow-lg backdrop-blur">
+                <div className="rounded-xl border border-green-400/30 bg-green-500/10 text-green-100 px-4 py-3 text-sm">
                   {feedbackMessage}
                 </div>
               )}
               {errorMessage && (
-                <div className="rounded-xl border border-red-400/30 bg-red-500/10 text-red-100 px-4 py-3 text-sm shadow-lg backdrop-blur">
+                <div className="rounded-xl border border-red-400/30 bg-red-500/10 text-red-100 px-4 py-3 text-sm">
                   {errorMessage}
                 </div>
               )}
@@ -495,7 +491,7 @@ const Dashboard = () => {
           <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6">
             {/* Barre de recherche */}
             <div className="relative flex-1 max-w-md">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-muted">
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -515,12 +511,12 @@ const Dashboard = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isGalleries ? "Rechercher une galerie..." : "Rechercher un album..."}
-                className="w-full bg-white/10 backdrop-blur text-white text-sm rounded-full pl-11 pr-10 py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition placeholder-gray-400"
+                className="w-full bg-surface-2 text-fg text-sm rounded-full pl-11 pr-10 py-2 border border-line focus:outline-none focus:ring-2 focus:ring-accent-weak transition placeholder-muted"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white"
+                   className="absolute inset-y-0 right-0 flex items-center pr-4 text-muted hover:text-fg"
                   type="button"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -531,14 +527,14 @@ const Dashboard = () => {
             </div>
 
             {/* Tri et Affichage */}
-            <div className="bg-white/10 backdrop-blur rounded-full p-1 flex gap-1 border border-white/10 self-end sm:self-auto">
+            <div className="bg-surface-2 rounded-full p-1 flex gap-1 border border-line self-end sm:self-auto">
               <button
                 onClick={() => setViewMode('grid')}
                 title="Vue Grille"
                 className={`p-2 rounded-full transition ${
                   viewMode === 'grid'
-                    ? 'bg-white/30 text-white'
-                    : 'text-gray-400 hover:text-white'
+                ? 'bg-fg text-bg'
+                : 'text-muted hover:text-fg'
                 }`}
               >
                 <IconGrid />
@@ -548,8 +544,8 @@ const Dashboard = () => {
                 title="Vue Liste"
                 className={`p-2 rounded-full transition ${
                   viewMode === 'list'
-                    ? 'bg-white/30 text-white'
-                    : 'text-gray-400 hover:text-white'
+                ? 'bg-fg text-bg'
+                : 'text-muted hover:text-fg'
                 }`}
               >
                 <IconList />
@@ -559,7 +555,7 @@ const Dashboard = () => {
                 onClick={() => setSortAZ(v => (v === null ? 'az' : v === 'az' ? 'za' : null))}
                 title={sortAZ === 'az' ? 'Basculer Z→A' : sortAZ === 'za' ? 'Retour ordre actuel' : 'Trier A→Z'}
                 className={`px-3 py-2 rounded-full transition text-sm ${
-                  sortAZ ? 'bg-white/30 text-white' : 'text-gray-400 hover:text-white'
+                  sortAZ ? 'bg-fg text-bg' : 'text-muted hover:text-fg'
                 }`}
               >
                 {sortAZ === 'az' ? 'A→Z' : sortAZ === 'za' ? 'Z→A' : 'A→Z'}
@@ -593,9 +589,7 @@ const Dashboard = () => {
 
           {sortedAlbums.length === 0 && (
             <div
-              className={`text-center mt-12 ${
-                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-              }`}
+              className="text-center mt-12 text-muted"
             >
               {searchQuery ? (
                 <>

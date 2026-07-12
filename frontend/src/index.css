@@ -3,7 +3,37 @@
 @tailwind utilities;
 @import './styles/lv-components.css';
 
-/* Tu peux garder tes styles personnalisés globaux ici */
+/* ============================================================
+   DESIGN TOKENS — Chambre Noire (minimal / plat, dual theme)
+   Les classes Tailwind bg-surface, text-fg, border-line, etc.
+   point vers ces variables (voir tailwind.config.js).
+   ============================================================ */
+:root {
+  --c-bg: #ffffff;
+  --c-surface: #f4f4f5;
+  --c-surface-2: #e9e9ec;
+  --c-line: rgba(0, 0, 0, 0.08);
+  --c-line-strong: rgba(0, 0, 0, 0.14);
+  --c-fg: #18181b;
+  --c-muted: #71717a;
+  --c-accent: #b45309; /* amber plus contrasté sur fond clair */
+  --c-accent-weak: rgba(180, 83, 9, 0.12);
+  --c-danger: #dc2626;
+}
+
+.dark {
+  --c-bg: #0b0b0c;
+  --c-surface: #16161a;
+  --c-surface-2: #1e1e22;
+  --c-line: rgba(255, 255, 255, 0.08);
+  --c-line-strong: rgba(255, 255, 255, 0.14);
+  --c-fg: #f5f5f4;
+  --c-muted: #a1a1aa;
+  --c-accent: #e8b04b;
+  --c-accent-weak: rgba(232, 176, 75, 0.12);
+  --c-danger: #ef4444;
+}
+
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,17 +41,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--c-bg);
+  color: var(--c-fg);
   transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Ajout pour le mode sombre :
-   On définit des variables CSS simples pour pouvoir changer les couleurs facilement */
-:root {
-  --bg-primary: #ffffff;
-  --text-primary: #000000;
-}
-
-.dark {
-  --bg-primary: #111827; /* gray-900 */
-  --text-primary: #f9fafb; /* gray-50 */
 }
