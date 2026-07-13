@@ -26,3 +26,7 @@ test_mise_prod-2juin.md/
 blog-luminaview.code-workspace
 documentation-luminaview/
 Presentation_Doc/
+
+# Artefacts de build (jamais versionnés)
+node_modules/
+build/
