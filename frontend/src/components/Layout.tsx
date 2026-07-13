@@ -82,9 +82,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex-shrink-0 flex flex-col justify-center">
             <Link
               to="/"
-              className="text-xl sm:text-2xl font-extrabold text-yellow-500 tracking-wide hover:text-yellow-400 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 drop-shadow-[0_2px_8px_rgba(234,179,8,0.15)]"
+              className="flex items-center gap-2 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200"
             >
-              Chambre Noire
+              <img
+                src={`${process.env.PUBLIC_URL}/logo.svg`}
+                alt="Chambre Noire"
+                className="h-8 w-auto drop-shadow-[0_2px_8px_rgba(232,176,75,0.25)]"
+              />
+              <span className="text-xl sm:text-2xl font-extrabold text-yellow-500 tracking-wide drop-shadow-[0_2px_8px_rgba(234,179,8,0.15)]">
+                Chambre Noire
+              </span>
             </Link>
             {user && (
               <span
@@ -273,6 +280,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Contenu page */}
         <main className="relative flex-1">{children}</main>
+
+        {/* FOOTER */}
+        <footer className="relative z-10 py-6 text-center text-muted text-sm border-t border-line bg-surface-2">
+          <img
+            src={`${process.env.PUBLIC_URL}/brand-logo.svg`}
+            alt="Chambre Noire"
+            className="h-14 w-auto mx-auto mb-3 drop-shadow-[0_2px_10px_rgba(232,176,75,0.25)]"
+          />
+          <p>© 2026 Chambre Noire. Tous droits réservés.</p>
+          <Link to="/legal" className="hover:text-fg underline mt-2 inline-block text-muted transition">Mentions Légales</Link>
+        </footer>
       </div>
     </div>
   );

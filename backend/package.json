@@ -7,7 +7,9 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "predev": "sleep 15"
+    "predev": "sleep 15",
+    "seed": "ts-node src/scripts/seedGear.ts",
+    "check:projects": "ts-node src/scripts/checkProjects.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
