@@ -17,28 +17,13 @@ const router = express.Router();
 
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { title, description, isPublic, virtualFilter } = req.body;
-    const isVirtual = req.body.isVirtual === true;
-    let { filterValue } = req.body;
-
-    if (filterValue && typeof filterValue === 'string') {
-      filterValue = filterValue
-        .split(',')
-        .map((t: string) => t.trim().toLowerCase())
-        .filter((t: string) => t.length > 0)
-        .join(',');
-    } else {
-      filterValue = null;
-    }
+    const { title, description, isPublic } = req.body;
 
     const newAlbum = new Album({
       userId: req.user.userId,
       title,
       description,
-      isPublic,
-      isVirtual,
-      virtualFilter: isVirtual ? (virtualFilter || 'tag') : null,
-      filterValue: isVirtual ? filterValue : null
+      isPublic
     });
 
     await newAlbum.save();
@@ -53,28 +38,7 @@ router.get('/my/albums', authenticateToken, async (req: Request, res: Response) 
   try {
     let albums = await Album.find({ userId: req.user.userId }).sort({ createdAt: -1 }).lean();
 
-    const updatedAlbums = await Promise.all(albums.map(async (album) => {
-      if ((album.isVirtual || album.filterValue) && !album.coverImage && album.virtualFilter === 'tag' && album.filterValue) {
-        const rawTags = album.filterValue.split(',').map(t => t.trim()).filter(t => t);
-        const positiveTags = rawTags.filter(t => !t.startsWith('-'));
-        const negativeTags = rawTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
-
-        if (positiveTags.length > 0) {
-          const query: any = { tags: { $all: positiveTags } };
-          query.userId = req.user.userId;
-          if (negativeTags.length > 0) query.tags.$nin = negativeTags;
-
-          const photo = await Photo.findOne(query).sort({ createdAt: -1 }).select('filename');
-          if (photo) {
-            album.coverImage = photo.filename;
-            await Album.updateOne({ _id: album._id }, { coverImage: photo.filename });
-          }
-        }
-      }
-      return album;
-    }));
-
-    res.json(updatedAlbums);
+    res.json(albums);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erreur récupération albums' });
@@ -105,25 +69,7 @@ router.get('/photos/:id', async (req: Request, res: Response) => {
     let photos;
     const fieldsToSelect = 'filename title description createdAt index tags exposureSettings developmentSettings shootingIntent location captureDate projectId gearCameraId gearLensId filmId filmFrameNumber showOnBlog isAnalog makingOf';
 
-    if (album.virtualFilter === 'tag' && album.filterValue) {
-      const rawTags = album.filterValue.split(',').map(t => t.trim()).filter(t => t);
-      const positiveTags = rawTags.filter(t => !t.startsWith('-'));
-      const negativeTags = rawTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
-
-      const query: any = { userId: album.userId };
-      const tagsCondition: any = {};
-
-      if (positiveTags.length > 0) tagsCondition.$all = positiveTags;
-      if (negativeTags.length > 0) tagsCondition.$nin = negativeTags;
-      if (Object.keys(tagsCondition).length > 0) query.tags = tagsCondition;
-
-      const validAlbums = await Album.find({ userId: album.userId }).select('_id').lean();
-      query.albumId = { $in: validAlbums.map(a => a._id) };
-
-      photos = await Photo.find(query).select(fieldsToSelect).sort({ createdAt: -1 });
-    } else {
-      photos = await Photo.find({ albumId: req.params.id }).select(fieldsToSelect).sort({ createdAt: -1 });
-    }
+    photos = await Photo.find({ albumId: req.params.id }).select(fieldsToSelect).sort({ createdAt: -1 });
 
     res.json(photos);
   } catch (error) {
@@ -181,11 +127,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { title, description, isPublic, coverImage, virtualFilter, filterValue, isVirtual } = req.body;
-    const updateData: any = { title, description, isPublic, coverImage, isVirtual };
-
-    if (virtualFilter !== undefined) updateData.virtualFilter = virtualFilter;
-    if (filterValue !== undefined) updateData.filterValue = filterValue;
+    const { title, description, isPublic, coverImage } = req.body;
+    const updateData: any = { title, description, isPublic, coverImage };
 
     const updated = await Album.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.userId },

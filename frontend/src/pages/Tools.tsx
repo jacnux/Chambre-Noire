@@ -28,7 +28,7 @@ const Tools = () => {
         api.get('/albums/my/albums'),
         api.get('/photos/my/photos')
       ]);
-      setAlbums(albumsRes.data.filter((a: any) => !a.isVirtual));
+      setAlbums(albumsRes.data);
       setPhotos(photosRes.data);
     } catch (error) {
       console.error(error);

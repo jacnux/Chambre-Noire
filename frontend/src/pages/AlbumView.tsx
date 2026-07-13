@@ -282,7 +282,7 @@ const AlbumView = () => {
   }, [photos, sortMode]);
 
   const hasPhotos = sortedPhotos.length > 0;
-  const canAddPhotos = !isViewer && !album?.isVirtual;
+  const canAddPhotos = !isViewer;
 
   const actionsBarWrapperClass = isViewer
     ? 'px-4 pt-3 sticky top-[76px] sm:top-[88px] z-20 px-4 pt-4'
@@ -407,7 +407,7 @@ const AlbumView = () => {
                       <span className="text-muted">Album public</span>
                     )
                   ) : (
-                    <Link to={album?.isVirtual ? '/galleries' : '/dashboard'} className="text-accent hover:text-fg transition">
+                    <Link to="/dashboard" className="text-accent hover:text-fg transition">
                       Retour
                     </Link>
                   )}
@@ -420,9 +420,6 @@ const AlbumView = () => {
                   </h1>
                   {isViewer && (
                     <span className="text-[11px] px-2 py-1 rounded-full bg-surface-2 text-fg border border-line">Public</span>
-                  )}
-                  {album?.isVirtual && (
-                    <span className="text-[11px] px-2 py-1 rounded-full bg-purple-500/15 text-purple-200 border border-purple-400/20">Galerie virtuelle</span>
                   )}
                 </div>
                 {album?.description && (
@@ -636,13 +633,6 @@ const AlbumView = () => {
           </div>
         )}
 
-        {/* ÉTAT VIDE — album virtuel */}
-        {album?.isVirtual && !hasPhotos && (
-          <div className="px-4 py-10 text-center">
-            <p className="text-purple-300 text-sm">✦ Aucune photo ne correspond au filtre de cette galerie virtuelle.</p>
-          </div>
-        )}
-
         {/* CONTENEUR PHOTOS */}
         {hasPhotos && (
           <div className={viewMode === 'grid'
@@ -672,9 +662,7 @@ const AlbumView = () => {
                         <button onClick={e => { e.stopPropagation(); setEditingPhoto(photo); }} className="w-8 h-8 bg-surface-2 rounded-full text-fg hover:bg-line-strong flex items-center justify-center" title="Modifier">✎</button>
                         <button onClick={e => { e.stopPropagation(); setInfoPhoto(photo); }} className="w-8 h-8 bg-surface-2 rounded-full text-fg hover:bg-line-strong flex items-center justify-center font-bold text-xs" title="Info">i</button>
                         <button onClick={e => { e.stopPropagation(); handleShare(photo); }} className="w-8 h-8 bg-surface-2 rounded-full text-fg hover:bg-line-strong flex items-center justify-center" title="Partager">🔗</button>
-                        {!album?.isVirtual && (
                           <button onClick={e => { e.stopPropagation(); handleDeletePhoto(photo._id); }} className="w-8 h-8 bg-red-500/50 rounded-full text-fg hover:bg-red-500 flex items-center justify-center" title="Supprimer">✕</button>
-                        )}
                       </>
                     )}
                   </div>
@@ -701,9 +689,7 @@ const AlbumView = () => {
                     {!isViewer && (
                       <>
                         <button onClick={() => setEditingPhoto(photo)} className="text-muted hover:text-fg text-sm">Modif</button>
-                        {!album?.isVirtual && (
                           <button onClick={() => handleDeletePhoto(photo._id)} className="text-red-300 hover:text-red-100 text-sm">Suppr</button>
-                        )}
                       </>
                     )}
                   </div>
@@ -714,7 +700,7 @@ const AlbumView = () => {
         )}
 
         {/* Viewer public album vide non-virtuel */}
-        {isViewer && !hasPhotos && !album?.isVirtual && (
+        {isViewer && !hasPhotos && (
           <div className="px-4 py-10 text-center">
             <p className="text-muted text-sm">Aucune photo disponible dans cet album.</p>
           </div>

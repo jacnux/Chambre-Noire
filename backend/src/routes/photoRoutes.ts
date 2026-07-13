@@ -169,9 +169,6 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
     if (album.userId.toString() !== req.user.userId) {
       return res.status(403).json({ error: 'Action non autorisée' });
     }
-    if (album.isVirtual) {
-      return res.status(400).json({ error: 'Impossible d\'ajouter des photos à un album virtuel.' });
-    }
 
     const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });

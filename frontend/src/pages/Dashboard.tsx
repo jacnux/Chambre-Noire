@@ -6,7 +6,7 @@
 // ============================================================
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
@@ -336,8 +336,6 @@ const Dashboard = () => {
   const { user, loading } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const location = useLocation();
-  const isGalleries = location.pathname === '/galleries';
 
   useEffect(() => {
     if (loading) return;
@@ -346,11 +344,11 @@ const Dashboard = () => {
       return;
     }
     fetchAlbums();
-  }, [user, loading, navigate, isGalleries]);
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     setSearchQuery('');
-  }, [isGalleries]);
+  }, []);
 
   useEffect(() => {
     if (!feedbackMessage && !errorMessage) return;
@@ -383,10 +381,7 @@ const Dashboard = () => {
   };
 
   const deleteAlbum = async (album: any) => {
-    const targetLabel = album?.isVirtual
-      ? 'cette galerie'
-      : 'cet album et ses photos associées';
-    if (!window.confirm(`Supprimer ${targetLabel} ?`)) return;
+    if (!window.confirm('Supprimer cet album et ses photos associées ?')) return;
 
     try {
       const res = await api.delete<DeleteAlbumResponse>(`/albums/${album._id}`);
@@ -394,15 +389,11 @@ const Dashboard = () => {
 
       setAlbums(prev => prev.filter(a => a._id !== album._id));
 
-      if (album?.isVirtual) {
-        setFeedbackMessage(data.message || 'Galerie supprimée.');
-      } else {
-        const deletedPhotos = data.deletedPhotos ?? 0;
-        const freedBytes = data.freedBytes ?? 0;
-        setFeedbackMessage(
-          `${data.message || 'Album supprimé.'} ${deletedPhotos} photo(s) supprimée(s), ${formatBytes(freedBytes)} libérés.`
-        );
-      }
+      const deletedPhotos = data.deletedPhotos ?? 0;
+      const freedBytes = data.freedBytes ?? 0;
+      setFeedbackMessage(
+        `${data.message || 'Album supprimé.'} ${deletedPhotos} photo(s) supprimée(s), ${formatBytes(freedBytes)} libérés.`
+      );
 
       setErrorMessage(null);
       if (editingAlbum?._id === album._id) setEditingAlbum(null);
@@ -437,8 +428,6 @@ const Dashboard = () => {
   };
 
   const filteredAlbums = albums.filter(a => {
-    const matchesTab = isGalleries ? a.isVirtual === true : a.isVirtual !== true;
-    if (!matchesTab) return false;
     if (!searchQuery) return true;
     return (a.title || '').toLowerCase().includes(searchQuery.toLowerCase().trim());
   });
@@ -510,7 +499,7 @@ const Dashboard = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isGalleries ? "Rechercher une galerie..." : "Rechercher un album..."}
+                placeholder="Rechercher un album..."
                 className="w-full bg-surface-2 text-fg text-sm rounded-full pl-11 pr-10 py-2 border border-line focus:outline-none focus:ring-2 focus:ring-accent-weak transition placeholder-muted"
               />
               {searchQuery && (
@@ -599,9 +588,9 @@ const Dashboard = () => {
               ) : (
                 <>
                   <p className="text-xl mb-2">
-                    Aucun {isGalleries ? 'galerie' : 'album'} pour le moment.
+                    Aucun album pour le moment.
                   </p>
-                  <p>Commencez par créer votre première galerie !</p>
+                  <p>Commencez par créer votre premier album !</p>
                 </>
               )}
             </div>

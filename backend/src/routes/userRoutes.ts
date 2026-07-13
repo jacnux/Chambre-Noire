@@ -101,7 +101,7 @@ router.get('/admin/:id/albums', authenticateToken, async (req: Request, res: Res
   if (!(req as any).user?.isAdmin) return res.status(403).json({ error: 'Accès refusé' });
 
   try {
-    const albums = await Album.find({ userId: req.params.id }).select('title coverImage description isPublic isVirtual');
+    const albums = await Album.find({ userId: req.params.id }).select('title coverImage description isPublic');
     res.json(albums);
   } catch (error) {
     res.status(500).json({ error: 'Erreur récupération albums' });

@@ -11,17 +11,6 @@ const AlbumSchema = new mongoose.Schema({
   isFeatured: { type: Boolean, default: false },
   coverImage: String, // Stocke le filename de la couverture (ex: "1772987727758.jpg")
 
-  // --- Champs pour les albums virtuels ---
-  isVirtual: { type: Boolean, default: false },
-  virtualFilter: {
-      type: String,
-      enum: ['tag', 'date', null],
-      default: null
-  },
-  filterValue: { type: String, default: null },
-  startDate: { type: Date, default: null },
-  endDate: { type: Date, default: null },
-
   createdAt: { type: Date, default: Date.now },
 
   // Options de tri

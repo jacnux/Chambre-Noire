@@ -16,7 +16,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Zone connectée large (albums, galeries, carnet-routes, etc.)
   const isAuthenticatedArea = [
     '/dashboard',
-    '/galleries',
     '/dashboard/carnet-routes',
     '/dashboard/about',
     '/dashboard/help',
@@ -129,19 +128,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     }`}
                   >
                     📁 Albums
-                  </Link>
-
-                  <Link
-                    to="/galleries"
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-                      location.pathname === '/galleries'
-                        ? 'bg-purple-600 text-white shadow-[0_4px_12px_rgba(147,51,234,0.3)]'
-                        : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
-                        : 'text-gray-600 hover:text-black hover:bg-black/[0.04]'
-                    }`}
-                  >
-                    🖼️ Galeries
                   </Link>
 
                   <Link

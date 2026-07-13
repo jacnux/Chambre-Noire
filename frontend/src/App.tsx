@@ -71,7 +71,6 @@ const MainRoutes: React.FC = () => {
 
         {/* Privé */}
         <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
-        <Route path="/galleries" element={<RequireAuth><Dashboard /></RequireAuth>} />
         <Route path="/create-album" element={<RequireAuth><CreateAlbum /></RequireAuth>} />
         <Route path="/edit-profile" element={<RequireAuth><EditProfile /></RequireAuth>} />
         <Route path="/dashboard/carnet-routes" element={<RequireAuth><CarnetRoutesManager /></RequireAuth>} />
