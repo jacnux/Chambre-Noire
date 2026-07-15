@@ -35,8 +35,9 @@ services:
       - JWT_SECRET=${JWT_SECRET}
     user: "1000:1000"
     volumes:
+      - ./backend/src:/app/src
       - ./data/uploads:/app/uploads
-    command: sh -c "npm run build && npm start"
+    command: npm run dev
     restart: always
     networks:
       - chambrenoire-network
@@ -55,6 +56,7 @@ services:
     restart: always
     networks:
       - chambrenoire-network
+
 
   # --- NGINX PROXY ---
   nginx-proxy:

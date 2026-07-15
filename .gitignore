@@ -2,30 +2,7 @@
 .DS_Store
 parametres_prod/
 data/
-bug-pages.md
-documentation_blog/
-documentation-luminaview/
-utilitaire_mongo/
-script/
-refactoring/
-bugs/
-script_markdown/
-Commentaire_photo.md/
-git_commentaires.md
-clean_tags.js
-fix_tags.js
-Sans titre.tsx
-demande_modif.md
-cleanup-logs/
-documentation_v3.0/
-savrep_data_backend_par_securite/
-tmp/
-sync-prod-to-local-v2-interactive.sh
-Manuel_Utilisateur_Portfolio.md
-test_mise_prod-2juin.md/
-blog-luminaview.code-workspace
-documentation-luminaview/
-Presentation_Doc/
+
 
 # Artefacts de build (jamais versionnés)
 node_modules/
