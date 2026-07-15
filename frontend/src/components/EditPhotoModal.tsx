@@ -477,23 +477,38 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
               </div>
               <div>
                 <label className="block text-[10px] text-gray-400 mb-0.5">Focale</label>
-                <input
-                  type="text"
+                <select
                   value={focalLength}
                   onChange={e => setFocalLength(e.target.value)}
-                  placeholder="ex: 50mm"
-                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-xs text-center"
-                />
+                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-[11px] text-center"
+                >
+                  <option value="">Sélectionner</option>
+                  <option value="75 mm">75 mm</option>
+                  <option value="90 mm">90 mm</option>
+                  <option value="150 mm">150 mm</option>
+                  <option value="180 mm">180 mm</option>
+                  <option value="210 mm">210 mm</option>
+                  {/* Option fallback si la valeur existante n'est pas dans la liste */}
+                  {focalLength && !['75 mm', '90 mm', '150 mm', '180 mm', '210 mm'].includes(focalLength) && (
+                    <option value={focalLength}>{focalLength}</option>
+                  )}
+                </select>
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Lumière</label>
-                <input
-                  type="text"
+                <select
                   value={light}
                   onChange={e => setLight(e.target.value)}
-                  placeholder="ex: Naturelle"
-                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-xs text-center"
-                />
+                  className="w-full bg-black/30 border border-white/10 rounded-lg p-1.5 text-white text-[11px] text-center"
+                >
+                  <option value="">Sélectionner</option>
+                  <option value="Naturelle">Naturelle</option>
+                  <option value="Artificielle">Artificielle</option>
+                  <option value="Flash">Flash</option>
+                  {light && !['Naturelle', 'Artificielle', 'Flash'].includes(light) && (
+                    <option value={light}>{light}</option>
+                  )}
+                </select>
               </div>
             </div>
 
@@ -670,13 +685,17 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[10px] text-gray-400 mb-1">Nom / Produit</label>
-                    <input
-                      type="text"
+                    <select
                       value={fixerBrand}
                       onChange={e => setFixerBrand(e.target.value)}
                       className="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-white text-sm"
-                      placeholder="ex: Ilford Rapid Fixer"
-                    />
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="Ilford rapid Fixer">Ilford rapid Fixer</option>
+                      {fixerBrand && fixerBrand !== 'Ilford rapid Fixer' && (
+                        <option value={fixerBrand}>{fixerBrand}</option>
+                      )}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-[10px] text-gray-400 mb-1">Dilution fixateur</label>
