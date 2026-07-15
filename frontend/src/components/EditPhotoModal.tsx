@@ -699,23 +699,31 @@ const EditPhotoModal: React.FC<EditPhotoModalProps> = ({ photo, onClose, onSave 
                   </div>
                   <div>
                     <label className="block text-[10px] text-gray-400 mb-1">Dilution fixateur</label>
-                    <input
-                      type="text"
+                    <select
                       value={fixerDilution}
                       onChange={e => setFixerDilution(e.target.value)}
                       className="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-white text-sm"
-                      placeholder="ex: 1+4"
-                    />
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="1+4">1+4</option>
+                      {fixerDilution && fixerDilution !== '1+4' && (
+                        <option value={fixerDilution}>{fixerDilution}</option>
+                      )}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-[10px] text-gray-400 mb-1">Temps de fixage</label>
-                    <input
-                      type="text"
+                    <select
                       value={fixerTime}
                       onChange={e => setFixerTime(e.target.value)}
                       className="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-white text-sm"
-                      placeholder="ex: 5m"
-                    />
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="5mn">5mn</option>
+                      {fixerTime && fixerTime !== '5mn' && (
+                        <option value={fixerTime}>{fixerTime}</option>
+                      )}
+                    </select>
                   </div>
                 </div>
               </div>
