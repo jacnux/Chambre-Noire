@@ -55,7 +55,16 @@ const CarnetDeRoutesPage: React.FC = () => {
 
   if (isEmbedded && lightboxPhoto) {
     return (
-      <div className="w-full min-h-screen bg-gray-950 text-white flex flex-col md:flex-row overflow-hidden">
+      <div className="w-full min-h-screen bg-gray-950 text-white flex flex-col md:flex-row overflow-hidden relative">
+        {/* Bouton Retour (Fermer) */}
+        <button 
+          onClick={() => setLightboxPhoto(null)}
+          className="absolute top-4 left-4 z-50 bg-black/60 hover:bg-black text-white hover:text-amber-500 px-3 py-1.5 rounded-full transition text-sm font-medium flex items-center gap-2 border border-white/10 backdrop-blur-md shadow-lg"
+          title="Retour au carnet"
+        >
+          &larr; Retour
+        </button>
+
         {/* Gauche: Image */}
         <div className="flex-1 bg-black flex items-center justify-center min-h-[250px] p-4 relative">
           <img
