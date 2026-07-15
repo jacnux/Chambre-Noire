@@ -188,8 +188,8 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
 
     let coverFilename: string | null = null;
 
-    const savedPhotos = await Promise.all(
-      files.map(async (file) => {
+    const savedPhotos: any[] = [];
+    for (const file of files) {
         const data = meta.find((m: any) => m.originalName === file.originalname) || {};
 
         const inputPath = path.join(__dirname, '../../uploads', file.filename);
@@ -373,7 +373,7 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
         const manualTags = normalizeTags(data.tag);
         const tagsArray = [...new Set([...manualTags, ...exifKeywords])];
 
-        return {
+        savedPhotos.push({
           albumId,
           userId: req.user.userId,
           filename: file.filename,
@@ -392,9 +392,8 @@ router.post('/', authenticateToken, uploadMulter.array('photos'), async (req: Re
           filmFrameNumber: data.filmFrameNumber || null,
           showOnBlog: data.showOnBlog ?? false,
           developmentSettings: data.developmentSettings || {}
-        };
-      })
-    );
+        });
+    }
 
     await Photo.insertMany(savedPhotos);
 
